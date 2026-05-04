@@ -1,0 +1,12 @@
+[
+  { "name": "Food", "icon": "🍽️" },
+  { "name": "Transport", "icon": "🚌" },
+  { "name": "Housing", "icon": "🏠" },
+  { "name": "Utilities", "icon": "💡" },
+  { "name": "Medical", "icon": "💊" },
+  { "name": "Education", "icon": "📚" },
+  { "name": "Entertainment", "icon": "🎬" },
+  { "name": "Shopping", "icon": "🛍️" },
+  { "name": "Subscription", "icon": "🔁" },
+  { "name": "Other", "icon": "📦" }
+]

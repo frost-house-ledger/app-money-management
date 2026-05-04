@@ -1,0 +1,28 @@
+**/node_modules/
+**/release/
+**/dist/
+
+# ビルド成果物
+*.exe
+*.dmg
+*.AppImage
+*.deb
+*.rpm
+
+# SQLite データベース（ユーザーデータ）
+*.db
+*.sqlite
+*.sqlite3
+
+# 環境変数・シークレット
+.env
+.env.local
+.env.*.local
+
+# ログ
+*.log
+logs/
+
+# OS 生成ファイル
+.DS_Store
+Thumbs.db

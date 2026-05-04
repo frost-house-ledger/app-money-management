@@ -1,0 +1,95 @@
+import React from "react";
+
+export default function DashboardFilters({
+  selectedMonth,
+  setSelectedMonth,
+  filterType,
+  setFilterType,
+  range,
+  setRange,
+  dateRange,
+  setDateRange,
+  selectedDailyCategory,
+  setSelectedDailyCategory,
+  dailyCategoryOptions,
+  t
+}) {
+  return (
+    <section className="toolbar card">
+      <label>
+        {t.monthLabel}
+        <input
+          type="month"
+          value={selectedMonth}
+          onChange={(e) => setSelectedMonth(e.target.value)}
+        />
+      </label>
+
+      {/* All or fee, and income filter controls which types of records are included in totals and lists. */}
+      <label>
+        {t.filterLabel}
+        <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+          <option value="all">{t.filterAll}</option>
+          <option value="fee">{t.filterFeeOnly}</option>
+          <option value="income">{t.filterIncomeOnly}</option>
+        </select>
+      </label>
+
+      {/* Daily category filter controls which daily records are included in totals and lists. */}
+      <label>
+        {t.dailyCategoryLabel}
+        <select
+          value={selectedDailyCategory}
+          onChange={(e) => setSelectedDailyCategory(e.target.value)}
+        >
+          <option value="all">{t.allCategories}</option>
+          {dailyCategoryOptions.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.icon || "🏷️"} {category.label}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      {/* Month range controls the x-axis window of the monthly chart. */}
+      <label>
+        {t.chartFromLabel}
+        <input
+          type="month"
+          value={range.fromMonth}
+          onChange={(e) => setRange((curr) => ({ ...curr, fromMonth: e.target.value }))}
+        />
+      </label>
+
+      {/* The "to" month filter is optional. If not set, the chart will show all months from the "from" month until the latest month with data. */}
+      <label>
+        {t.chartToLabel}
+        <input
+          type="month"
+          value={range.toMonth}
+          onChange={(e) => setRange((curr) => ({ ...curr, toMonth: e.target.value }))}
+        />
+      </label>
+
+      {/* Date range filters which daily records are included in totals and lists. */}
+      <label>
+        {t.dateRangeFromLabel}
+        <input
+          type="date"
+          value={dateRange.fromDate}
+          onChange={(e) => setDateRange((curr) => ({ ...curr, fromDate: e.target.value }))}
+        />
+      </label>
+
+      {/* The "to" date filter is optional. If not set, all daily records from the "from" date until today will be included. */}
+      <label>
+        {t.dateRangeToLabel}
+        <input
+          type="date"
+          value={dateRange.toDate}
+          onChange={(e) => setDateRange((curr) => ({ ...curr, toDate: e.target.value }))}
+        />
+      </label>
+    </section>
+  );
+}

@@ -1,0 +1,97 @@
+{
+  "name": "app-money-management",
+  "version": "0.1.0",
+  "description": "Electron + React personal money management app",
+  "author": "Frost",
+  "main": "electron/main.js",
+  "type": "module",
+  "scripts": {
+    "react:start": "vite",
+    "react:build": "vite build",
+    "start": "electron .",
+    "dev": "concurrently \"npm run react:start\" \"wait-on tcp:5173 && electron .\"",
+    "move:exe": "node --input-type=commonjs -e \"const fs=require('fs');const path=require('path');const root=process.cwd();const release=path.join(root,'release');if(!fs.existsSync(release)) process.exit(0);for(const name of ['AMM-Setup.exe','AMM-x64.exe','AMM-ia32.exe']){const target=path.join(root,name);if(fs.existsSync(target)) fs.rmSync(target,{force:true});}const installer=fs.readdirSync(release).find((name)=>/^AMM-Setup-.*\\.exe$/i.test(name));if(installer){fs.copyFileSync(path.join(release,installer),path.join(root,'AMM-Setup.exe'));console.log('Copied release/'+installer+' -> AMM-Setup.exe');}console.log('Portable app folders are available in release/win-unpacked and release/win-ia32-unpacked');\"",
+    "bring:exe": "npm run move:exe",
+    "dist:win": "npm run react:build && electron-builder --publish never --win nsis --x64 && npm run move:exe",
+    "dist:win32": "npm run react:build && electron-builder --publish never --win nsis --ia32 && npm run move:exe",
+    "dist:win:all": "npm run react:build && electron-builder --publish never --win nsis --x64 --ia32 && npm run move:exe",
+    "dist:mac": "npm run react:build && electron-builder --publish never --mac --x64",
+    "dist:mac:arm64": "npm run react:build && electron-builder --publish never --mac --arm64",
+    "dist:mac:all": "npm run react:build && electron-builder --publish never --mac --x64 --arm64",
+    "dist:all": "npm run dist:win:all && echo macOS release files are built in GitHub Actions or on a macOS machine with npm run dist:mac:all",
+    "dist:dir": "npm run react:build && electron-builder --dir"
+  },
+  "keywords": [],
+  "license": "ISC",
+  "dependencies": {
+    "better-sqlite3": "^12.9.0",
+    "chart.js": "^4.5.1",
+    "mongodb": "^6.21.0",
+    "react": "^18.3.1",
+    "react-chartjs-2": "^5.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.2.1",
+    "electron": "^39.2.7",
+    "electron-builder": "^26.8.1",
+    "vite": "^6.4.2",
+    "wait-on": "^9.0.4"
+  },
+  "build": {
+    "appId": "com.frost.appmoneymanagement",
+    "productName": "AppMoneyManagement",
+    "files": [
+      "electron/**/*",
+      "dist/**/*",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "node_modules/better-sqlite3/**/*"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "executableName": "AMM",
+      "artifactName": "AMM-Setup-${version}.${ext}",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        }
+      ]
+    },
+    "mac": {
+      "artifactName": "AMM-mac-${arch}.${ext}",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "extraMetadata": {
+      "main": "electron/main.js"
+    }
+  }
+}
