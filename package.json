@@ -10,7 +10,7 @@
     "react:build": "vite build",
     "start": "electron .",
     "dev": "concurrently \"npm run react:start\" \"wait-on tcp:5173 && electron .\"",
-    "move:exe": "node --input-type=commonjs -e \"const fs=require('fs');const path=require('path');const root=process.cwd();const release=path.join(root,'release');if(!fs.existsSync(release)) process.exit(0);for(const name of ['AMM-Setup.exe','AMM-x64.exe','AMM-ia32.exe']){const target=path.join(root,name);if(fs.existsSync(target)) fs.rmSync(target,{force:true});}const installer=fs.readdirSync(release).find((name)=>/^AMM-Setup-.*\\.exe$/i.test(name));if(installer){fs.copyFileSync(path.join(release,installer),path.join(root,'AMM-Setup.exe'));console.log('Copied release/'+installer+' -> AMM-Setup.exe');}console.log('Portable app folders are available in release/win-unpacked and release/win-ia32-unpacked');\"",
+    "move:exe": "node --input-type=commonjs -e \"const fs=require('fs');const path=require('path');const root=process.cwd();const release=path.join(root,'release');if(!fs.existsSync(release)) process.exit(0);for(const name of ['AMM-Setup-x64.exe','AMM-Setup-ia32.exe']){const target=path.join(root,name);if(fs.existsSync(target)) fs.rmSync(target,{force:true});}const files=fs.readdirSync(release);for(const f of files){const m=f.match(/^AMM-Setup-.*-(x64|ia32)\\.exe$/i);if(m){const dest=path.join(root,'AMM-Setup-'+m[1]+'.exe');fs.copyFileSync(path.join(release,f),dest);console.log('Copied release/'+f+' -> '+path.basename(dest));}}console.log('Portable app folders are available in release/win-unpacked and release/win-ia32-unpacked');\"",
     "bring:exe": "npm run move:exe",
     "dist:win": "npm run react:build && electron-builder --publish never --win nsis --x64 && npm run move:exe",
     "dist:win32": "npm run react:build && electron-builder --publish never --win nsis --ia32 && npm run move:exe",
@@ -41,7 +41,7 @@
   },
   "build": {
     "appId": "com.frost.appmoneymanagement",
-    "productName": "AppMoneyManagement",
+    "productName": "MoneyManagement",
     "files": [
       "electron/**/*",
       "dist/**/*",
@@ -54,8 +54,8 @@
       "output": "release"
     },
     "win": {
-      "executableName": "AMM",
-      "artifactName": "AMM-Setup-${version}.${ext}",
+      "executableName": "MoneyManagement",
+      "artifactName": "MoneyManagement-${version}-${arch}.${ext}",
       "target": [
         {
           "target": "nsis",
@@ -67,7 +67,8 @@
       ]
     },
     "mac": {
-      "artifactName": "AMM-mac-${arch}.${ext}",
+      "executableName": "MoneyManagement",
+      "artifactName": "MoneyManagement-mac-${version}-${arch}.${ext}",
       "target": [
         {
           "target": "dmg",

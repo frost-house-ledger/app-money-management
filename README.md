@@ -1,31 +1,33 @@
-# app-money-management
+# AMM – 家計簿アプリ
 
-Electron + React で作ったローカル家計簿アプリです。
+Electron + React 製のローカル家計簿アプリです。データはすべて手元に保存されます。クラウド不要・アカウント不要。
 
 ## 機能
 
-- 固定項目（`fee` / `income`）を月単位で登録・編集
-- 例: `2026-04` で登録した固定項目は `2026-05`, `2026-06` ... に自動反映
-- 日次項目（買い物など）を日付付きで登録
-- 月次グラフに即時反映
-- `fee` / `income` / `all` フィルタ
-- 固定項目は JSON (`recurring-items.json`) に保存
-- 日次項目と入力ログは SQLite (`ledger.sqlite`) に保存
-- SQLite (`ledger.sqlite`) の `input_logs` テーブルに入力ログ保存
-- JSON (`monthly-summary.json`) に月次集計を出力
+- **月次固定項目** — 家賃・給与など一度登録すれば以降の月に自動反映
+- **日次項目** — 日々の支出を日付・カテゴリ・メモ付きで記録
+- **グラフ** — 月次棒グラフ＋折れ線、カテゴリ内訳（円グラフ・積み上げ棒）
+- **複数通貨対応** — JPY・NZD・EUR 等、リアルタイム為替レートで表示換算
+- **操作履歴** — 追加・更新・削除をすべて記録、更新前→後の差分も表示
+- **年次サマリー** — 年間収支の俯瞰ビュー
+- **多言語対応** — 日本語 / 英語 / ドイツ語
 
-## セットアップ
+## インストール
+
+[Releases](../../releases) から `AMM-Setup-x64.exe`（64bit）または `AMM-Setup-ia32.exe`（32bit）をダウンロードして実行してください。
+
+## 開発環境のセットアップ
 
 ```bash
-cd app
 npm install
 npm run dev
 ```
 
 ## データ保存先
 
-Electron の `userData` 配下に保存されます。
+OS の userData フォルダに自動保存されます（アプリ内には含まれません）。
 
-- `ledger.sqlite`
-- `recurring-items.json`
-- `monthly-summary.json`
+| ファイル | 内容 |
+|---|---|
+| `ledger.sqlite` | 日次データ・操作履歴 |
+| `recurring-items.json` | 月次固定項目 |
