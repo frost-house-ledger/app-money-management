@@ -121,6 +121,23 @@ export default function App() {
     setHistoryRows(rows);
   }
 
+  async function onImportCsv(file) {
+    if (!file) {
+      return;
+    }
+
+    setErrorText("");
+
+    try {
+      const csvText = await file.text();
+      const result = await window.ledgerApi.entry.importCsv({ csvText });
+      await refreshAll(selectedMonth, range);
+      showToast(formatMessage(t.toastCsvImported, { count: result.importedCount }));
+    } catch (error) {
+      setErrorText(error.message || t.errorCsvImportFailed);
+    }
+  }
+
   async function refreshAll(month = selectedMonth, nextRange = range) {
     await Promise.all([
       loadRecurring(),
@@ -173,6 +190,16 @@ export default function App() {
     }
     return recurringRows.filter((row) => row.type === filterType);
   }, [recurringRows, filterType]);
+
+  const dailyTitleSuggestions = useMemo(() => {
+    const seen = new Set();
+
+    return historyRows
+      .filter((row) => row.source === "daily" && row.title)
+      .map((row) => String(row.title).trim())
+      .filter((title) => title && !seen.has(title) && seen.add(title))
+      .slice(0, 12);
+  }, [historyRows]);
 
   const dailyCategoryOptions = useMemo(() => {
     return categories
@@ -517,6 +544,7 @@ export default function App() {
           onReorderCategories={onReorderCategories}
           dailyRows={dailyRows}
           dailyTitle={formatMessage(t.dailyListTitle, { month: selectedMonth })}
+          dailyTitleSuggestions={dailyTitleSuggestions}
           selectedCurrency={selectedCurrency}
           locale={locale}
           exchangeRates={exchangeRates}
@@ -529,6 +557,7 @@ export default function App() {
           selectedCurrency={selectedCurrency}
           setSelectedCurrency={setSelectedCurrency}
           exchangeRateStatus={exchangeRateStatus}
+          onImportCsv={onImportCsv}
           t={t}
         />
       ) : activePage === "analysis" ? (

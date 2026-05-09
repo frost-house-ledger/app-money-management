@@ -178,6 +178,38 @@ export function createCategoryStore({
     return created;
   }
 
+  function ensureCategoryForImport(name) {
+    const rawName = String(name || "").trim();
+    if (!rawName) {
+      return null;
+    }
+
+    const id = normalizeCategoryId(rawName);
+    if (!id) {
+      return null;
+    }
+
+    const rows = readCategoriesFile();
+    const existing = rows.find((item) => item.id === id);
+    if (existing) {
+      return existing;
+    }
+
+    const maxOrder = rows.reduce((max, item) => Math.max(max, Number(item.sortOrder) || 0), 0);
+    const created = {
+      id,
+      nameJp: rawName,
+      nameEn: rawName,
+      nameDe: rawName,
+      icon: "🏷️",
+      sortOrder: maxOrder + 10,
+      isActive: 1
+    };
+
+    writeCategoriesFile([...rows, created].sort((a, b) => a.sortOrder - b.sortOrder));
+    return created;
+  }
+
   function updateCategory(input) {
     authGuard.ensureAuthorized(input?.authToken);
     const id = String(input.id || "").trim();
@@ -277,6 +309,7 @@ export function createCategoryStore({
     migrateLegacyDailyCategories,
     listCategories,
     addCategory,
+    ensureCategoryForImport,
     updateCategory,
     deleteCategory,
     reorderCategories,

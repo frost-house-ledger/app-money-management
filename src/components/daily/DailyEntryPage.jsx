@@ -18,6 +18,7 @@ export default function DailyEntryPage({
   onReorderCategories,
   dailyRows,
   dailyTitle,
+  dailyTitleSuggestions,
   selectedCurrency,
   exchangeRates,
   locale,
@@ -33,6 +34,7 @@ export default function DailyEntryPage({
           editingDailyId={editingDailyId}
           onCancelDailyEdit={onCancelDailyEdit}
           dailyCategoryOptions={dailyCategoryOptions}
+          dailyTitleSuggestions={dailyTitleSuggestions}
           t={t}
         />
       </section>

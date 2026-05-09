@@ -9,6 +9,7 @@ export default function DailySection({
   editingDailyId,
   onCancelDailyEdit,
   dailyCategoryOptions,
+  dailyTitleSuggestions,
   t
 }) {
     // return the form part here, and the list part is moved to DailyListSection to avoid re-rendering the list when the form state changes
@@ -54,11 +55,21 @@ export default function DailySection({
         {t.titleLabel}
         <input
           type="text"
+          list="daily-title-suggestions"
+          autoComplete="on"
           value={dailyForm.title}
           onChange={(e) => setDailyForm((curr) => ({ ...curr, title: e.target.value }))}
           placeholder={t.dailyTitlePlaceholder}
         />
       </label>
+
+      {dailyTitleSuggestions.length > 0 && (
+        <datalist id="daily-title-suggestions">
+          {dailyTitleSuggestions.map((title) => (
+            <option key={title} value={title} />
+          ))}
+        </datalist>
+      )}
 
       <label>
         {t.amountLabel}

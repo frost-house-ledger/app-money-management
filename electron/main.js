@@ -85,6 +85,8 @@ async function createMainWindow(ledger) {
 
   ipcMain.handle("entry:list", async (_event, payload) => ledger.listDaily(payload));
 
+  ipcMain.handle("entry:importCsv", async (_event, payload) => ledger.importDailyCsv(payload || {}));
+
   ipcMain.handle("history:list", async (_event, payload) => ledger.listHistory(payload || {}));
 
   ipcMain.handle("category:list", async (_event, payload) => ledger.listCategories(payload || {}));

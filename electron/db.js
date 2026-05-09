@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import Database from "better-sqlite3";
 import { createAuthGuard } from "./auth.js";
+import { parseCsvText } from "./csv.js";
 import { ensureLedgerSchema } from "./db/schema-input.js";
 import { createLedgerStatements } from "./db/schema-input.js";
 import { addMonths, compareMonths, monthEnd, monthStart, todayISO } from "./db/date-utils.js";
@@ -165,8 +166,7 @@ export function createLedgerStore(dataDir) {
     return jsonPath;
   }
 
-  function addDailyEntry(input) {
-    authGuard.ensureAuthorized(input?.authToken);
+  function persistDailyEntry(input, { logHistory = false, logAction = "add", logSource = "daily", logPayload = null } = {}) {
     validateType(input.type);
     validateDate(input.entryDate);
     ensureAmount(input.amount);
@@ -177,35 +177,109 @@ export function createLedgerStore(dataDir) {
     }
 
     const categoryMap = categoryStore.getCategoryMap();
-    const currentCategory = categoryMap.get(String(input.categoryId || "other"));
+    const categoryId = input.type === "fee" ? String(input.categoryId || "other") : null;
+    const currentCategory = categoryId ? categoryMap.get(categoryId) : null;
 
     const row = insertDailyStmt.run({
       type: input.type,
       title,
       amount: input.amount,
       entryDate: input.entryDate,
-      categoryId: input.type === "fee" ? String(input.categoryId || "other") : null,
+      categoryId,
       category: input.type === "fee" ? pickCategoryName(currentCategory, "en") : null,
       note: input.note ? String(input.note) : null
     });
 
-    // daily expense (type=fee) の入力ログをSQLiteに保存する。
-    if (input.type === "fee") {
+    if (logHistory) {
       logInput({
-        source: "daily",
+        source: logSource,
+        action: logAction,
         type: input.type,
         title,
         amount: input.amount,
         targetDate: input.entryDate,
-        categoryId: input.categoryId || "other",
-        category: pickCategoryName(currentCategory, "en") || "Other",
-        note: input.note,
-        payload: input
+        categoryId,
+        category: input.type === "fee" ? pickCategoryName(currentCategory, "en") || "Other" : null,
+        note: input.note ? String(input.note) : null,
+        payload: logPayload || input
       });
     }
 
+    return row;
+  }
+
+  function addDailyEntry(input) {
+    authGuard.ensureAuthorized(input?.authToken);
+    const row = persistDailyEntry(input, {
+      logHistory: input.type === "fee",
+      logAction: "add",
+      logSource: "daily",
+      logPayload: input
+    });
+
     const cachePath = rebuildMonthlyJsonCache();
     return { id: row.lastInsertRowid, cachePath };
+  }
+
+  function importDailyCsv(input = {}) {
+    authGuard.ensureAuthorized(input?.authToken);
+    const records = parseCsvText(input.csvText);
+    if (records.length === 0) {
+      throw new Error("CSV に取り込む行がありません。");
+    }
+
+    const normalizedRows = records.map((record, index) => {
+      const rowNumber = index + 2;
+      const date = String(record.date || record.entrydate || record.entry_date || "").trim();
+      const typeValue = String(record.type || "").trim().toLowerCase();
+      const categoryName = String(record.category || "").trim();
+      const title = String(record.title || "").trim();
+      const description = String(record.description || record.note || "").trim();
+      const priceText = String(record.price || record.amount || "").trim();
+
+      const type = typeValue === "expense" || typeValue === "fee" ? "fee" : typeValue === "income" ? "income" : null;
+      const amount = Number(String(priceText).replace(/,/g, ""));
+
+      if (!date || !type || !title || !Number.isFinite(amount)) {
+        throw new Error(`CSV の ${rowNumber} 行目に不正な値があります。`);
+      }
+
+      validateDate(date);
+      ensureAmount(amount);
+
+      return {
+        type,
+        entryDate: date,
+        categoryName,
+        categoryId: type === "fee" && categoryName ? normalizeCategoryId(categoryName) : null,
+        title,
+        note: description || null,
+        amount
+      };
+    });
+
+    [...new Set(normalizedRows.map((row) => row.categoryName).filter(Boolean))].forEach((categoryName) => {
+      categoryStore.ensureCategoryForImport(categoryName);
+    });
+
+    const tx = db.transaction(() => {
+      normalizedRows.forEach((row) => {
+        persistDailyEntry(row, {
+          logHistory: true,
+          logAction: "add",
+          logSource: "daily",
+          logPayload: {
+            source: "csv-import",
+            row
+          }
+        });
+      });
+    });
+
+    tx();
+
+    const cachePath = rebuildMonthlyJsonCache();
+    return { importedCount: normalizedRows.length, cachePath };
   }
 
   function deleteDaily(input) {
@@ -447,6 +521,7 @@ export function createLedgerStore(dataDir) {
     addRecurring: recurringStore.addRecurring,
     updateRecurring: recurringStore.updateRecurring,
     addDailyEntry,
+    importDailyCsv,
     deleteDaily,
     updateDaily,
     listRecurring: recurringStore.listRecurring,

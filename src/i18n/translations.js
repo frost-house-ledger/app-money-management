@@ -120,6 +120,22 @@ export const TRANSLATIONS = {
   settingsThemeLabel: { jp: "テーマ", en: "Theme", de: "Design" },
   settingsThemeLight: { jp: "ライト", en: "Light", de: "Hell" },
   settingsThemeDark: { jp: "ダーク", en: "Dark", de: "Dunkel" },
+  csvImportLabel: { jp: "CSV 取り込み", en: "CSV import", de: "CSV-Import" },
+  csvImportSubtext: {
+    jp: "format.csv と同じ列構成の CSV を選ぶと、日次データとしてまとめて取り込みます。",
+    en: "Choose a CSV with the same columns as format.csv to import daily entries in one batch.",
+    de: "CSV mit derselben Spaltenstruktur wie format.csv waehlen, um Tageseintraege gesammelt zu importieren."
+  },
+  toastCsvImported: {
+    jp: "CSV を {count} 件取り込みました。",
+    en: "Imported {count} rows from CSV.",
+    de: "{count} Zeilen aus CSV importiert."
+  },
+  errorCsvImportFailed: {
+    jp: "CSV の取り込みに失敗しました。",
+    en: "Failed to import CSV.",
+    de: "CSV konnte nicht importiert werden."
+  },
   erStatusLoading: { jp: "為替レート取得中…", en: "Fetching exchange rates…", de: "Wechselkurse werden abgerufen…" },
   erStatusLive: { jp: "最終更新: {time}", en: "Last updated: {time}", de: "Zuletzt aktualisiert: {time}" },
   erStatusFallback: { jp: "フォールバックレート使用中（オフラインまたは取得失敗）", en: "Using fallback rates (offline or fetch failed)", de: "Fallback-Kurse in Verwendung (offline oder Abruf fehlgeschlagen)" },

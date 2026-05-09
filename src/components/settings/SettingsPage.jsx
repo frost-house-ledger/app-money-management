@@ -1,7 +1,7 @@
 import React from "react";
 import { formatMessage } from "../../i18n/translations.js";
 
-export default function SettingsPage({ locale, setLocale, selectedCurrency, setSelectedCurrency, exchangeRateStatus, t }) {
+export default function SettingsPage({ locale, setLocale, selectedCurrency, setSelectedCurrency, exchangeRateStatus, onImportCsv, t }) {
   function renderErStatus() {
     const { state, updatedAt } = exchangeRateStatus || { state: "loading", updatedAt: null };
     if (state === "loading") {
@@ -48,6 +48,23 @@ export default function SettingsPage({ locale, setLocale, selectedCurrency, setS
           </select>
           {renderErStatus()}
         </label>
+
+        <label>
+          {t.csvImportLabel}
+          <input
+            type="file"
+            accept=".csv,text/csv"
+            onChange={async (event) => {
+              const file = event.target.files?.[0];
+              event.target.value = "";
+              if (file) {
+                await onImportCsv(file);
+              }
+            }}
+          />
+        </label>
+
+        <p className="subtext">{t.csvImportSubtext}</p>
       </article>
     </section>
   );
