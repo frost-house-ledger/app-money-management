@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { api } from "../../lib/api.js";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -22,8 +23,8 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
   useEffect(() => {
     async function load() {
       const [breakdown, trend] = await Promise.all([
-        window.ledgerApi.summary.categoryBreakdown({ month: selectedMonth, locale }),
-        window.ledgerApi.summary.categoryTrend({
+        api.summary.categoryBreakdown({ month: selectedMonth, locale }),
+        api.summary.categoryTrend({
           fromMonth: range.fromMonth,
           toMonth: range.toMonth,
           locale

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { api } from "../../lib/api.js";
 import { formatCurrency } from "../../lib/currency.js";
 import SavingsSimulationPanel from "./SavingsSimulationPanel.jsx";
 
@@ -18,7 +19,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
     async function load() {
       const fromMonth = `${year}-01`;
       const toMonth = `${year}-12`;
-      const result = await window.ledgerApi.summary.range({ fromMonth, toMonth });
+      const result = await api.summary.range({ fromMonth, toMonth });
       setRows(Array.isArray(result) ? result : []);
     }
     load();

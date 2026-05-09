@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Electron + React personal money management app",
   "author": "Frost",
-  "main": "electron/main.js",
+  "main": "Desktop/electron/main.js",
   "type": "module",
   "scripts": {
     "react:start": "vite",
@@ -19,11 +19,19 @@
     "dist:mac:arm64": "npm run react:build && electron-builder --publish never --mac --arm64",
     "dist:mac:all": "npm run react:build && electron-builder --publish never --mac --x64 --arm64",
     "dist:all": "npm run dist:win:all && echo macOS release files are built in GitHub Actions or on a macOS machine with npm run dist:mac:all",
-    "dist:dir": "npm run react:build && electron-builder --dir"
+    "dist:dir": "npm run react:build && electron-builder --dir",
+    "android:build": "npm run react:build && npx cap copy android && npx cap open android",
+    "android:sync": "npm run react:build && npx cap sync android",
+    "android:studio": "npm run android:sync && npx cap open android",
+    "android:apk:debug": "npm run android:sync && cd android && gradlew.bat assembleDebug",
+    "android:apk:release": "npm run android:sync && cd android && gradlew.bat assembleRelease"
   },
   "keywords": [],
   "license": "ISC",
   "dependencies": {
+    "@capacitor-community/sqlite": "^8.1.0",
+    "@capacitor/android": "^8.3.3",
+    "@capacitor/core": "^8.3.3",
     "better-sqlite3": "^12.9.0",
     "chart.js": "^4.5.1",
     "mongodb": "^6.21.0",
@@ -32,10 +40,12 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.3.3",
     "@vitejs/plugin-react": "^4.3.4",
     "concurrently": "^9.2.1",
     "electron": "^39.2.7",
     "electron-builder": "^26.8.1",
+    "typescript": "^6.0.3",
     "vite": "^6.4.2",
     "wait-on": "^9.0.4"
   },
@@ -43,7 +53,7 @@
     "appId": "com.frost.appmoneymanagement",
     "productName": "MoneyManagement",
     "files": [
-      "electron/**/*",
+      "Desktop/electron/**/*",
       "dist/**/*",
       "package.json"
     ],
@@ -89,10 +99,15 @@
     "nsis": {
       "oneClick": false,
       "perMachine": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "guid": "com.frost.appmoneymanagement",
+      "deleteAppDataOnUninstall": false,
+      "createStartMenuShortcut": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "MoneyManagement"
     },
     "extraMetadata": {
-      "main": "electron/main.js"
+      "main": "Desktop/electron/main.js"
     }
   }
 }

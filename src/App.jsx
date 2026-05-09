@@ -6,6 +6,7 @@ import HistoryPage from "./components/history/HistoryPage.jsx";
 import SettingsPage from "./components/settings/SettingsPage.jsx";
 import CategoryAnalysisPage from "./components/analysis/CategoryAnalysisPage.jsx";
 import AnnualSummaryPage from "./components/annual/AnnualSummaryPage.jsx";
+import { api } from "./lib/api.js";
 import { addMonths, thisMonth, todayISO } from "./lib/date.js";
 import {
   convertDisplayAmountToBase,
@@ -83,8 +84,8 @@ export default function App() {
     const summaryPayload = buildSummaryMonthPayload({ month, selectedDailyCategory, dateRange });
 
     const [summary, daily] = await Promise.all([
-      window.ledgerApi.summary.month(summaryPayload),
-      window.ledgerApi.entry.list(payload)
+      api.summary.month(summaryPayload),
+      api.entry.list(payload)
     ]);
     setMonthlySummary(summary);
     setDailyRows(daily);
@@ -97,27 +98,27 @@ export default function App() {
       selectedDailyCategory,
       dateRange
     });
-    const rows = await window.ledgerApi.summary.range(payload);
+    const rows = await api.summary.range(payload);
     setMonthlyRows(rows);
   }
 
   async function loadRecurring() {
-    const rows = await window.ledgerApi.recurring.list();
+    const rows = await api.recurring.list();
     setRecurringRows(rows);
   }
 
   async function loadCategories() {
-    const rows = await window.ledgerApi.category.list();
+    const rows = await api.category.list();
     setCategories(rows);
   }
 
   async function loadCurrentMonthSnapshot() {
-    const snapshot = await window.ledgerApi.summary.month({ month: currentYYYYMM });
+    const snapshot = await api.summary.month({ month: currentYYYYMM });
     setCurrentMonthSnapshot(snapshot);
   }
 
   async function loadHistory() {
-    const rows = await window.ledgerApi.history.list({ limit: 200, locale });
+    const rows = await api.history.list({ limit: 200, locale });
     setHistoryRows(rows);
   }
 
@@ -130,7 +131,7 @@ export default function App() {
 
     try {
       const csvText = await file.text();
-      const result = await window.ledgerApi.entry.importCsv({ csvText });
+      const result = await api.entry.importCsv({ csvText });
       await refreshAll(selectedMonth, range);
       showToast(formatMessage(t.toastCsvImported, { count: result.importedCount }));
     } catch (error) {
@@ -221,7 +222,7 @@ export default function App() {
   async function onCreateCategory(payload) {
     setErrorText("");
     try {
-      const created = await window.ledgerApi.category.add(payload);
+      const created = await api.category.add(payload);
       await loadCategories();
       setDailyForm((current) => ({ ...current, categoryId: created.id }));
       showToast(t.toastCategoryAdded);
@@ -233,7 +234,7 @@ export default function App() {
   async function onUpdateCategory(payload) {
     setErrorText("");
     try {
-      await window.ledgerApi.category.update(payload);
+      await api.category.update(payload);
       await loadCategories();
     } catch (error) {
       setErrorText(error.message || t.errorCategoryRequired);
@@ -243,7 +244,7 @@ export default function App() {
   async function onDeleteCategory(id) {
     setErrorText("");
     try {
-      await window.ledgerApi.category.delete({ id });
+      await api.category.delete({ id });
       await loadCategories();
       await loadMonthData(selectedMonth);
       await loadRangeData(range.fromMonth, range.toMonth);
@@ -261,7 +262,7 @@ export default function App() {
   async function onReorderCategories(ids) {
     setErrorText("");
     try {
-      await window.ledgerApi.category.reorder({ ids });
+      await api.category.reorder({ ids });
       await loadCategories();
     } catch (error) {
       setErrorText(error.message || t.errorCategoryRequired);
@@ -280,12 +281,12 @@ export default function App() {
       };
 
       if (editingRecurringId) {
-        await window.ledgerApi.recurring.update({
+        await api.recurring.update({
           ...payload,
           id: editingRecurringId
         });
       } else {
-        await window.ledgerApi.recurring.add(payload);
+        await api.recurring.add(payload);
       }
 
       setRecurringForm((current) => ({
@@ -335,7 +336,7 @@ export default function App() {
 
     try {
       if (editingDailyId) {
-        await window.ledgerApi.entry.update({
+        await api.entry.update({
           ...dailyForm,
           id: editingDailyId,
           categoryId: dailyForm.type === "fee" ? dailyForm.categoryId || "other" : null,
@@ -352,7 +353,7 @@ export default function App() {
         await refreshAll(selectedMonth, range);
         showToast(t.toastDailyUpdated);
       } else {
-        await window.ledgerApi.entry.add({
+        await api.entry.add({
           ...dailyForm,
           categoryId: dailyForm.type === "fee" ? dailyForm.categoryId || "other" : null,
           amount: convertDisplayAmountToBase(dailyForm.amount, selectedCurrency, exchangeRates)
@@ -398,7 +399,7 @@ export default function App() {
   async function onDeleteDaily(id) {
     setErrorText("");
     try {
-      await window.ledgerApi.entry.delete({ id });
+      await api.entry.delete({ id });
       await refreshAll(selectedMonth, range);
       showToast(t.toastDailyDeleted);
     } catch (error) {
