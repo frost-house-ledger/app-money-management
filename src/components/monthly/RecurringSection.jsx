@@ -8,6 +8,7 @@ export default function RecurringSection({
   currentYYYYMM,
   editingRecurringId,
   onCancelEdit,
+  dailyCategoryOptions,
   t
 }) {
   return (
@@ -19,10 +20,32 @@ export default function RecurringSection({
         {t.typeLabel}
         <select
           value={recurringForm.type}
-          onChange={(e) => setRecurringForm((curr) => ({ ...curr, type: e.target.value }))}
+          onChange={(e) => {
+            const nextType = e.target.value;
+            setRecurringForm((curr) => ({
+              ...curr,
+              type: nextType,
+              categoryId: nextType === "fee" ? curr.categoryId || dailyCategoryOptions[0]?.id || "other" : ""
+            }));
+          }}
         >
           <option value="fee">{t.typeFee}</option>
           <option value="income">{t.typeIncome}</option>
+        </select>
+      </label>
+
+      <label>
+        {t.categoryLabel}
+        <select
+          value={recurringForm.categoryId || ""}
+          onChange={(e) => setRecurringForm((curr) => ({ ...curr, categoryId: e.target.value }))}
+          disabled={recurringForm.type !== "fee"}
+        >
+          {dailyCategoryOptions.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.icon || "🏷️"} {category.label}
+            </option>
+          ))}
         </select>
       </label>
 
@@ -89,6 +112,9 @@ export function RecurringListSection({
           <li key={`rec-${row.id}`} className="recurring-list-item">
             <strong>{row.startMonth}</strong>
             <span>{row.type}</span>
+            <span>
+              {row.type === "fee" ? `${row.categoryIcon || "🏷️"} ${row.categoryDisplay || "-"}` : "-"}
+            </span>
             <span>{row.title}</span>
             <span>{formatCurrency(row.amount, selectedCurrency, exchangeRates)}</span>
             <button type="button" className="inline-action" onClick={() => onEditRecurring(row)}>

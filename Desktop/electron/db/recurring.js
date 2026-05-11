@@ -47,14 +47,20 @@ export function createRecurringStore({
 
     const migrated = db
       .prepare(`
-        SELECT id, type, title, amount, start_month AS startMonth, created_at AS createdAt
+        SELECT id, type, title, amount, start_month AS startMonth, category_id AS categoryId, created_at AS createdAt
         FROM recurring_items
         ORDER BY start_month ASC, created_at ASC
       `)
       .all();
 
     if (migrated.length > 0) {
-      writeRecurringItems(migrated.map((item) => ({ ...item, id: String(item.id) })));
+      writeRecurringItems(
+        migrated.map((item) => ({
+          ...item,
+          id: String(item.id),
+          categoryId: item.type === "fee" ? String(item.categoryId || "other") : null
+        }))
+      );
     }
   }
 
@@ -68,9 +74,20 @@ export function createRecurringStore({
     });
   }
 
-  function sumRecurringByType(month, type) {
+  function sumRecurringByType(month, type, categoryId = null) {
     return listRecurringItems()
-      .filter((item) => item.type === type && item.startMonth <= month)
+      .filter((item) => {
+        if (!(item.type === type && item.startMonth <= month)) {
+          return false;
+        }
+        if (type !== "fee") {
+          return true;
+        }
+        if (!categoryId) {
+          return true;
+        }
+        return String(item.categoryId || "other") === String(categoryId);
+      })
       .reduce((total, item) => total + Number(item.amount || 0), 0);
   }
 
@@ -90,6 +107,7 @@ export function createRecurringStore({
     const item = {
       id: globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
       type: input.type,
+      categoryId: input.type === "fee" ? String(input.categoryId || "other") : null,
       title,
       amount: input.amount,
       startMonth: input.startMonth,
@@ -130,6 +148,7 @@ export function createRecurringStore({
       return {
         ...item,
         type: input.type,
+        categoryId: input.type === "fee" ? String(input.categoryId || "other") : null,
         title,
         amount: input.amount,
         startMonth: input.startMonth,

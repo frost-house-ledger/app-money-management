@@ -167,10 +167,10 @@ export function DailyListSection({
       {dailyRows.length > 0 && (
         <div className="daily-totals">
           {totalFee > 0 && (
-            <span className="daily-total-fee">費用合計: {formatCurrency(totalFee, selectedCurrency, exchangeRates)}</span>
+            <span className="daily-total-fee">月次費用合計: {formatCurrency(totalFee, selectedCurrency, exchangeRates)}</span>
           )}
           {totalIncome > 0 && (
-            <span className="daily-total-income">収入合計: {formatCurrency(totalIncome, selectedCurrency, exchangeRates)}</span>
+            <span className="daily-total-income">月次収入合計: {formatCurrency(totalIncome, selectedCurrency, exchangeRates)}</span>
           )}
         </div>
       )}

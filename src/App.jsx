@@ -52,6 +52,7 @@ export default function App() {
 
   const [recurringForm, setRecurringForm] = useState({
     type: "fee",
+    categoryId: "other",
     title: "",
     amount: "",
     startMonth: baseMonth
@@ -81,14 +82,14 @@ export default function App() {
 
   async function loadMonthData(month) {
     const payload = buildEntryListPayload({ month, filterType, selectedDailyCategory, dateRange, locale });
-    const summaryPayload = buildSummaryMonthPayload({ month, selectedDailyCategory, dateRange });
-
-    const [summary, daily] = await Promise.all([
-      api.summary.month(summaryPayload),
-      api.entry.list(payload)
-    ]);
-    setMonthlySummary(summary);
+    const daily = await api.entry.list(payload);
     setDailyRows(daily);
+  }
+
+  async function loadChartMonthSummary(month) {
+    const summaryPayload = buildSummaryMonthPayload({ month, selectedDailyCategory, dateRange });
+    const summary = await api.summary.month(summaryPayload);
+    setMonthlySummary(summary);
   }
 
   async function loadRangeData(fromMonth, toMonth) {
@@ -146,6 +147,7 @@ export default function App() {
       loadCurrentMonthSnapshot(),
       loadHistory(),
       loadMonthData(month),
+      loadChartMonthSummary(month),
       loadRangeData(nextRange.fromMonth, nextRange.toMonth)
     ]);
   }
@@ -157,6 +159,10 @@ export default function App() {
   useEffect(() => {
     loadMonthData(selectedMonth);
   }, [selectedMonth, filterType, selectedDailyCategory, dateRange.fromDate, dateRange.toDate, locale]);
+
+  useEffect(() => {
+    loadChartMonthSummary(selectedMonth);
+  }, [selectedMonth, selectedDailyCategory, dateRange.fromDate, dateRange.toDate]);
 
   useEffect(() => {
     loadRangeData(range.fromMonth, range.toMonth);
@@ -186,11 +192,39 @@ export default function App() {
   }, []);
 
   const filteredRecurring = useMemo(() => {
+    const categoryMap = new Map(
+      categories.map((item) => [
+        item.id,
+        {
+          icon: item.icon,
+          label: locale === "de" ? item.nameDe : locale === "en" ? item.nameEn : item.nameJp
+        }
+      ])
+    );
+
     if (filterType === "all") {
-      return recurringRows;
+      return recurringRows.map((row) => {
+        const categoryId = row.type === "fee" ? row.categoryId || "other" : null;
+        const category = categoryId ? categoryMap.get(categoryId) : null;
+        return {
+          ...row,
+          categoryDisplay: category?.label || "-",
+          categoryIcon: category?.icon || "🏷️"
+        };
+      });
     }
-    return recurringRows.filter((row) => row.type === filterType);
-  }, [recurringRows, filterType]);
+    return recurringRows
+      .filter((row) => row.type === filterType)
+      .map((row) => {
+        const categoryId = row.type === "fee" ? row.categoryId || "other" : null;
+        const category = categoryId ? categoryMap.get(categoryId) : null;
+        return {
+          ...row,
+          categoryDisplay: category?.label || "-",
+          categoryIcon: category?.icon || "🏷️"
+        };
+      });
+  }, [recurringRows, filterType, categories, locale]);
 
   const dailyTitleSuggestions = useMemo(() => {
     const seen = new Set();
@@ -254,6 +288,10 @@ export default function App() {
       if (dailyForm.categoryId === id) {
         setDailyForm((current) => ({ ...current, categoryId: "other" }));
       }
+      setRecurringForm((current) => ({
+        ...current,
+        categoryId: current.categoryId === id ? "other" : current.categoryId
+      }));
     } catch (error) {
       setErrorText(error.message || t.errorCategoryRequired);
     }
@@ -276,6 +314,7 @@ export default function App() {
     try {
       const payload = {
         ...recurringForm,
+        categoryId: recurringForm.type === "fee" ? recurringForm.categoryId || "other" : null,
         // Persist amounts in base currency; UI input is in selected display currency.
         amount: convertDisplayAmountToBase(recurringForm.amount, selectedCurrency, exchangeRates)
       };
@@ -292,6 +331,7 @@ export default function App() {
       setRecurringForm((current) => ({
         ...current,
         type: "fee",
+        categoryId: "other",
         title: "",
         amount: "",
         startMonth: baseMonth
@@ -308,6 +348,7 @@ export default function App() {
   function onEditRecurring(item) {
     setRecurringForm({
       type: item.type,
+      categoryId: item.categoryId || "other",
       title: item.title,
       amount: formatBaseAmountForInput(item.amount, selectedCurrency, exchangeRates),
       startMonth: item.startMonth
@@ -318,6 +359,7 @@ export default function App() {
   function onCancelRecurringEdit() {
     setRecurringForm({
       type: "fee",
+      categoryId: "other",
       title: "",
       amount: "",
       startMonth: baseMonth
@@ -434,6 +476,18 @@ export default function App() {
         </div>
       </section>
 
+      {/* Month select for all tabs */}
+      <section className="chart-month-toolbar">
+        <label>
+          <span>{t.chartMonthLabel}:</span>
+          <input
+            type="month"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+          />
+        </label>
+      </section>
+
       {/* Page view tabs */}
       {/* Monthly, Daily, and Chart tabs */}
       <nav className="page-tabs-nav" role="tablist" aria-label="Page view tabs">
@@ -497,8 +551,6 @@ export default function App() {
 
       {activePage === "chart" ? (
         <ChartDashboardPage
-          selectedMonth={selectedMonth}
-          setSelectedMonth={setSelectedMonth}
           filterType={filterType}
           setFilterType={setFilterType}
           selectedCurrency={selectedCurrency}
@@ -522,6 +574,7 @@ export default function App() {
           currentYYYYMM={currentYYYYMM}
           editingRecurringId={editingRecurringId}
           onCancelRecurringEdit={onCancelRecurringEdit}
+          dailyCategoryOptions={dailyCategoryOptions}
           filteredRecurring={filteredRecurring}
           selectedCurrency={selectedCurrency}
           onEditRecurring={onEditRecurring}

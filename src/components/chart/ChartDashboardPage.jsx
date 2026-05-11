@@ -24,8 +24,7 @@ export default function ChartDashboardPage({
   return (
     <section className="chart-dashboard-page">
       <DashboardFilters
-        selectedMonth={selectedMonth}
-        setSelectedMonth={setSelectedMonth}
+
         filterType={filterType}
         setFilterType={setFilterType}
         range={range}

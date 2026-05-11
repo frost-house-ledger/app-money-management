@@ -18,6 +18,12 @@ export const TRANSLATIONS = {
   annualPageTab: { jp: "年間", en: "Annual", de: "Jaehrlich" },
   switchLanguage: { jp: "English", en: "Deutsch", de: "日本語" },
   monthLabel: { jp: "表示月", en: "Month", de: "Monat" },
+  chartMonthLabel: { jp: "グラフの表示月", en: "Chart month", de: "Diagramm-Monat" },
+  applySelectedMonthToAllTabsButton: {
+    jp: "この表示月を全タブへ反映",
+    en: "Apply this month to all tabs",
+    de: "Diesen Monat auf alle Tabs anwenden"
+  },
   filterLabel: { jp: "フィルタ", en: "Filter", de: "Filter" },
 
   filterAll: { jp: "all", en: "all", de: "alle" },
@@ -176,6 +182,11 @@ export const TRANSLATIONS = {
   toastRecurringUpdated: { jp: "固定項目を更新しました。", en: "Recurring item updated.", de: "Fixposten aktualisiert." },
   toastDailySaved: { jp: "日次項目を登録しました。", en: "Daily entry saved.", de: "Tageseintrag gespeichert." },
   toastCategoryAdded: { jp: "カテゴリを追加しました。", en: "Category added.", de: "Kategorie hinzugefuegt." },
+  toastAppliedMonthToAllTabs: {
+    jp: "表示月 {month} を全タブへ反映しました。",
+    en: "Applied month {month} to all tabs.",
+    de: "Monat {month} wurde auf alle Tabs angewendet."
+  },
   errorRecurringFailed: {
     jp: "固定項目の登録に失敗しました。",
     en: "Failed to save recurring item.",

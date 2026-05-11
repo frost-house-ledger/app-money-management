@@ -112,6 +112,19 @@ function normalizeCategoryId(name) {
     .replace(/[^a-z0-9\-]/g, "");
 }
 
+function pickCategoryLabel(category, locale) {
+  if (!category) {
+    return locale === "de" ? "Sonstiges" : locale === "en" ? "Other" : "その他";
+  }
+  if (locale === "de") {
+    return category.nameDe || category.nameEn || category.nameJp || category.id;
+  }
+  if (locale === "en") {
+    return category.nameEn || category.nameJp || category.nameDe || category.id;
+  }
+  return category.nameJp || category.nameEn || category.nameDe || category.id;
+}
+
 // ─── Recurring store (localStorage) ──────────────────────────────────────────
 
 function readRecurring() {
@@ -129,9 +142,20 @@ function writeRecurring(items) {
   localStorage.setItem(LS_RECURRING, JSON.stringify({ updatedAt: new Date().toISOString(), items }));
 }
 
-function sumRecurringByType(month, type) {
+function sumRecurringByType(month, type, categoryId = null) {
   return readRecurring()
-    .filter((item) => item.type === type && item.startMonth <= month)
+    .filter((item) => {
+      if (!(item.type === type && item.startMonth <= month)) {
+        return false;
+      }
+      if (type !== "fee") {
+        return true;
+      }
+      if (!categoryId) {
+        return true;
+      }
+      return String(item.categoryId || "other") === String(categoryId);
+    })
     .reduce((total, item) => total + Number(item.amount || 0), 0);
 }
 
@@ -370,6 +394,7 @@ export function createAndroidApi() {
         const newItem = {
           id: `r-${Date.now()}`,
           type: input.type === "income" ? "income" : "fee",
+          categoryId: input.type === "fee" ? String(input.categoryId || "other") : null,
           title: String(input.title || "").trim(),
           amount: Number(input.amount ?? 0),
           startMonth: input.startMonth,
@@ -386,6 +411,7 @@ export function createAndroidApi() {
         items[idx] = {
           ...items[idx],
           type: input.type === "income" ? "income" : "fee",
+          categoryId: input.type === "fee" ? String(input.categoryId || "other") : null,
           title: String(input.title || "").trim(),
           amount: Number(input.amount ?? 0),
           startMonth: input.startMonth
@@ -419,6 +445,7 @@ export function createAndroidApi() {
 
         const from = fromDate && fromDate > monthStart(month) ? fromDate : monthStart(month);
         const to   = toDate   && toDate   < monthEnd(month)   ? toDate   : monthEnd(month);
+        const noDateOverlap = from > to;
 
         const catFilter = categoryId ? "AND category_id=?" : "";
         const params = [from, to, ...(categoryId ? [categoryId] : [])];
@@ -434,7 +461,7 @@ export function createAndroidApi() {
 
         const dailyFee = dailyFeeRes.values?.[0]?.total || 0;
         const dailyIncome = dailyIncomeRes.values?.[0]?.total || 0;
-        const recurringFee = categoryId ? 0 : sumRecurringByType(month, "fee");
+        const recurringFee = noDateOverlap ? 0 : sumRecurringByType(month, "fee", categoryId || null);
         const recurringIncome = categoryId ? 0 : sumRecurringByType(month, "income");
 
         return {
@@ -461,9 +488,11 @@ export function createAndroidApi() {
         return results;
       },
 
-      async categoryBreakdown({ month } = {}) {
+      async categoryBreakdown({ month, locale = "jp" } = {}) {
         if (!month) return [];
         const db = await getDb();
+        const categoryMap = new Map(readCategories().map((item) => [item.id, item]));
+        const totals = new Map();
         const res = await db.query(
           `SELECT category_id AS categoryId, COALESCE(SUM(amount),0) AS total
            FROM daily_entries
@@ -471,20 +500,90 @@ export function createAndroidApi() {
            GROUP BY category_id ORDER BY total DESC`,
           [monthStart(month), monthEnd(month)]
         );
-        return res.values || [];
+
+        (res.values || []).forEach((row) => {
+          const key = String(row.categoryId || "other");
+          const current = totals.get(key) || 0;
+          totals.set(key, current + Number(row.total || 0));
+        });
+
+        readRecurring().forEach((item) => {
+          if (item.type !== "fee" || item.startMonth > month) {
+            return;
+          }
+          const key = String(item.categoryId || "other");
+          const current = totals.get(key) || 0;
+          totals.set(key, current + Number(item.amount || 0));
+        });
+
+        return Array.from(totals.entries())
+          .map(([categoryId, total]) => {
+            const category = categoryMap.get(categoryId) || null;
+            return {
+              categoryId,
+              total,
+              categoryDisplay: pickCategoryLabel(category, locale),
+              categoryIcon: category?.icon || "🏷️"
+            };
+          })
+          .sort((a, b) => b.total - a.total);
       },
 
-      async categoryTrend({ categoryId, fromMonth, toMonth } = {}) {
-        if (!categoryId || !fromMonth || !toMonth) return [];
+      async categoryTrend({ fromMonth, toMonth, locale = "jp" } = {}) {
+        if (!fromMonth || !toMonth) return [];
         const db = await getDb();
+        const categoryMap = new Map(readCategories().map((item) => [item.id, item]));
+        const totals = new Map();
         const res = await db.query(
-          `SELECT substr(entry_date,1,7) AS month, COALESCE(SUM(amount),0) AS total
+          `SELECT substr(entry_date,1,7) AS month, category_id AS categoryId, COALESCE(SUM(amount),0) AS total
            FROM daily_entries
-           WHERE type='fee' AND category_id=? AND entry_date>=? AND entry_date<=?
-           GROUP BY substr(entry_date,1,7) ORDER BY month ASC`,
-          [categoryId, monthStart(fromMonth), monthEnd(toMonth)]
+           WHERE type='fee' AND entry_date>=? AND entry_date<=?
+           GROUP BY substr(entry_date,1,7), category_id ORDER BY month ASC`,
+          [monthStart(fromMonth), monthEnd(toMonth)]
         );
-        return res.values || [];
+
+        (res.values || []).forEach((row) => {
+          const key = `${row.month}::${String(row.categoryId || "other")}`;
+          const current = totals.get(key) || 0;
+          totals.set(key, current + Number(row.total || 0));
+        });
+
+        const recurringItems = readRecurring();
+        let monthCursor = fromMonth;
+        while (monthCursor <= toMonth) {
+          recurringItems.forEach((item) => {
+            if (item.type !== "fee" || item.startMonth > monthCursor) {
+              return;
+            }
+            const categoryId = String(item.categoryId || "other");
+            const key = `${monthCursor}::${categoryId}`;
+            const current = totals.get(key) || 0;
+            totals.set(key, current + Number(item.amount || 0));
+          });
+          const [y, m] = monthCursor.split("-").map(Number);
+          const next = new Date(y, m, 1);
+          monthCursor = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}`;
+        }
+
+        return Array.from(totals.entries())
+          .map(([compositeKey, total]) => {
+            const [month, categoryId] = compositeKey.split("::");
+            const category = categoryMap.get(categoryId) || null;
+            return {
+              month,
+              categoryId,
+              total,
+              categoryDisplay: pickCategoryLabel(category, locale),
+              categoryIcon: category?.icon || "🏷️"
+            };
+          })
+          .sort((a, b) => {
+            const monthCompare = a.month.localeCompare(b.month);
+            if (monthCompare !== 0) {
+              return monthCompare;
+            }
+            return b.total - a.total;
+          });
       },
 
       async cachePath() {

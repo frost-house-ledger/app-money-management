@@ -1,8 +1,6 @@
 import React from "react";
 
 export default function DashboardFilters({
-  selectedMonth,
-  setSelectedMonth,
   filterType,
   setFilterType,
   range,
@@ -16,15 +14,6 @@ export default function DashboardFilters({
 }) {
   return (
     <section className="toolbar card">
-      <label>
-        {t.monthLabel}
-        <input
-          type="month"
-          value={selectedMonth}
-          onChange={(e) => setSelectedMonth(e.target.value)}
-        />
-      </label>
-
       {/* All or fee, and income filter controls which types of records are included in totals and lists. */}
       <label>
         {t.filterLabel}

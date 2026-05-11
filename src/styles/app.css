@@ -89,6 +89,15 @@ body {
   gap: 12px;
 }
 
+.toolbar-action {
+  display: flex;
+  align-items: flex-end;
+}
+
+.toolbar-action .secondary-button {
+  width: 100%;
+}
+
 .chart-dashboard-page {
   display: grid;
   gap: 12px;
@@ -133,6 +142,34 @@ body {
   font-size: 1.15rem;
 }
 
+.chart-month-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.chart-month-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  flex: 1;
+}
+
+.chart-month-toolbar label span {
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.chart-month-toolbar input[type="month"] {
+  min-width: 120px;
+}
 .tab-button {
   flex: 1;
   min-width: 0;
@@ -255,7 +292,7 @@ button {
 }
 
 .recurring-list-item {
-  grid-template-columns: 110px 80px 1fr 120px 96px;
+  grid-template-columns: 110px 80px 120px 1fr 120px 96px;
 }
 
 .daily-list-item {

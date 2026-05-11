@@ -94,7 +94,9 @@ export function createLedgerStore(dataDir) {
       return sumDailyByTypeAndCategoryStmt.get({ from, to, type, categoryId }).total;
     }
 
-    const recurringFee = categoryId || noDateOverlap ? 0 : recurringStore.sumRecurringByType(month, "fee");
+    const recurringFee = noDateOverlap
+      ? 0
+      : recurringStore.sumRecurringByType(month, "fee", categoryId || null);
     const recurringIncome = categoryId || noDateOverlap ? 0 : recurringStore.sumRecurringByType(month, "income");
     const dailyFee = sumDaily("fee");
     const dailyIncome = sumDaily("income");
@@ -469,16 +471,44 @@ export function createLedgerStore(dataDir) {
     const locale = input.locale || "jp";
     const categoryMap = categoryStore.getCategoryMap();
     const rows = sumCategoryByRangeStmt.all({ from, to });
+    const totals = new Map();
 
-    return rows.map((row) => {
-      const category = categoryMap.get(row.categoryId) || null;
-      return {
-        categoryId: row.categoryId || "other",
-        total: Number(row.total || 0),
-        categoryDisplay: pickCategoryName(category, locale),
-        categoryIcon: category?.icon || "🏷️"
-      };
+    rows.forEach((row) => {
+      const key = row.categoryId || "other";
+      const current = totals.get(key) || 0;
+      totals.set(key, current + Number(row.total || 0));
     });
+
+    if (!input.fromDate && !input.toDate && input.month) {
+      recurringStore.listRecurringItems().forEach((item) => {
+        if (item.type !== "fee" || item.startMonth > input.month) {
+          return;
+        }
+        const key = String(item.categoryId || "other");
+        const current = totals.get(key) || 0;
+        totals.set(key, current + Number(item.amount || 0));
+      });
+    }
+
+    return Array.from(totals.entries())
+      .map(([categoryId, total]) => {
+        const category = categoryMap.get(categoryId) || null;
+        return {
+          categoryId,
+          total,
+          categoryDisplay: pickCategoryName(category, locale),
+          categoryIcon: category?.icon || "🏷️"
+        };
+      })
+      .sort((a, b) => b.total - a.total)
+      .map((row) => {
+        return {
+          ...row,
+          total: Number(row.total || 0),
+          categoryDisplay: row.categoryDisplay,
+          categoryIcon: row.categoryIcon
+        };
+      });
   }
 
   function getCategoryTrend(input = {}) {
@@ -494,17 +524,48 @@ export function createLedgerStore(dataDir) {
     const locale = input.locale || "jp";
     const categoryMap = categoryStore.getCategoryMap();
     const rows = listCategoryMonthlyTrendStmt.all({ from, to });
+    const totals = new Map();
 
-    return rows.map((row) => {
-      const category = categoryMap.get(row.categoryId) || null;
-      return {
-        month: row.month,
-        categoryId: row.categoryId || "other",
-        total: Number(row.total || 0),
-        categoryDisplay: pickCategoryName(category, locale),
-        categoryIcon: category?.icon || "🏷️"
-      };
+    rows.forEach((row) => {
+      const key = `${row.month}::${row.categoryId || "other"}`;
+      const current = totals.get(key) || 0;
+      totals.set(key, current + Number(row.total || 0));
     });
+
+    const recurringItems = recurringStore.listRecurringItems();
+    let monthCursor = input.fromMonth;
+    while (compareMonths(monthCursor, input.toMonth) <= 0) {
+      recurringItems.forEach((item) => {
+        if (item.type !== "fee" || item.startMonth > monthCursor) {
+          return;
+        }
+        const categoryId = String(item.categoryId || "other");
+        const key = `${monthCursor}::${categoryId}`;
+        const current = totals.get(key) || 0;
+        totals.set(key, current + Number(item.amount || 0));
+      });
+      monthCursor = addMonths(monthCursor, 1);
+    }
+
+    return Array.from(totals.entries())
+      .map(([compositeKey, total]) => {
+        const [month, categoryId] = compositeKey.split("::");
+        const category = categoryMap.get(categoryId) || null;
+        return {
+          month,
+          categoryId,
+          total: Number(total || 0),
+          categoryDisplay: pickCategoryName(category, locale),
+          categoryIcon: category?.icon || "🏷️"
+        };
+      })
+      .sort((a, b) => {
+        const monthCompare = a.month.localeCompare(b.month);
+        if (monthCompare !== 0) {
+          return monthCompare;
+        }
+        return b.total - a.total;
+      });
   }
 
   categoryStore.ensureDefaultCategories();

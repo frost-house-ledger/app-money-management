@@ -8,6 +8,7 @@ export default function MonthlyEntryPage({
   currentYYYYMM,
   editingRecurringId,
   onCancelRecurringEdit,
+  dailyCategoryOptions,
   filteredRecurring,
   selectedCurrency,
   exchangeRates,
@@ -24,6 +25,7 @@ export default function MonthlyEntryPage({
           currentYYYYMM={currentYYYYMM}
           editingRecurringId={editingRecurringId}
           onCancelEdit={onCancelRecurringEdit}
+          dailyCategoryOptions={dailyCategoryOptions}
           t={t}
         />
       </section>
