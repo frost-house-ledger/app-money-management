@@ -22,6 +22,16 @@ export function createRecurringStore({
     return Array.isArray(raw.items) ? raw.items : [];
   }
 
+  function ensureValidMonthRange(startMonth, endMonth) {
+    if (!endMonth) {
+      return;
+    }
+    validateMonth(endMonth);
+    if (startMonth > endMonth) {
+      throw new Error("開始月は終了月以下にしてください。");
+    }
+  }
+
   function writeRecurringItems(items) {
     fs.writeFileSync(
       recurringJsonPath,
@@ -45,9 +55,13 @@ export function createRecurringStore({
       return;
     }
 
+    const recurringColumns = db.prepare("PRAGMA table_info(recurring_items)").all();
+    const hasEndMonth = recurringColumns.some((column) => column.name === "end_month");
     const migrated = db
       .prepare(`
-        SELECT id, type, title, amount, start_month AS startMonth, category_id AS categoryId, created_at AS createdAt
+        SELECT id, type, title, amount, start_month AS startMonth,
+               ${hasEndMonth ? "end_month" : "NULL"} AS endMonth,
+               category_id AS categoryId, created_at AS createdAt
         FROM recurring_items
         ORDER BY start_month ASC, created_at ASC
       `)
@@ -58,6 +72,7 @@ export function createRecurringStore({
         migrated.map((item) => ({
           ...item,
           id: String(item.id),
+          endMonth: item.endMonth || null,
           categoryId: item.type === "fee" ? String(item.categoryId || "other") : null
         }))
       );
@@ -77,7 +92,9 @@ export function createRecurringStore({
   function sumRecurringByType(month, type, categoryId = null) {
     return listRecurringItems()
       .filter((item) => {
-        if (!(item.type === type && item.startMonth <= month)) {
+        const endMonth = item.endMonth || null;
+        const inRange = item.startMonth <= month && (!endMonth || month <= endMonth);
+        if (!(item.type === type && inRange)) {
           return false;
         }
         if (type !== "fee") {
@@ -95,6 +112,7 @@ export function createRecurringStore({
     authGuard.ensureAuthorized(input?.authToken);
     validateType(input.type);
     validateMonth(input.startMonth);
+    ensureValidMonthRange(input.startMonth, input.endMonth || null);
     ensureAmount(input.amount);
 
     const title = String(input.title || "").trim();
@@ -111,6 +129,7 @@ export function createRecurringStore({
       title,
       amount: input.amount,
       startMonth: input.startMonth,
+      endMonth: input.endMonth || null,
       createdAt
     };
     writeRecurringItems([...items, item]);
@@ -132,6 +151,7 @@ export function createRecurringStore({
     authGuard.ensureAuthorized(input?.authToken);
     validateType(input.type);
     validateMonth(input.startMonth);
+    ensureValidMonthRange(input.startMonth, input.endMonth || null);
     ensureAmount(input.amount);
 
     const title = String(input.title || "").trim();
@@ -152,6 +172,7 @@ export function createRecurringStore({
         title,
         amount: input.amount,
         startMonth: input.startMonth,
+        endMonth: input.endMonth || null,
         updatedAt: new Date().toISOString()
       };
     });
@@ -174,12 +195,46 @@ export function createRecurringStore({
     return { id: input.id, cachePath };
   }
 
+  function deleteRecurring(input) {
+    authGuard.ensureAuthorized(input?.authToken);
+    const id = String(input?.id || "").trim();
+    if (!id) {
+      throw new Error("削除対象の固定項目IDが必要です。");
+    }
+
+    const items = listRecurringItems();
+    const target = items.find((item) => String(item.id) === id);
+    if (!target) {
+      throw new Error("削除対象の固定項目が見つかりません。");
+    }
+
+    writeRecurringItems(items.filter((item) => String(item.id) !== id));
+    logInput({
+      source: "monthly",
+      action: "delete",
+      type: target.type,
+      title: target.title,
+      amount: target.amount,
+      targetDate: target.startMonth,
+      payload: {
+        id: target.id,
+        startMonth: target.startMonth,
+        endMonth: target.endMonth || null,
+        action: "delete"
+      }
+    });
+
+    const cachePath = rebuildMonthlyJsonCache();
+    return { id, cachePath };
+  }
+
   return {
     migrateRecurringItemsToJson,
     listRecurringItems,
     listRecurring: () => listRecurringItems(),
     sumRecurringByType,
     addRecurring,
-    updateRecurring
+    updateRecurring,
+    deleteRecurring
   };
 }

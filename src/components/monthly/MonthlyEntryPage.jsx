@@ -13,6 +13,8 @@ export default function MonthlyEntryPage({
   selectedCurrency,
   exchangeRates,
   onEditRecurring,
+  onUpdateRecurringInline,
+  onDeleteRecurring,
   t
 }) {
   return (
@@ -34,9 +36,12 @@ export default function MonthlyEntryPage({
         <RecurringListSection
           filteredRecurring={filteredRecurring}
           recurringTitle={t.recurringListTitle}
+          dailyCategoryOptions={dailyCategoryOptions}
           selectedCurrency={selectedCurrency}
           exchangeRates={exchangeRates}
           onEditRecurring={onEditRecurring}
+          onUpdateRecurringInline={onUpdateRecurringInline}
+          onDeleteRecurring={onDeleteRecurring}
           t={t}
         />
       </section>

@@ -21,7 +21,7 @@ function normalizeCategoryRecord(item, fallbackSortOrder = 0) {
 
 export function pickCategoryName(category, locale = "jp") {
   if (!category) {
-    return "Other";
+    return locale === "de" ? "Sonstiges" : locale === "en" ? "Other" : "その他";
   }
   if (locale === "de") {
     return category.nameDe || category.nameEn || category.nameJp;

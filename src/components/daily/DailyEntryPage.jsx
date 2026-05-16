@@ -17,8 +17,10 @@ export default function DailyEntryPage({
   onDeleteCategory,
   onReorderCategories,
   dailyRows,
+  filteredRecurring,
   dailyTitle,
   dailyTitleSuggestions,
+  onUpdateDailyInline,
   selectedCurrency,
   exchangeRates,
   locale,
@@ -52,10 +54,13 @@ export default function DailyEntryPage({
       <section className="lists-grid">
         <DailyListSection
           dailyRows={dailyRows}
+          filteredRecurring={filteredRecurring}
           dailyTitle={dailyTitle}
+          dailyCategoryOptions={dailyCategoryOptions}
           selectedCurrency={selectedCurrency}
           exchangeRates={exchangeRates}
           onEditDaily={onEditDaily}
+          onUpdateDailyInline={onUpdateDailyInline}
           onDeleteDaily={onDeleteDaily}
           t={t}
         />

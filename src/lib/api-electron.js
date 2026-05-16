@@ -21,7 +21,8 @@ export function createElectronApi() {
     recurring: {
       list: () => window.ledgerApi.recurring.list(),
       add: (payload) => window.ledgerApi.recurring.add(payload),
-      update: (payload) => window.ledgerApi.recurring.update(payload)
+      update: (payload) => window.ledgerApi.recurring.update(payload),
+      delete: (payload) => window.ledgerApi.recurring.delete(payload)
     },
     history: {
       list: (payload) => window.ledgerApi.history.list(payload)

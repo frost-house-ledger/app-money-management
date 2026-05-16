@@ -69,6 +69,10 @@ async function createMainWindow(ledger) {
     return ledger.updateRecurring(payload);
   });
 
+  ipcMain.handle("recurring:delete", async (_event, payload) => {
+    return ledger.deleteRecurring(payload);
+  });
+
   ipcMain.handle("recurring:list", async () => ledger.listRecurring());
 
   ipcMain.handle("entry:add", async (_event, payload) => {

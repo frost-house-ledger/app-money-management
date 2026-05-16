@@ -87,6 +87,23 @@ function monthEnd(yyyymm) {
   return `${yyyymm}-${String(last).padStart(2, "0")}`;
 }
 
+function validateMonthValue(month, fieldName) {
+  if (!/^\d{4}-\d{2}$/.test(String(month || ""))) {
+    throw new Error(`${fieldName} must be YYYY-MM`);
+  }
+}
+
+function validateRecurringMonthRange(startMonth, endMonth) {
+  validateMonthValue(startMonth, "startMonth");
+  if (!endMonth) {
+    return;
+  }
+  validateMonthValue(endMonth, "endMonth");
+  if (String(startMonth) > String(endMonth)) {
+    throw new Error("startMonth must be <= endMonth");
+  }
+}
+
 // ─── Category store (localStorage) ───────────────────────────────────────────
 
 function readCategories() {
@@ -145,7 +162,9 @@ function writeRecurring(items) {
 function sumRecurringByType(month, type, categoryId = null) {
   return readRecurring()
     .filter((item) => {
-      if (!(item.type === type && item.startMonth <= month)) {
+      const endMonth = item.endMonth || null;
+      const inRange = item.startMonth <= month && (!endMonth || month <= endMonth);
+      if (!(item.type === type && inRange)) {
         return false;
       }
       if (type !== "fee") {
@@ -390,6 +409,7 @@ export function createAndroidApi() {
         });
       },
       async add(input) {
+        validateRecurringMonthRange(input.startMonth, input.endMonth || null);
         const items = readRecurring();
         const newItem = {
           id: `r-${Date.now()}`,
@@ -398,6 +418,7 @@ export function createAndroidApi() {
           title: String(input.title || "").trim(),
           amount: Number(input.amount ?? 0),
           startMonth: input.startMonth,
+          endMonth: input.endMonth || null,
           createdAt: new Date().toISOString()
         };
         items.push(newItem);
@@ -405,6 +426,7 @@ export function createAndroidApi() {
         return newItem;
       },
       async update(input) {
+        validateRecurringMonthRange(input.startMonth, input.endMonth || null);
         const items = readRecurring();
         const idx = items.findIndex((r) => r.id === input.id);
         if (idx === -1) throw new Error("Recurring item not found");
@@ -414,10 +436,20 @@ export function createAndroidApi() {
           categoryId: input.type === "fee" ? String(input.categoryId || "other") : null,
           title: String(input.title || "").trim(),
           amount: Number(input.amount ?? 0),
-          startMonth: input.startMonth
+          startMonth: input.startMonth,
+          endMonth: input.endMonth || null
         };
         writeRecurring(items);
         return items[idx];
+      },
+      async delete({ id }) {
+        const items = readRecurring();
+        const next = items.filter((item) => String(item.id) !== String(id));
+        if (next.length === items.length) {
+          throw new Error("Recurring item not found");
+        }
+        writeRecurring(next);
+        return { id };
       }
     },
 
@@ -508,7 +540,9 @@ export function createAndroidApi() {
         });
 
         readRecurring().forEach((item) => {
-          if (item.type !== "fee" || item.startMonth > month) {
+          const endMonth = item.endMonth || null;
+          const inRange = item.startMonth <= month && (!endMonth || month <= endMonth);
+          if (item.type !== "fee" || !inRange) {
             return;
           }
           const key = String(item.categoryId || "other");
@@ -552,7 +586,9 @@ export function createAndroidApi() {
         let monthCursor = fromMonth;
         while (monthCursor <= toMonth) {
           recurringItems.forEach((item) => {
-            if (item.type !== "fee" || item.startMonth > monthCursor) {
+            const endMonth = item.endMonth || null;
+            const inRange = item.startMonth <= monthCursor && (!endMonth || monthCursor <= endMonth);
+            if (item.type !== "fee" || !inRange) {
               return;
             }
             const categoryId = String(item.categoryId || "other");

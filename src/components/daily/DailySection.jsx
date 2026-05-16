@@ -1,5 +1,10 @@
 import React from "react";
-import { formatCurrency, formatNumericInput, sanitizeNumericInput } from "../../lib/currency.js";
+import {
+  formatBaseAmountForInput,
+  formatCurrency,
+  formatNumericInput,
+  sanitizeNumericInput
+} from "../../lib/currency.js";
 
 // This section includes both the form and the list, as they are closely related and likely to be used together. The form state is lifted up to avoid unnecessary re-renders of the list when the form state changes.
 export default function DailySection({
@@ -118,53 +123,276 @@ export default function DailySection({
 // Separate section for the daily entries list, to avoid re-rendering the list when the form state changes
 export function DailyListSection({
   dailyRows,
+  filteredRecurring,
   dailyTitle,
+  dailyCategoryOptions,
   selectedCurrency,
   exchangeRates,
-  onEditDaily,
+  onUpdateDailyInline,
   onDeleteDaily,
   t
 }) {
-  const totalFee = dailyRows
+  const [inlineEditId, setInlineEditId] = React.useState(null);
+  const [inlineForm, setInlineForm] = React.useState({
+    type: "fee",
+    categoryId: "Other",
+    title: "",
+    amount: "",
+    entryDate: "",
+    note: ""
+  });
+  const [inlineError, setInlineError] = React.useState("");
+  const [isSaving, setIsSaving] = React.useState(false);
+  const [pendingDeleteIds, setPendingDeleteIds] = React.useState([]);
+  const pendingDeleteTimersRef = React.useRef(new Map());
+
+  React.useEffect(() => {
+    return () => {
+      pendingDeleteTimersRef.current.forEach((timerId) => {
+        window.clearTimeout(timerId);
+      });
+      pendingDeleteTimersRef.current.clear();
+    };
+  }, []);
+
+  React.useEffect(() => {
+    const rowIds = new Set(dailyRows.map((row) => row.id));
+    setPendingDeleteIds((current) => current.filter((id) => rowIds.has(id)));
+  }, [dailyRows]);
+
+  function startInlineEdit(row) {
+    setInlineError("");
+    setInlineEditId(row.id);
+    setInlineForm({
+      type: row.type,
+      categoryId: row.categoryId || "Other",
+      title: row.title || "",
+      amount: formatBaseAmountForInput(row.amount, selectedCurrency, exchangeRates),
+      entryDate: row.entryDate || "",
+      note: row.note || ""
+    });
+  }
+
+  function cancelInlineEdit() {
+    setInlineEditId(null);
+    setInlineError("");
+    setInlineForm({
+      type: "fee",
+      categoryId: "Other",
+      title: "",
+      amount: "",
+      entryDate: "",
+      note: ""
+    });
+  }
+
+  async function submitInlineEdit() {
+    setInlineError("");
+    setIsSaving(true);
+    try {
+      await onUpdateDailyInline({
+        id: inlineEditId,
+        ...inlineForm,
+        categoryId: inlineForm.type === "fee" ? inlineForm.categoryId || "other" : null
+      });
+      cancelInlineEdit();
+    } catch (error) {
+      setInlineError(error.message || t.errorDailyFailed);
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  function cancelPendingDelete(id) {
+    const timerId = pendingDeleteTimersRef.current.get(id);
+    if (timerId) {
+      window.clearTimeout(timerId);
+      pendingDeleteTimersRef.current.delete(id);
+    }
+    setPendingDeleteIds((current) => current.filter((item) => item !== id));
+  }
+
+  function requestDelete(id) {
+    if (pendingDeleteTimersRef.current.has(id)) {
+      return;
+    }
+
+    if (inlineEditId === id) {
+      cancelInlineEdit();
+    }
+
+    setPendingDeleteIds((current) => [...current, id]);
+
+    const timerId = window.setTimeout(async () => {
+      try {
+        await onDeleteDaily(id);
+      } catch (error) {
+        setInlineError(error.message || t.errorDailyDeleteFailed);
+      } finally {
+        pendingDeleteTimersRef.current.delete(id);
+        setPendingDeleteIds((current) => current.filter((item) => item !== id));
+      }
+    }, 30000);
+
+    pendingDeleteTimersRef.current.set(id, timerId);
+  }
+
+  const dailyFee = dailyRows
     .filter((row) => row.type === "fee")
     .reduce((sum, row) => sum + Number(row.amount || 0), 0);
-  const totalIncome = dailyRows
+  const dailyIncome = dailyRows
     .filter((row) => row.type === "income")
     .reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  const recurringFee = (filteredRecurring || [])
+    .filter((row) => row.type === "fee")
+    .reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  const recurringIncome = (filteredRecurring || [])
+    .filter((row) => row.type === "income")
+    .reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  const totalFee = dailyFee + recurringFee;
+  const totalIncome = dailyIncome + recurringIncome;
 
   return (
     <article className="card">
       <h2>{dailyTitle}</h2>
+      {inlineError && <p className="error">{inlineError}</p>}
       <ul className="list daily-list">
-        {dailyRows.map((row) => (
-          <li key={`daily-${row.id}`} className="daily-list-item">
-            <strong>{row.entryDate}</strong>
-            <span>{row.type}</span>
-            <span>
-              {row.categoryDisplay ? `${row.categoryIcon || "🏷️"} ${row.categoryDisplay}` : "-"}
-            </span>
-            <span>{row.title}</span>
-            <span>{formatCurrency(row.amount, selectedCurrency, exchangeRates)}</span>
-            <span className="daily-row-actions">
-              <button
-                type="button"
-                className="inline-action"
-                onClick={() => onEditDaily(row)}
-              >
-                {t.editDailyButton}
-              </button>
-              <button
-                type="button"
-                className="inline-action danger-action"
-                onClick={() => onDeleteDaily(row.id)}
-              >
-                {t.deleteButton}
-              </button>
-            </span>
+        {dailyRows.map((row) => {
+          const isPendingDelete = pendingDeleteIds.includes(row.id);
+          return (
+          <li
+            key={`daily-${row.id}`}
+            className={`daily-list-item ${inlineEditId === row.id ? "daily-list-item--editing" : ""} ${isPendingDelete ? "daily-list-item--pending-delete" : ""}`}
+          >
+            {inlineEditId === row.id ? (
+              <>
+                <label>
+                  <input
+                    type="date"
+                    value={inlineForm.entryDate}
+                    onChange={(e) => setInlineForm((current) => ({ ...current, entryDate: e.target.value }))}
+                  />
+                </label>
+                <label>
+                  <select
+                    value={inlineForm.type}
+                    onChange={(e) => {
+                      const nextType = e.target.value;
+                      setInlineForm((current) => ({
+                        ...current,
+                        type: nextType,
+                        categoryId: nextType === "fee" ? current.categoryId || dailyCategoryOptions[0]?.id || "other" : ""
+                      }));
+                    }}
+                  >
+                    <option value="fee">{t.typeFee}</option>
+                    <option value="income">{t.typeIncome}</option>
+                  </select>
+                </label>
+                <label>
+                  <select
+                    value={inlineForm.categoryId || ""}
+                    onChange={(e) => setInlineForm((current) => ({ ...current, categoryId: e.target.value }))}
+                    disabled={inlineForm.type !== "fee"}
+                  >
+                    {dailyCategoryOptions.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.icon || "🏷️"} {category.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  <input
+                    type="text"
+                    value={inlineForm.title}
+                    onChange={(e) => setInlineForm((current) => ({ ...current, title: e.target.value }))}
+                    placeholder={t.dailyTitlePlaceholder}
+                  />
+                </label>
+                <label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={formatNumericInput(inlineForm.amount)}
+                    onChange={(e) =>
+                      setInlineForm((current) => ({ ...current, amount: sanitizeNumericInput(e.target.value) }))
+                    }
+                    placeholder={t.dailyAmountPlaceholder}
+                  />
+                </label>
+                <label>
+                  <input
+                    type="text"
+                    value={inlineForm.note}
+                    onChange={(e) => setInlineForm((current) => ({ ...current, note: e.target.value }))}
+                    placeholder={t.dailyNotePlaceholder}
+                  />
+                </label>
+                <span className="daily-row-actions">
+                  <button
+                    type="button"
+                    className="inline-action"
+                    onClick={submitInlineEdit}
+                    disabled={isSaving}
+                  >
+                    {t.updateDailyButton}
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-action"
+                    onClick={cancelInlineEdit}
+                    disabled={isSaving}
+                  >
+                    {t.cancelEditButton}
+                  </button>
+                </span>
+              </>
+            ) : (
+              <>
+                <strong>{row.entryDate}</strong>
+                <span>{row.type}</span>
+                <span>
+                  {row.categoryDisplay ? `${row.categoryIcon || "🏷️"} ${row.categoryDisplay}` : "-"}
+                </span>
+                <span>{row.title}</span>
+                <span>{formatCurrency(row.amount, selectedCurrency, exchangeRates)}</span>
+                <span>{row.note || "-"}</span>
+                <span className="daily-row-actions">
+                  {isPendingDelete ? (
+                    <button
+                      type="button"
+                      className="inline-action"
+                      onClick={() => cancelPendingDelete(row.id)}
+                    >
+                      {t.restoreButton}
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        className="inline-action"
+                        onClick={() => startInlineEdit(row)}
+                      >
+                        {t.editDailyButton}
+                      </button>
+                      <button
+                        type="button"
+                        className="inline-action danger-action"
+                        onClick={() => requestDelete(row.id)}
+                      >
+                        {t.deleteButton}
+                      </button>
+                    </>
+                  )}
+                </span>
+              </>
+            )}
           </li>
-        ))}
+          );
+        })}
       </ul>
-      {dailyRows.length > 0 && (
+      {(dailyRows.length > 0 || (filteredRecurring && filteredRecurring.length > 0)) && (
         <div className="daily-totals">
           {totalFee > 0 && (
             <span className="daily-total-fee">月次費用合計: {formatCurrency(totalFee, selectedCurrency, exchangeRates)}</span>

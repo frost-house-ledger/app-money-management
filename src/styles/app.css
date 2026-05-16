@@ -292,11 +292,64 @@ button {
 }
 
 .recurring-list-item {
-  grid-template-columns: 110px 80px 120px 1fr 120px 96px;
+  grid-template-columns: 96px 96px 92px minmax(150px, 1fr) minmax(220px, 2fr) 130px minmax(150px, auto);
 }
 
 .daily-list-item {
-  grid-template-columns: 110px 80px 120px 1fr 120px auto;
+  grid-template-columns: 102px 82px minmax(110px, 0.9fr) minmax(150px, 1.5fr) 110px minmax(100px, 1.1fr) auto;
+}
+
+.recurring-list-item--editing {
+  grid-template-columns: 96px 96px 100px minmax(180px, 1.2fr) minmax(240px, 2fr) 140px minmax(170px, auto);
+}
+
+.daily-list-item--editing {
+  grid-template-columns: 110px 90px minmax(120px, 1fr) minmax(150px, 1.4fr) 110px minmax(120px, 1.1fr) auto;
+}
+
+.recurring-list-item--editing input,
+.recurring-list-item--editing select,
+.daily-list-item--editing input,
+.daily-list-item--editing select {
+  width: 100%;
+}
+
+.daily-list-item > * {
+  min-width: 0;
+}
+
+.daily-list-item > span:nth-child(4),
+.daily-list-item > span:nth-child(6) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.daily-list-item--pending-delete {
+  opacity: 0.65;
+}
+
+.recurring-list-item--pending-delete {
+  opacity: 0.65;
+}
+
+.recurring-list-item--pending-delete > strong,
+.recurring-list-item--pending-delete > span:not(.daily-row-actions) {
+  text-decoration: line-through;
+}
+
+.recurring-expired-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  font-size: 0.8rem;
+  color: #f5a623;
+}
+
+.daily-list-item--pending-delete > strong,
+.daily-list-item--pending-delete > span:not(.daily-row-actions) {
+  text-decoration: line-through;
 }
 
 /* 履歴画面の action バッジ */
@@ -386,6 +439,7 @@ button {
   display: flex;
   gap: 4px;
   align-items: center;
+  flex-wrap: nowrap;
 }
 
 .danger-action {
@@ -431,6 +485,7 @@ button {
 
 .inline-action {
   padding: 6px 10px;
+  white-space: nowrap;
 }
 
 .category-manager-header {

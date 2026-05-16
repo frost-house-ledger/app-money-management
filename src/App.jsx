@@ -52,15 +52,16 @@ export default function App() {
 
   const [recurringForm, setRecurringForm] = useState({
     type: "fee",
-    categoryId: "other",
+    categoryId: "Food",
     title: "",
     amount: "",
-    startMonth: baseMonth
+    startMonth: baseMonth,
+    endMonth: ""
   });
 
   const [dailyForm, setDailyForm] = useState({
     type: "fee",
-    categoryId: "other",
+    categoryId: "Food",
     title: "",
     amount: "",
     entryDate: todayISO(),
@@ -204,7 +205,7 @@ export default function App() {
 
     if (filterType === "all") {
       return recurringRows.map((row) => {
-        const categoryId = row.type === "fee" ? row.categoryId || "other" : null;
+        const categoryId = row.type === "fee" ? row.categoryId || "Food" : null;
         const category = categoryId ? categoryMap.get(categoryId) : null;
         return {
           ...row,
@@ -216,7 +217,7 @@ export default function App() {
     return recurringRows
       .filter((row) => row.type === filterType)
       .map((row) => {
-        const categoryId = row.type === "fee" ? row.categoryId || "other" : null;
+        const categoryId = row.type === "fee" ? row.categoryId || "Other" : null;
         const category = categoryId ? categoryMap.get(categoryId) : null;
         return {
           ...row,
@@ -286,11 +287,11 @@ export default function App() {
         setSelectedDailyCategory("all");
       }
       if (dailyForm.categoryId === id) {
-        setDailyForm((current) => ({ ...current, categoryId: "other" }));
+        setDailyForm((current) => ({ ...current, categoryId: "Other" }));
       }
       setRecurringForm((current) => ({
         ...current,
-        categoryId: current.categoryId === id ? "other" : current.categoryId
+        categoryId: current.categoryId === id ? "Other" : current.categoryId
       }));
     } catch (error) {
       setErrorText(error.message || t.errorCategoryRequired);
@@ -314,7 +315,7 @@ export default function App() {
     try {
       const payload = {
         ...recurringForm,
-        categoryId: recurringForm.type === "fee" ? recurringForm.categoryId || "other" : null,
+        categoryId: recurringForm.type === "fee" ? recurringForm.categoryId || "Other" : null,
         // Persist amounts in base currency; UI input is in selected display currency.
         amount: convertDisplayAmountToBase(recurringForm.amount, selectedCurrency, exchangeRates)
       };
@@ -331,10 +332,11 @@ export default function App() {
       setRecurringForm((current) => ({
         ...current,
         type: "fee",
-        categoryId: "other",
+        categoryId: "Other",
         title: "",
         amount: "",
-        startMonth: baseMonth
+        startMonth: baseMonth,
+        endMonth: ""
       }));
       setEditingRecurringId(null);
 
@@ -348,10 +350,11 @@ export default function App() {
   function onEditRecurring(item) {
     setRecurringForm({
       type: item.type,
-      categoryId: item.categoryId || "other",
+      categoryId: item.categoryId || "Other",
       title: item.title,
       amount: formatBaseAmountForInput(item.amount, selectedCurrency, exchangeRates),
-      startMonth: item.startMonth
+      startMonth: item.startMonth,
+      endMonth: item.endMonth || ""
     });
     setEditingRecurringId(item.id);
   }
@@ -359,12 +362,44 @@ export default function App() {
   function onCancelRecurringEdit() {
     setRecurringForm({
       type: "fee",
-      categoryId: "other",
+      categoryId: "Other",
       title: "",
       amount: "",
-      startMonth: baseMonth
+      startMonth: baseMonth,
+      endMonth: ""
     });
     setEditingRecurringId(null);
+  }
+
+  async function onUpdateRecurringInline(payload) {
+    setErrorText("");
+    try {
+      await api.recurring.update({
+        ...payload,
+        amount: convertDisplayAmountToBase(payload.amount, selectedCurrency, exchangeRates)
+      });
+      setEditingRecurringId(null);
+      await refreshAll();
+      showToast(t.toastRecurringUpdated);
+    } catch (error) {
+      setErrorText(error.message || t.errorRecurringFailed);
+      throw error;
+    }
+  }
+
+  async function onDeleteRecurring(id) {
+    setErrorText("");
+    try {
+      await api.recurring.delete({ id });
+      if (editingRecurringId === id) {
+        onCancelRecurringEdit();
+      }
+      await refreshAll();
+      showToast(t.toastRecurringDeleted);
+    } catch (error) {
+      setErrorText(error.message || t.errorRecurringDeleteFailed);
+      throw error;
+    }
   }
 
   async function onSubmitDaily(event) {
@@ -381,7 +416,7 @@ export default function App() {
         await api.entry.update({
           ...dailyForm,
           id: editingDailyId,
-          categoryId: dailyForm.type === "fee" ? dailyForm.categoryId || "other" : null,
+          categoryId: dailyForm.type === "fee" ? dailyForm.categoryId || "Other" : null,
           amount: convertDisplayAmountToBase(dailyForm.amount, selectedCurrency, exchangeRates)
         });
         setEditingDailyId(null);
@@ -389,7 +424,7 @@ export default function App() {
           ...current,
           title: "",
           amount: "",
-          categoryId: current.type === "fee" ? current.categoryId || "other" : "other",
+          categoryId: current.type === "fee" ? current.categoryId || "Other" : "Other",
           note: ""
         }));
         await refreshAll(selectedMonth, range);
@@ -397,14 +432,14 @@ export default function App() {
       } else {
         await api.entry.add({
           ...dailyForm,
-          categoryId: dailyForm.type === "fee" ? dailyForm.categoryId || "other" : null,
+          categoryId: dailyForm.type === "fee" ? dailyForm.categoryId || "Other" : null,
           amount: convertDisplayAmountToBase(dailyForm.amount, selectedCurrency, exchangeRates)
         });
         setDailyForm((current) => ({
           ...current,
           title: "",
           amount: "",
-          categoryId: current.type === "fee" ? current.categoryId || "other" : "other",
+          categoryId: current.type === "fee" ? current.categoryId || "Other" : "Other",
           note: ""
         }));
         await refreshAll(selectedMonth, range);
@@ -419,7 +454,7 @@ export default function App() {
     setEditingDailyId(row.id);
     setDailyForm({
       type: row.type,
-      categoryId: row.categoryId || "other",
+      categoryId: row.categoryId || "Other",
       title: row.title,
       amount: formatBaseAmountForInput(row.amount, selectedCurrency, exchangeRates),
       entryDate: row.entryDate,
@@ -436,6 +471,29 @@ export default function App() {
       amount: "",
       note: ""
     }));
+  }
+
+  async function onUpdateDailyInline(payload) {
+    setErrorText("");
+
+    if ((payload.entryDate || "").slice(0, 7) > currentYYYYMM) {
+      setErrorText(t.errorFutureDate);
+      throw new Error(t.errorFutureDate);
+    }
+
+    try {
+      await api.entry.update({
+        ...payload,
+        categoryId: payload.type === "fee" ? payload.categoryId || "Other" : null,
+        amount: convertDisplayAmountToBase(payload.amount, selectedCurrency, exchangeRates)
+      });
+      setEditingDailyId(null);
+      await refreshAll(selectedMonth, range);
+      showToast(t.toastDailyUpdated);
+    } catch (error) {
+      setErrorText(error.message || t.errorDailyFailed);
+      throw error;
+    }
   }
 
   async function onDeleteDaily(id) {
@@ -578,6 +636,8 @@ export default function App() {
           filteredRecurring={filteredRecurring}
           selectedCurrency={selectedCurrency}
           onEditRecurring={onEditRecurring}
+          onUpdateRecurringInline={onUpdateRecurringInline}
+          onDeleteRecurring={onDeleteRecurring}
           exchangeRates={exchangeRates}
           t={t}
         />
@@ -597,8 +657,10 @@ export default function App() {
           onDeleteCategory={onDeleteCategory}
           onReorderCategories={onReorderCategories}
           dailyRows={dailyRows}
+          filteredRecurring={filteredRecurring}
           dailyTitle={formatMessage(t.dailyListTitle, { month: selectedMonth })}
           dailyTitleSuggestions={dailyTitleSuggestions}
+          onUpdateDailyInline={onUpdateDailyInline}
           selectedCurrency={selectedCurrency}
           locale={locale}
           exchangeRates={exchangeRates}

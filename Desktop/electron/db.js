@@ -481,7 +481,9 @@ export function createLedgerStore(dataDir) {
 
     if (!input.fromDate && !input.toDate && input.month) {
       recurringStore.listRecurringItems().forEach((item) => {
-        if (item.type !== "fee" || item.startMonth > input.month) {
+        const endMonth = item.endMonth || null;
+        const inRange = item.startMonth <= input.month && (!endMonth || input.month <= endMonth);
+        if (item.type !== "fee" || !inRange) {
           return;
         }
         const key = String(item.categoryId || "other");
@@ -536,7 +538,9 @@ export function createLedgerStore(dataDir) {
     let monthCursor = input.fromMonth;
     while (compareMonths(monthCursor, input.toMonth) <= 0) {
       recurringItems.forEach((item) => {
-        if (item.type !== "fee" || item.startMonth > monthCursor) {
+        const endMonth = item.endMonth || null;
+        const inRange = item.startMonth <= monthCursor && (!endMonth || monthCursor <= endMonth);
+        if (item.type !== "fee" || !inRange) {
           return;
         }
         const categoryId = String(item.categoryId || "other");
@@ -581,6 +585,7 @@ export function createLedgerStore(dataDir) {
     reorderCategories: categoryStore.reorderCategories,
     addRecurring: recurringStore.addRecurring,
     updateRecurring: recurringStore.updateRecurring,
+    deleteRecurring: recurringStore.deleteRecurring,
     addDailyEntry,
     importDailyCsv,
     deleteDaily,

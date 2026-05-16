@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld("ledgerApi", {
   recurring: {
     add: (payload) => ipcRenderer.invoke("recurring:add", payload),
     update: (payload) => ipcRenderer.invoke("recurring:update", payload),
+    delete: (payload) => ipcRenderer.invoke("recurring:delete", payload),
     list: () => ipcRenderer.invoke("recurring:list")
   },
   entry: {

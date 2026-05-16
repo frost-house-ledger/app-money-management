@@ -54,9 +54,12 @@ export const TRANSLATIONS = {
 
   recurringAmountPlaceholder: { jp: "0", en: "0", de: "0" },
   recurringStartMonthLabel: { jp: "開始月", en: "Start month", de: "Startmonat" },
+  recurringEndMonthLabel: { jp: "終了月", en: "End month", de: "Endmonat" },
+  recurringExpiredLabel: { jp: "終了月を超過した固定項目です", en: "Recurring item has passed its end month", de: "Fixposten hat den Endmonat ueberschritten" },
 
   saveRecurringButton: { jp: "固定項目を保存", en: "Save recurring item", de: "Fixposten speichern" },
   updateRecurringButton: { jp: "固定項目を更新", en: "Update recurring item", de: "Fixposten aktualisieren" },
+  deleteRecurringButton: { jp: "削除", en: "Delete", de: "Loeschen" },
 
   typeLabel: { jp: "種別", en: "Type", de: "Typ" },
   typeFee: { jp: "費用", en: "Expense", de: "Ausgabe" },
@@ -89,6 +92,7 @@ export const TRANSLATIONS = {
   addCategoryButton: { jp: "追加", en: "Add", de: "Hinzufuegen" },
   saveButton: { jp: "保存", en: "Save", de: "Speichern" },
   deleteButton: { jp: "削除", en: "Delete", de: "Loeschen" },
+  restoreButton: { jp: "復元", en: "Restore", de: "Wiederherstellen" },
   dailyTitlePlaceholder: { jp: "スーパー / 副業", en: "Supermarket / Side job", de: "Supermarkt / Nebenjob" },
   dailyAmountPlaceholder: { jp: "2500", en: "2500", de: "2500" },
   dateLabel: { jp: "日付", en: "Date", de: "Datum" },
@@ -180,6 +184,7 @@ export const TRANSLATIONS = {
   savingsSimNoData: { jp: "条件を入力するとシミュレート結果が表示されます。", en: "Enter values above to see the projection.", de: "Werte eingeben, um die Prognose anzuzeigen." },
   toastRecurringSaved: { jp: "固定項目を登録しました。", en: "Recurring item saved.", de: "Fixposten gespeichert." },
   toastRecurringUpdated: { jp: "固定項目を更新しました。", en: "Recurring item updated.", de: "Fixposten aktualisiert." },
+  toastRecurringDeleted: { jp: "固定項目を削除しました。", en: "Recurring item deleted.", de: "Fixposten geloescht." },
   toastDailySaved: { jp: "日次項目を登録しました。", en: "Daily entry saved.", de: "Tageseintrag gespeichert." },
   toastCategoryAdded: { jp: "カテゴリを追加しました。", en: "Category added.", de: "Kategorie hinzugefuegt." },
   toastAppliedMonthToAllTabs: {
@@ -191,6 +196,11 @@ export const TRANSLATIONS = {
     jp: "固定項目の登録に失敗しました。",
     en: "Failed to save recurring item.",
     de: "Fixposten konnte nicht gespeichert werden."
+  },
+  errorRecurringDeleteFailed: {
+    jp: "固定項目の削除に失敗しました。",
+    en: "Failed to delete recurring item.",
+    de: "Fixposten konnte nicht geloescht werden."
   },
   errorDailyFailed: {
     jp: "日次項目の登録に失敗しました。",
