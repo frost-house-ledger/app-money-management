@@ -53,7 +53,8 @@ async function getDb() {
       entry_date TEXT NOT NULL,
       category_id TEXT,
       note TEXT,
-      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
     CREATE TABLE IF NOT EXISTS input_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -68,6 +69,9 @@ async function getDb() {
       logged_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
+  await _db.execute("ALTER TABLE daily_entries ADD COLUMN sync_id TEXT;", false).catch(() => {});
+  await _db.execute("ALTER TABLE daily_entries ADD COLUMN updated_at TEXT NOT NULL DEFAULT (datetime('now'));", false).catch(() => {});
+  await _db.execute("UPDATE daily_entries SET updated_at = COALESCE(updated_at, created_at, datetime('now')) WHERE updated_at IS NULL OR updated_at = '';", false).catch(() => {});
   return _db;
 }
 
@@ -75,6 +79,14 @@ async function getDb() {
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function createSyncId() {
+  return globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 function monthStart(yyyymm) {
@@ -111,7 +123,9 @@ function readCategories() {
     const raw = localStorage.getItem(LS_CATEGORIES);
     if (raw) {
       const parsed = JSON.parse(raw);
-      return Array.isArray(parsed.items) ? parsed.items : DEFAULT_CATEGORIES;
+      return Array.isArray(parsed.items)
+        ? parsed.items.map((item) => ({ ...item, updatedAt: item.updatedAt || "1970-01-01T00:00:00.000Z" }))
+        : DEFAULT_CATEGORIES;
     }
   } catch {}
   return DEFAULT_CATEGORIES.map((c) => ({ ...c }));
@@ -149,7 +163,12 @@ function readRecurring() {
     const raw = localStorage.getItem(LS_RECURRING);
     if (raw) {
       const parsed = JSON.parse(raw);
-      return Array.isArray(parsed.items) ? parsed.items : [];
+      return Array.isArray(parsed.items)
+        ? parsed.items.map((item) => ({
+          ...item,
+          updatedAt: item.updatedAt || item.createdAt || nowIso()
+        }))
+        : [];
     }
   } catch {}
   return [];
@@ -187,6 +206,17 @@ function normalizeDesktopUrl(url) {
   return withScheme.replace(/\/+$/, "");
 }
 
+function normalizeFetchError(error, url) {
+  const message = String(error?.message || "");
+  if (/Failed to fetch|NetworkError|Load failed|fetch/i.test(message)) {
+    return new Error(
+      `Desktop sync server could not be reached: ${url}. ` +
+      "Make sure the Desktop app is open, the Desktop URL is correct, both devices are on the same network, and Windows Firewall allows port 30303."
+    );
+  }
+  return error instanceof Error ? error : new Error(message || "Sync request failed");
+}
+
 async function fetchJson(url, options = {}, timeoutMs = 8000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -204,6 +234,8 @@ async function fetchJson(url, options = {}, timeoutMs = 8000) {
       throw new Error(json?.error || `HTTP ${res.status}`);
     }
     return json;
+  } catch (error) {
+    throw normalizeFetchError(error, url);
   } finally {
     clearTimeout(timer);
   }
@@ -212,8 +244,8 @@ async function fetchJson(url, options = {}, timeoutMs = 8000) {
 async function exportLocalSyncData() {
   const db = await getDb();
   const dailyRes = await db.query(
-    `SELECT id, type, title, amount, entry_date AS entryDate, category_id AS categoryId,
-            note, created_at AS createdAt
+      `SELECT id, sync_id AS syncId, type, title, amount, entry_date AS entryDate, category_id AS categoryId,
+        note, created_at AS createdAt, updated_at AS updatedAt
      FROM daily_entries
      ORDER BY id ASC`
   );
@@ -260,17 +292,19 @@ async function importLocalSyncData(snapshot) {
   for (let i = 0; i < dailyEntries.length; i++) {
     const row = dailyEntries[i];
     await db.run(
-      `INSERT INTO daily_entries(id, type, title, amount, entry_date, category_id, note, created_at)
-       VALUES (?,?,?,?,?,?,?,?)`,
+      `INSERT INTO daily_entries(id, sync_id, type, title, amount, entry_date, category_id, note, created_at, updated_at)
+       VALUES (?,?,?,?,?,?,?,?,?,?)`,
       [
-        Number.isInteger(Number(row.id)) ? Number(row.id) : i + 1,
+        i + 1,
+        row.syncId ? String(row.syncId) : createSyncId(),
         row.type === "income" ? "income" : "fee",
         String(row.title || ""),
         Number(row.amount || 0),
         String(row.entryDate || todayISO()),
         row.type === "fee" ? String(row.categoryId || "other") : null,
         row.note ? String(row.note) : "",
-        row.createdAt ? String(row.createdAt) : new Date().toISOString()
+        row.createdAt ? String(row.createdAt) : nowIso(),
+        row.updatedAt ? String(row.updatedAt) : (row.createdAt ? String(row.createdAt) : nowIso())
       ]
     );
   }
@@ -281,7 +315,7 @@ async function importLocalSyncData(snapshot) {
       `INSERT INTO input_logs(id, source, action, type, title, amount, target_date, category_id, note, logged_at)
        VALUES (?,?,?,?,?,?,?,?,?,?)`,
       [
-        Number.isInteger(Number(row.id)) ? Number(row.id) : i + 1,
+        i + 1,
         row.source === "monthly" ? "monthly" : "daily",
         String(row.action || "add"),
         row.type === "income" ? "income" : "fee",
@@ -303,6 +337,113 @@ async function importLocalSyncData(snapshot) {
       dailyEntries: dailyEntries.length,
       inputLogs: inputLogs.length
     }
+  };
+}
+
+function getItemTimestamp(item, fields = ["updatedAt", "createdAt", "loggedAt", "exportedAt"]) {
+  for (const field of fields) {
+    const value = item?.[field];
+    const ts = value ? Date.parse(String(value)) : NaN;
+    if (Number.isFinite(ts)) {
+      return ts;
+    }
+  }
+  return 0;
+}
+
+function getDailyEntryMergeKey(entry) {
+  return String(
+    entry?.syncId ||
+    [
+      entry?.createdAt || "",
+      entry?.type || "",
+      entry?.entryDate || "",
+      entry?.title || "",
+      Number(entry?.amount || 0),
+      entry?.categoryId || "",
+      entry?.note || ""
+    ].join("::")
+  );
+}
+
+function getLogMergeKey(log) {
+  return [
+    log?.source || "",
+    log?.action || "",
+    log?.type || "",
+    log?.title || "",
+    Number(log?.amount || 0),
+    log?.targetDate || "",
+    log?.categoryId || "",
+    log?.note || "",
+    log?.loggedAt || ""
+  ].join("::");
+}
+
+function mergeByKey(localItems, remoteItems, getKey, getTimestamp) {
+  const merged = new Map();
+
+  for (const item of [...(remoteItems || []), ...(localItems || [])]) {
+    const key = getKey(item);
+    if (!key) {
+      continue;
+    }
+
+    const current = merged.get(key);
+    if (!current) {
+      merged.set(key, item);
+      continue;
+    }
+
+    if (getTimestamp(item) >= getTimestamp(current)) {
+      merged.set(key, item);
+    }
+  }
+
+  return Array.from(merged.values());
+}
+
+function mergeSyncSnapshots(localSnapshot, remoteSnapshot) {
+  const mergedCategories = mergeByKey(
+    localSnapshot?.categories || [],
+    remoteSnapshot?.categories || [],
+    (item) => String(item?.id || ""),
+    (item) => getItemTimestamp(item)
+  ).sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0));
+
+  const mergedRecurring = mergeByKey(
+    localSnapshot?.recurring || [],
+    remoteSnapshot?.recurring || [],
+    (item) => String(item?.id || ""),
+    (item) => getItemTimestamp(item)
+  ).sort((a, b) => {
+    const monthCompare = String(a.startMonth || "").localeCompare(String(b.startMonth || ""));
+    if (monthCompare !== 0) {
+      return monthCompare;
+    }
+    return getItemTimestamp(a) - getItemTimestamp(b);
+  });
+
+  const mergedDailyEntries = mergeByKey(
+    localSnapshot?.dailyEntries || [],
+    remoteSnapshot?.dailyEntries || [],
+    getDailyEntryMergeKey,
+    (item) => getItemTimestamp(item)
+  ).sort((a, b) => getItemTimestamp(a) - getItemTimestamp(b));
+
+  const mergedLogs = Array.from(
+    new Map(
+      [...(remoteSnapshot?.inputLogs || []), ...(localSnapshot?.inputLogs || [])].map((item) => [getLogMergeKey(item), item])
+    ).values()
+  ).sort((a, b) => getItemTimestamp(a, ["loggedAt"]) - getItemTimestamp(b, ["loggedAt"]));
+
+  return {
+    version: 2,
+    exportedAt: new Date().toISOString(),
+    categories: mergedCategories,
+    recurring: mergedRecurring,
+    dailyEntries: mergedDailyEntries,
+    inputLogs: mergedLogs
   };
 }
 
@@ -364,9 +505,9 @@ export function createAndroidApi() {
         const categoryId = type === "fee" ? (input.categoryId || "other") : null;
 
         const res = await db.run(
-          `INSERT INTO daily_entries(type, title, amount, entry_date, category_id, note)
-           VALUES (?,?,?,?,?,?)`,
-          [type, String(input.title || "").trim(), amount, entryDate, categoryId, input.note || ""]
+          `INSERT INTO daily_entries(sync_id, type, title, amount, entry_date, category_id, note, created_at, updated_at)
+           VALUES (?,?,?,?,?,?,?,?,?)`,
+          [createSyncId(), type, String(input.title || "").trim(), amount, entryDate, categoryId, input.note || "", nowIso(), nowIso()]
         );
 
         if (type === "fee") {
@@ -384,9 +525,9 @@ export function createAndroidApi() {
         const type = input.type === "income" ? "income" : "fee";
         const categoryId = type === "fee" ? (input.categoryId || "other") : null;
         await db.run(
-          `UPDATE daily_entries SET type=?, title=?, amount=?, entry_date=?, category_id=?, note=? WHERE id=?`,
+           `UPDATE daily_entries SET type=?, title=?, amount=?, entry_date=?, category_id=?, note=?, updated_at=? WHERE id=?`,
           [type, String(input.title || "").trim(), Number(input.amount ?? 0),
-           input.entryDate || todayISO(), categoryId, input.note || "", input.id]
+            input.entryDate || todayISO(), categoryId, input.note || "", nowIso(), input.id]
         );
         return { id: input.id };
       },
@@ -420,6 +561,7 @@ export function createAndroidApi() {
         const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
         const res = await db.query(
           `SELECT id, type, title, amount, entry_date AS entryDate, category_id AS categoryId, note, created_at AS createdAt
+           , sync_id AS syncId, updated_at AS updatedAt
            FROM daily_entries ${where} ORDER BY entry_date DESC, id DESC`,
           params
         );
@@ -454,16 +596,16 @@ export function createAndroidApi() {
           if (!catMap[categoryId]) {
             const newCat = {
               id: categoryId, nameJp: categoryName, nameEn: categoryName, nameDe: categoryName,
-              icon: "🏷️", sortOrder: (categories.length + 1) * 10, isActive: 1
+              icon: "🏷️", sortOrder: (categories.length + 1) * 10, isActive: 1, updatedAt: nowIso()
             };
             categories.push(newCat);
             catMap[categoryId] = newCat;
           }
 
           await db.run(
-            `INSERT INTO daily_entries(type, title, amount, entry_date, category_id, note)
-             VALUES (?,?,?,?,?,?)`,
-            [type, title, amount, entryDate, type === "fee" ? categoryId : null, row.description || row.note || ""]
+            `INSERT INTO daily_entries(sync_id, type, title, amount, entry_date, category_id, note, created_at, updated_at)
+             VALUES (?,?,?,?,?,?,?,?,?)`,
+            [createSyncId(), type, title, amount, entryDate, type === "fee" ? categoryId : null, row.description || row.note || "", nowIso(), nowIso()]
           );
           importedCount++;
         }
@@ -491,7 +633,8 @@ export function createAndroidApi() {
           nameDe: String(input.nameDe || "").trim(),
           icon: String(input.icon || "📦").trim(),
           sortOrder: maxSort + 10,
-          isActive: 1
+          isActive: 1,
+          updatedAt: nowIso()
         };
         categories.push(newCat);
         writeCategories(categories);
@@ -501,7 +644,7 @@ export function createAndroidApi() {
         const categories = readCategories();
         const idx = categories.findIndex((c) => c.id === input.id);
         if (idx === -1) throw new Error("Category not found");
-        categories[idx] = { ...categories[idx], ...input };
+        categories[idx] = { ...categories[idx], ...input, updatedAt: nowIso() };
         writeCategories(categories);
         return categories[idx];
       },
@@ -518,7 +661,7 @@ export function createAndroidApi() {
         const sorted = ids
           .map((id, i) => {
             const cat = categories.find((c) => c.id === id);
-            return cat ? { ...cat, sortOrder: (i + 1) * 10 } : null;
+            return cat ? { ...cat, sortOrder: (i + 1) * 10, updatedAt: nowIso() } : null;
           })
           .filter(Boolean);
         const rest = categories.filter((c) => !ids.includes(c.id));
@@ -547,7 +690,8 @@ export function createAndroidApi() {
           amount: Number(input.amount ?? 0),
           startMonth: input.startMonth,
           endMonth: input.endMonth || null,
-          createdAt: new Date().toISOString()
+          createdAt: nowIso(),
+          updatedAt: nowIso()
         };
         items.push(newItem);
         writeRecurring(items);
@@ -565,7 +709,8 @@ export function createAndroidApi() {
           title: String(input.title || "").trim(),
           amount: Number(input.amount ?? 0),
           startMonth: input.startMonth,
-          endMonth: input.endMonth || null
+          endMonth: input.endMonth || null,
+          updatedAt: nowIso()
         };
         writeRecurring(items);
         return items[idx];
@@ -758,8 +903,21 @@ export function createAndroidApi() {
     // ── Sync ──────────────────────────────────────────────────────────────
 
     sync: {
-      async serverInfo() {
-        return null;
+      async serverInfo({ desktopUrl } = {}) {
+        const trimmed = String(desktopUrl || "").trim();
+        if (!trimmed) {
+          return null;
+        }
+
+        const baseUrl = normalizeDesktopUrl(trimmed);
+        const info = await fetchJson(`${baseUrl}/sync/ping`, { method: "GET" });
+        const urls = Array.isArray(info?.urls) && info.urls.length > 0 ? info.urls : [baseUrl];
+
+        return {
+          running: Boolean(info?.ok),
+          port: 30303,
+          urls
+        };
       },
 
       async exportData() {
@@ -789,9 +947,15 @@ export function createAndroidApi() {
       async syncNow({ desktopUrl }) {
         const baseUrl = normalizeDesktopUrl(desktopUrl);
         await fetchJson(`${baseUrl}/sync/ping`, { method: "GET" });
-        const pushed = await this.pushToDesktop({ desktopUrl: baseUrl });
-        const pulled = await this.pullFromDesktop({ desktopUrl: baseUrl });
-        return { ok: true, pushed, pulled };
+        const localSnapshot = await exportLocalSyncData();
+        const remoteSnapshot = await fetchJson(`${baseUrl}/sync/export`, { method: "GET" });
+        const mergedSnapshot = mergeSyncSnapshots(localSnapshot, remoteSnapshot);
+        const pushed = await fetchJson(`${baseUrl}/sync/import`, {
+          method: "POST",
+          body: JSON.stringify(mergedSnapshot)
+        });
+        const imported = await importLocalSyncData(mergedSnapshot);
+        return { ok: true, pushed, pulled: { ok: true, imported }, mergedSnapshot };
       }
     }
   };

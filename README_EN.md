@@ -48,7 +48,7 @@ To build a debug APK from CLI:
 npm run android:apk:debug
 ```
 
-Output: `android/app/build/outputs/apk/debug/app-debug.apk`
+Output: `android/app/build/outputs/apk/debug/app-money-management-debug.apk`
 
 ## Desktop / Android Sync (Same LAN)
 

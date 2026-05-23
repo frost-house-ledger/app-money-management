@@ -16,6 +16,8 @@ export default function SettingsPage({
   syncServerInfo,
   onSyncNow,
   onImportCsv,
+  onExportCsv,
+  canExportCsv,
   t
 }) {
   function renderErStatus() {
@@ -95,6 +97,17 @@ export default function SettingsPage({
             }}
           />
         </label>
+
+        {canExportCsv ? (
+          <div className="settings-button-row">
+            <button type="button" onClick={() => onExportCsv("daily")}>
+              {t.csvExportDailyButton}
+            </button>
+            <button type="button" onClick={() => onExportCsv("monthly")}>
+              {t.csvExportMonthlyButton}
+            </button>
+          </div>
+        ) : null}
 
         <p className="subtext">{t.csvImportSubtext}</p>
 

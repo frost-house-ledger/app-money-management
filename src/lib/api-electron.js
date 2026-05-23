@@ -9,7 +9,8 @@ export function createElectronApi() {
       update: (payload) => window.ledgerApi.entry.update(payload),
       delete: (payload) => window.ledgerApi.entry.delete(payload),
       list: (payload) => window.ledgerApi.entry.list(payload),
-      importCsv: (payload) => window.ledgerApi.entry.importCsv(payload)
+      importCsv: (payload) => window.ledgerApi.entry.importCsv(payload),
+      exportCsv: (payload) => window.ledgerApi.entry.exportCsv(payload)
     },
     category: {
       list: (payload) => window.ledgerApi.category.list(payload),
@@ -35,7 +36,7 @@ export function createElectronApi() {
       cachePath: () => window.ledgerApi.summary.cachePath()
     },
     sync: {
-      serverInfo: () => window.ledgerApi.sync.serverInfo(),
+      serverInfo: (_payload) => window.ledgerApi.sync.serverInfo(),
       exportData: () => window.ledgerApi.sync.exportData(),
       importData: (payload) => window.ledgerApi.sync.importData(payload),
       syncNow: async () => ({ ok: true, mode: "desktop-server" })

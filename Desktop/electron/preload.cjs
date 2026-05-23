@@ -12,7 +12,8 @@ contextBridge.exposeInMainWorld("ledgerApi", {
     delete: (payload) => ipcRenderer.invoke("entry:delete", payload),
     update: (payload) => ipcRenderer.invoke("entry:update", payload),
     list: (payload) => ipcRenderer.invoke("entry:list", payload),
-    importCsv: (payload) => ipcRenderer.invoke("entry:importCsv", payload)
+    importCsv: (payload) => ipcRenderer.invoke("entry:importCsv", payload),
+    exportCsv: (payload) => ipcRenderer.invoke("entry:exportCsv", payload)
   },
   category: {
     list: (payload) => ipcRenderer.invoke("category:list", payload),

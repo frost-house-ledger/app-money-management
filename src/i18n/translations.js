@@ -132,10 +132,12 @@ export const TRANSLATIONS = {
   settingsThemeDark: { jp: "ダーク", en: "Dark", de: "Dunkel" },
   csvImportLabel: { jp: "CSV 取り込み", en: "CSV import", de: "CSV-Import" },
   csvImportSubtext: {
-    jp: "format.csv と同じ列構成の CSV を選ぶと、日次データとしてまとめて取り込みます。",
-    en: "Choose a CSV with the same columns as format.csv to import daily entries in one batch.",
-    de: "CSV mit derselben Spaltenstruktur wie format.csv waehlen, um Tageseintraege gesammelt zu importieren."
+    jp: "従来の format.csv 形式と、record_scope 列つきのバックアップ CSV の両方を取り込めます。",
+    en: "You can import both the original format.csv layout and backup CSV files with a record_scope column.",
+    de: "Sie koennen sowohl das urspruengliche format.csv-Layout als auch Backup-CSV-Dateien mit record_scope-Spalte importieren."
   },
+  csvExportDailyButton: { jp: "日次CSVを保存", en: "Download daily CSV", de: "Taegliche CSV speichern" },
+  csvExportMonthlyButton: { jp: "月次CSVを保存", en: "Download monthly CSV", de: "Monatliche CSV speichern" },
   syncSectionTitle: { jp: "LAN同期", en: "LAN sync", de: "LAN-Synchronisierung" },
   syncSectionSubtext: {
     jp: "Desktop 版と同じネットワークに接続中、自動で同期できます。",
@@ -176,10 +178,20 @@ export const TRANSLATIONS = {
     en: "Imported {count} rows from CSV.",
     de: "{count} Zeilen aus CSV importiert."
   },
+  toastCsvExported: {
+    jp: "CSV を {count} 件書き出しました。",
+    en: "Exported {count} rows to CSV.",
+    de: "{count} Zeilen in CSV exportiert."
+  },
   errorCsvImportFailed: {
     jp: "CSV の取り込みに失敗しました。",
     en: "Failed to import CSV.",
     de: "CSV konnte nicht importiert werden."
+  },
+  errorCsvExportUnavailable: {
+    jp: "この環境では CSV 出力を利用できません。",
+    en: "CSV export is not available in this environment.",
+    de: "CSV-Export ist in dieser Umgebung nicht verfuegbar."
   },
   erStatusLoading: { jp: "為替レート取得中…", en: "Fetching exchange rates…", de: "Wechselkurse werden abgerufen…" },
   erStatusLive: { jp: "最終更新: {time}", en: "Last updated: {time}", de: "Zuletzt aktualisiert: {time}" },

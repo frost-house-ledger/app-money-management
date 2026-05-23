@@ -59,12 +59,6 @@ async function createMainWindow(ledger) {
     }
   });
 
-  if (isDev) {
-    await mainWindow.loadURL("http://localhost:5173");
-  } else {
-    await mainWindow.loadFile(path.join(app.getAppPath(), "dist", "index.html"));
-  }
-
   ipcMain.handle("recurring:add", async (_event, payload) => {
     return ledger.addRecurring(payload);
   });
@@ -93,7 +87,9 @@ async function createMainWindow(ledger) {
 
   ipcMain.handle("entry:list", async (_event, payload) => ledger.listDaily(payload));
 
-  ipcMain.handle("entry:importCsv", async (_event, payload) => ledger.importDailyCsv(payload || {}));
+  ipcMain.handle("entry:importCsv", async (_event, payload) => ledger.importBackupCsv(payload || {}));
+
+  ipcMain.handle("entry:exportCsv", async (_event, payload) => ledger.exportBackupCsv(payload || {}));
 
   ipcMain.handle("history:list", async (_event, payload) => ledger.listHistory(payload || {}));
 
@@ -147,6 +143,12 @@ async function createMainWindow(ledger) {
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
+
+  if (isDev) {
+    await mainWindow.loadURL("http://localhost:5173");
+  } else {
+    await mainWindow.loadFile(path.join(app.getAppPath(), "dist", "index.html"));
+  }
 
 }
 

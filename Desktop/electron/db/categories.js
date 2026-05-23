@@ -15,7 +15,8 @@ function normalizeCategoryRecord(item, fallbackSortOrder = 0) {
     nameDe: String(item.nameDe || "").trim(),
     icon: String(item.icon || "\uD83C\uDFF7\uFE0F").trim() || "\uD83C\uDFF7\uFE0F",
     sortOrder: Number.isFinite(Number(item.sortOrder)) ? Number(item.sortOrder) : fallbackSortOrder,
-    isActive: Number(item.isActive) === 0 ? 0 : 1
+    isActive: Number(item.isActive) === 0 ? 0 : 1,
+    updatedAt: item.updatedAt ? String(item.updatedAt) : "1970-01-01T00:00:00.000Z"
   };
 }
 
@@ -173,7 +174,7 @@ export function createCategoryStore({
       throw new Error("同じカテゴリIDが既に存在します。");
     }
 
-    const created = { id: fallbackId, nameJp, nameEn, nameDe, icon, sortOrder, isActive: 1 };
+    const created = { id: fallbackId, nameJp, nameEn, nameDe, icon, sortOrder, isActive: 1, updatedAt: new Date().toISOString() };
     writeCategoriesFile([...rows, created].sort((a, b) => a.sortOrder - b.sortOrder));
     return created;
   }
@@ -203,7 +204,8 @@ export function createCategoryStore({
       nameDe: rawName,
       icon: "🏷️",
       sortOrder: maxOrder + 10,
-      isActive: 1
+      isActive: 1,
+      updatedAt: new Date().toISOString()
     };
 
     writeCategoriesFile([...rows, created].sort((a, b) => a.sortOrder - b.sortOrder));
@@ -237,7 +239,8 @@ export function createCategoryStore({
         nameJp,
         nameEn,
         nameDe,
-        icon
+        icon,
+        updatedAt: new Date().toISOString()
       };
     });
     writeCategoriesFile(updated);
@@ -268,7 +271,7 @@ export function createCategoryStore({
       if (item.id !== id) {
         return item;
       }
-      return { ...item, isActive: 0 };
+      return { ...item, isActive: 0, updatedAt: new Date().toISOString() };
     });
     writeCategoriesFile(updated);
     return { ok: true };
@@ -293,7 +296,8 @@ export function createCategoryStore({
     const ordered = input.ids.map((id) => byId.get(id));
     const merged = [...ordered, ...remain].map((item, index) => ({
       ...item,
-      sortOrder: (index + 1) * 10
+      sortOrder: (index + 1) * 10,
+      updatedAt: new Date().toISOString()
     }));
 
     writeCategoriesFile(merged);

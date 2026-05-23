@@ -146,6 +146,24 @@ export default function App() {
     }
   }
 
+  async function onExportCsv(scope) {
+    if (typeof api.entry.exportCsv !== "function") {
+      throw new Error(t.errorCsvExportUnavailable);
+    }
+
+    const result = await api.entry.exportCsv({ scope });
+    const blob = new Blob([result.csvText], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = result.filename || `backup-${scope}.csv`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+    showToast(formatMessage(t.toastCsvExported, { count: result.rowCount }));
+  }
+
   async function refreshAll(month = selectedMonth, nextRange = range) {
     await Promise.all([
       loadRecurring(),
@@ -206,18 +224,35 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    api.sync.serverInfo()
+    let disposed = false;
+    const currentDesktopUrl = syncDesktopUrl.trim();
+
+    api.sync.serverInfo({ desktopUrl: currentDesktopUrl })
       .then((info) => {
-        if (!info) {
+        if (disposed) {
           return;
         }
+
+        if (!info) {
+          setSyncServerInfo(null);
+          return;
+        }
+
         setSyncServerInfo(info);
-        if (!syncDesktopUrl && Array.isArray(info.urls) && info.urls.length > 0) {
+        if (!currentDesktopUrl && Array.isArray(info.urls) && info.urls.length > 0) {
           setSyncDesktopUrl(info.urls[0]);
         }
       })
-      .catch(() => {});
-  }, []);
+      .catch(() => {
+        if (!disposed) {
+          setSyncServerInfo(null);
+        }
+      });
+
+    return () => {
+      disposed = true;
+    };
+  }, [syncDesktopUrl]);
 
   async function runSync(mode = "manual") {
     if (!syncDesktopUrl.trim()) {
@@ -754,6 +789,8 @@ export default function App() {
           syncServerInfo={syncServerInfo}
           onSyncNow={() => runSync("manual")}
           onImportCsv={onImportCsv}
+          onExportCsv={onExportCsv}
+          canExportCsv={typeof api.entry.exportCsv === "function"}
           t={t}
         />
       ) : activePage === "analysis" ? (

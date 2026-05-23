@@ -9,6 +9,8 @@ import { addMonths, compareMonths, monthEnd, monthStart, todayISO } from "./db/d
 import { createInputLogger } from "./db/logs.js";
 import { createCategoryStore, pickCategoryName } from "./db/categories.js";
 import { createRecurringStore } from "./db/recurring.js";
+import { createBackupService } from "./db/backup.js";
+import { runStoreMigrations } from "./db/migrations.js";
 import {
   ensureAmount,
   normalizeCategoryId,
@@ -63,6 +65,10 @@ export function createLedgerStore(dataDir) {
     logInput,
     rebuildMonthlyJsonCache
   });
+
+  function createSyncId() {
+    return globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
 
   function getMonthSummary(month, options = {}) {
     validateMonth(month);
@@ -183,13 +189,16 @@ export function createLedgerStore(dataDir) {
     const currentCategory = categoryId ? categoryMap.get(categoryId) : null;
 
     const row = insertDailyStmt.run({
+      syncId: input.syncId || createSyncId(),
       type: input.type,
       title,
       amount: input.amount,
       entryDate: input.entryDate,
       categoryId,
       category: input.type === "fee" ? pickCategoryName(currentCategory, "en") : null,
-      note: input.note ? String(input.note) : null
+      note: input.note ? String(input.note) : null,
+      createdAt: input.createdAt ? String(input.createdAt) : new Date().toISOString(),
+      updatedAt: input.updatedAt ? String(input.updatedAt) : new Date().toISOString()
     });
 
     if (logHistory) {
@@ -350,7 +359,8 @@ export function createLedgerStore(dataDir) {
       entryDate: input.entryDate,
       categoryId: input.type === "fee" ? String(input.categoryId || "other") : null,
       category: input.type === "fee" ? pickCategoryName(currentCategory, "en") : null,
-      note: input.note ? String(input.note) : null
+      note: input.note ? String(input.note) : null,
+      updatedAt: new Date().toISOString()
     });
 
     logInput({
@@ -575,7 +585,8 @@ export function createLedgerStore(dataDir) {
   function exportSyncData() {
     const dailyEntries = db
       .prepare(`
-        SELECT id, type, title, amount, entry_date AS entryDate, category_id AS categoryId, category, note, created_at AS createdAt
+        SELECT id, sync_id AS syncId, type, title, amount, entry_date AS entryDate, category_id AS categoryId,
+               category, note, created_at AS createdAt, updated_at AS updatedAt
         FROM daily_entries
         ORDER BY id ASC
       `)
@@ -614,8 +625,8 @@ export function createLedgerStore(dataDir) {
     recurringStore.replaceRecurringItemsForSync(recurring);
 
     const insertDailyForSyncStmt = db.prepare(`
-      INSERT INTO daily_entries (id, type, title, amount, entry_date, category_id, category, note, created_at)
-      VALUES (@id, @type, @title, @amount, @entryDate, @categoryId, @category, @note, @createdAt)
+      INSERT INTO daily_entries (id, sync_id, type, title, amount, entry_date, category_id, category, note, created_at, updated_at)
+      VALUES (@id, @syncId, @type, @title, @amount, @entryDate, @categoryId, @category, @note, @createdAt, @updatedAt)
     `);
 
     const insertLogForSyncStmt = db.prepare(`
@@ -629,7 +640,9 @@ export function createLedgerStore(dataDir) {
 
       dailyEntries.forEach((row, index) => {
         insertDailyForSyncStmt.run({
-          id: Number.isInteger(Number(row.id)) ? Number(row.id) : index + 1,
+          // Reindex to avoid PK collisions when merging snapshots from multiple devices.
+          id: index + 1,
+          syncId: String(row.syncId || createSyncId()),
           type: row.type === "income" ? "income" : "fee",
           title: String(row.title || ""),
           amount: Number(row.amount || 0),
@@ -637,13 +650,15 @@ export function createLedgerStore(dataDir) {
           categoryId: row.type === "fee" ? String(row.categoryId || "other") : null,
           category: row.type === "fee" ? String(row.category || "Other") : null,
           note: row.note ? String(row.note) : null,
-          createdAt: row.createdAt ? String(row.createdAt) : new Date().toISOString()
+          createdAt: row.createdAt ? String(row.createdAt) : new Date().toISOString(),
+          updatedAt: row.updatedAt ? String(row.updatedAt) : (row.createdAt ? String(row.createdAt) : new Date().toISOString())
         });
       });
 
       inputLogs.forEach((row, index) => {
         insertLogForSyncStmt.run({
-          id: Number.isInteger(Number(row.id)) ? Number(row.id) : index + 1,
+          // Reindex logs for the same reason as daily_entries.
+          id: index + 1,
           source: row.source === "monthly" ? "monthly" : "daily",
           action: row.action || "add",
           type: row.type === "income" ? "income" : "fee",
@@ -677,10 +692,23 @@ export function createLedgerStore(dataDir) {
     };
   }
 
-  categoryStore.ensureDefaultCategories();
-  categoryStore.migrateLegacyDailyCategories();
-  recurringStore.migrateRecurringItemsToJson();
-  const initialCachePath = rebuildMonthlyJsonCache();
+  const { initialCachePath } = runStoreMigrations({
+    categoryStore,
+    recurringStore,
+    rebuildMonthlyJsonCache
+  });
+  const backupService = createBackupService({
+    authGuard,
+    db,
+    categoryStore,
+    recurringStore,
+    parseCsvText,
+    importDailyCsv,
+    importSyncData,
+    listHistory,
+    createSyncId,
+    todayISO
+  });
 
   return {
     listCategories: categoryStore.listCategories,
@@ -703,6 +731,8 @@ export function createLedgerStore(dataDir) {
     getMonthSummary,
     getMonthRangeSummary,
     rebuildMonthlyJsonCache,
+    exportBackupCsv: backupService.exportBackupCsv,
+    importBackupCsv: backupService.importBackupCsv,
     exportSyncData,
     importSyncData,
     getInitialCachePath: () => initialCachePath

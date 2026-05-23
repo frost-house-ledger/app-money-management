@@ -130,7 +130,8 @@ export function createRecurringStore({
       amount: input.amount,
       startMonth: input.startMonth,
       endMonth: input.endMonth || null,
-      createdAt
+      createdAt,
+      updatedAt: createdAt
     };
     writeRecurringItems([...items, item]);
 
@@ -242,7 +243,8 @@ export function createRecurringStore({
         amount: Number(item.amount || 0),
         startMonth: String(item.startMonth || ""),
         endMonth: item.endMonth ? String(item.endMonth) : null,
-        createdAt: item.createdAt ? String(item.createdAt) : new Date().toISOString()
+        createdAt: item.createdAt ? String(item.createdAt) : new Date().toISOString(),
+        updatedAt: item.updatedAt ? String(item.updatedAt) : (item.createdAt ? String(item.createdAt) : new Date().toISOString())
       }))
       .filter((item) => item.title && item.startMonth)
       .sort((a, b) => {

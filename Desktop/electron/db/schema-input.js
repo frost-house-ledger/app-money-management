@@ -2,6 +2,7 @@ export function ensureLedgerSchema(db) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS daily_entries (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      sync_id TEXT,
       type TEXT NOT NULL CHECK(type IN ('fee','income')),
       title TEXT NOT NULL,
       amount REAL NOT NULL CHECK(amount >= 0),
@@ -9,7 +10,8 @@ export function ensureLedgerSchema(db) {
       category_id TEXT,
       category TEXT,
       note TEXT,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
     CREATE TABLE IF NOT EXISTS input_logs (
@@ -35,6 +37,14 @@ export function ensureLedgerSchema(db) {
   if (!dailyColumns.some((column) => column.name === "category_id")) {
     db.exec("ALTER TABLE daily_entries ADD COLUMN category_id TEXT");
   }
+  if (!dailyColumns.some((column) => column.name === "sync_id")) {
+    db.exec("ALTER TABLE daily_entries ADD COLUMN sync_id TEXT");
+  }
+  if (!dailyColumns.some((column) => column.name === "updated_at")) {
+    // SQLite disallows non-constant defaults in ALTER TABLE ADD COLUMN on some versions.
+    db.exec("ALTER TABLE daily_entries ADD COLUMN updated_at TEXT");
+  }
+  db.exec("UPDATE daily_entries SET updated_at = COALESCE(updated_at, created_at, CURRENT_TIMESTAMP) WHERE updated_at IS NULL OR updated_at = ''");
 
   const inputLogColumns = db.prepare("PRAGMA table_info(input_logs)").all();
   if (!inputLogColumns.some((column) => column.name === "category_id")) {
@@ -47,8 +57,8 @@ export function ensureLedgerSchema(db) {
 
 export function createLedgerStatements(db) {
   const insertDailyStmt = db.prepare(`
-    INSERT INTO daily_entries(type, title, amount, entry_date, category_id, category, note)
-    VALUES (@type, @title, @amount, @entryDate, @categoryId, @category, @note)
+    INSERT INTO daily_entries(sync_id, type, title, amount, entry_date, category_id, category, note, created_at, updated_at)
+    VALUES (@syncId, @type, @title, @amount, @entryDate, @categoryId, @category, @note, @createdAt, @updatedAt)
   `);
 
   const insertInputLogStmt = db.prepare(`
@@ -71,6 +81,7 @@ export function createLedgerStatements(db) {
 
   const listDailyStmt = db.prepare(`
     SELECT d.id,
+          d.sync_id AS syncId,
            d.type,
            d.title,
            d.amount,
@@ -78,7 +89,8 @@ export function createLedgerStatements(db) {
            d.category_id AS categoryId,
            d.category AS categoryLegacy,
            d.note,
-           d.created_at AS createdAt
+          d.created_at AS createdAt,
+          d.updated_at AS updatedAt
     FROM daily_entries d
     WHERE entry_date BETWEEN @from AND @to
     ORDER BY d.entry_date DESC, d.created_at DESC
@@ -144,7 +156,8 @@ export function createLedgerStatements(db) {
 
   const getDailyByIdStmt = db.prepare(`
     SELECT id, type, title, amount, entry_date AS entryDate,
-           category_id AS categoryId, category, note
+          category_id AS categoryId, category, note, sync_id AS syncId,
+          created_at AS createdAt, updated_at AS updatedAt
     FROM daily_entries WHERE id = @id
   `);
 
@@ -156,7 +169,8 @@ export function createLedgerStatements(db) {
         entry_date = @entryDate,
         category_id = @categoryId,
         category = @category,
-        note = @note
+        note = @note,
+        updated_at = @updatedAt
     WHERE id = @id
   `);
 

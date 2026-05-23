@@ -48,7 +48,7 @@ APK を CLI で作る場合:
 npm run android:apk:debug
 ```
 
-生成先: `android/app/build/outputs/apk/debug/app-debug.apk`
+生成先: `android/app/build/outputs/apk/debug/app-money-management-debug.apk`
 
 ## Desktop / Android 同期（同一LAN）
 
