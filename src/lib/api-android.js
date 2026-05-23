@@ -178,6 +178,134 @@ function sumRecurringByType(month, type, categoryId = null) {
     .reduce((total, item) => total + Number(item.amount || 0), 0);
 }
 
+function normalizeDesktopUrl(url) {
+  const value = String(url || "").trim();
+  if (!value) {
+    throw new Error("Desktop URL is required");
+  }
+  const withScheme = /^https?:\/\//i.test(value) ? value : `http://${value}`;
+  return withScheme.replace(/\/+$/, "");
+}
+
+async function fetchJson(url, options = {}, timeoutMs = 8000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {})
+      }
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      throw new Error(json?.error || `HTTP ${res.status}`);
+    }
+    return json;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function exportLocalSyncData() {
+  const db = await getDb();
+  const dailyRes = await db.query(
+    `SELECT id, type, title, amount, entry_date AS entryDate, category_id AS categoryId,
+            note, created_at AS createdAt
+     FROM daily_entries
+     ORDER BY id ASC`
+  );
+  const logRes = await db.query(
+    `SELECT id, source, action, type, title, amount, target_date AS targetDate,
+            category_id AS categoryId, note, logged_at AS loggedAt
+     FROM input_logs
+     ORDER BY id ASC`
+  );
+
+  return {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    categories: readCategories(),
+    recurring: readRecurring(),
+    dailyEntries: (dailyRes.values || []).map((row) => ({
+      ...row,
+      category: row.type === "fee" ? String(row.categoryId || "other") : null
+    })),
+    inputLogs: (logRes.values || []).map((row) => ({
+      ...row,
+      category: row.type === "fee" ? String(row.categoryId || "other") : null,
+      payloadJson: null
+    }))
+  };
+}
+
+async function importLocalSyncData(snapshot) {
+  if (!snapshot || typeof snapshot !== "object") {
+    throw new Error("Invalid sync payload");
+  }
+  const categories = Array.isArray(snapshot.categories) ? snapshot.categories : [];
+  const recurring = Array.isArray(snapshot.recurring) ? snapshot.recurring : [];
+  const dailyEntries = Array.isArray(snapshot.dailyEntries) ? snapshot.dailyEntries : [];
+  const inputLogs = Array.isArray(snapshot.inputLogs) ? snapshot.inputLogs : [];
+
+  writeCategories(categories.length > 0 ? categories : DEFAULT_CATEGORIES.map((item) => ({ ...item })));
+  writeRecurring(recurring);
+
+  const db = await getDb();
+  await db.execute("DELETE FROM input_logs;");
+  await db.execute("DELETE FROM daily_entries;");
+
+  for (let i = 0; i < dailyEntries.length; i++) {
+    const row = dailyEntries[i];
+    await db.run(
+      `INSERT INTO daily_entries(id, type, title, amount, entry_date, category_id, note, created_at)
+       VALUES (?,?,?,?,?,?,?,?)`,
+      [
+        Number.isInteger(Number(row.id)) ? Number(row.id) : i + 1,
+        row.type === "income" ? "income" : "fee",
+        String(row.title || ""),
+        Number(row.amount || 0),
+        String(row.entryDate || todayISO()),
+        row.type === "fee" ? String(row.categoryId || "other") : null,
+        row.note ? String(row.note) : "",
+        row.createdAt ? String(row.createdAt) : new Date().toISOString()
+      ]
+    );
+  }
+
+  for (let i = 0; i < inputLogs.length; i++) {
+    const row = inputLogs[i];
+    await db.run(
+      `INSERT INTO input_logs(id, source, action, type, title, amount, target_date, category_id, note, logged_at)
+       VALUES (?,?,?,?,?,?,?,?,?,?)`,
+      [
+        Number.isInteger(Number(row.id)) ? Number(row.id) : i + 1,
+        row.source === "monthly" ? "monthly" : "daily",
+        String(row.action || "add"),
+        row.type === "income" ? "income" : "fee",
+        String(row.title || ""),
+        Number(row.amount || 0),
+        String(row.targetDate || todayISO()),
+        row.type === "fee" ? String(row.categoryId || "other") : null,
+        row.note ? String(row.note) : "",
+        row.loggedAt ? String(row.loggedAt) : new Date().toISOString()
+      ]
+    );
+  }
+
+  return {
+    ok: true,
+    counts: {
+      categories: categories.length,
+      recurring: recurring.length,
+      dailyEntries: dailyEntries.length,
+      inputLogs: inputLogs.length
+    }
+  };
+}
+
 // ─── CSV parser (mirrors Desktop/electron/csv.js) ────────────────────────────
 
 function parseCsvText(csvText) {
@@ -624,6 +752,46 @@ export function createAndroidApi() {
 
       async cachePath() {
         return null; // Android has no file-based cache
+      }
+    },
+
+    // ── Sync ──────────────────────────────────────────────────────────────
+
+    sync: {
+      async serverInfo() {
+        return null;
+      },
+
+      async exportData() {
+        return exportLocalSyncData();
+      },
+
+      async importData(payload) {
+        return importLocalSyncData(payload);
+      },
+
+      async pushToDesktop({ desktopUrl }) {
+        const baseUrl = normalizeDesktopUrl(desktopUrl);
+        const payload = await exportLocalSyncData();
+        return fetchJson(`${baseUrl}/sync/import`, {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+      },
+
+      async pullFromDesktop({ desktopUrl }) {
+        const baseUrl = normalizeDesktopUrl(desktopUrl);
+        const snapshot = await fetchJson(`${baseUrl}/sync/export`, { method: "GET" });
+        const imported = await importLocalSyncData(snapshot);
+        return { ok: true, imported };
+      },
+
+      async syncNow({ desktopUrl }) {
+        const baseUrl = normalizeDesktopUrl(desktopUrl);
+        await fetchJson(`${baseUrl}/sync/ping`, { method: "GET" });
+        const pushed = await this.pushToDesktop({ desktopUrl: baseUrl });
+        const pulled = await this.pullFromDesktop({ desktopUrl: baseUrl });
+        return { ok: true, pushed, pulled };
       }
     }
   };

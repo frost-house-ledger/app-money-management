@@ -1,7 +1,23 @@
 import React from "react";
 import { formatMessage } from "../../i18n/translations.js";
 
-export default function SettingsPage({ locale, setLocale, selectedCurrency, setSelectedCurrency, exchangeRateStatus, onImportCsv, t }) {
+export default function SettingsPage({
+  locale,
+  setLocale,
+  selectedCurrency,
+  setSelectedCurrency,
+  exchangeRateStatus,
+  syncDesktopUrl,
+  setSyncDesktopUrl,
+  syncAutoEnabled,
+  setSyncAutoEnabled,
+  syncStatus,
+  syncBusy,
+  syncServerInfo,
+  onSyncNow,
+  onImportCsv,
+  t
+}) {
   function renderErStatus() {
     const { state, updatedAt } = exchangeRateStatus || { state: "loading", updatedAt: null };
     if (state === "loading") {
@@ -15,6 +31,22 @@ export default function SettingsPage({ locale, setLocale, selectedCurrency, setS
     }
     return <span className="er-status er-status--fallback">{t.erStatusFallback}</span>;
   }
+
+  function renderSyncStatus() {
+    const status = syncStatus || { state: "idle", message: "", lastAt: null };
+    if (status.state === "syncing") {
+      return <span className="sync-status sync-status--syncing">{t.syncStatusSyncing}</span>;
+    }
+    if (status.state === "success") {
+      return <span className="sync-status sync-status--success">{status.message || t.syncStatusSuccessManual}</span>;
+    }
+    if (status.state === "error") {
+      return <span className="sync-status sync-status--error">{status.message || t.syncStatusFailed}</span>;
+    }
+    return <span className="sync-status sync-status--idle">{t.syncStatusIdle}</span>;
+  }
+
+  const syncServerUrls = Array.isArray(syncServerInfo?.urls) ? syncServerInfo.urls : [];
 
   return (
     <section className="forms-grid settings-page">
@@ -65,6 +97,43 @@ export default function SettingsPage({ locale, setLocale, selectedCurrency, setS
         </label>
 
         <p className="subtext">{t.csvImportSubtext}</p>
+
+        <hr className="settings-divider" />
+
+        <h3 className="settings-subtitle">{t.syncSectionTitle}</h3>
+        <p className="subtext">{t.syncSectionSubtext}</p>
+
+        {syncServerUrls.length > 0 ? (
+          <p className="subtext sync-server-hint">
+            {formatMessage(t.syncDesktopDetected, { url: syncServerUrls[0] })}
+          </p>
+        ) : null}
+
+        <label>
+          {t.syncDesktopUrlLabel}
+          <input
+            type="text"
+            className="settings-input"
+            placeholder={t.syncDesktopUrlPlaceholder}
+            value={syncDesktopUrl}
+            onChange={(e) => setSyncDesktopUrl(e.target.value)}
+          />
+        </label>
+
+        <label className="sync-checkbox-row">
+          <input
+            type="checkbox"
+            checked={syncAutoEnabled}
+            onChange={(e) => setSyncAutoEnabled(e.target.checked)}
+          />
+          <span>{t.syncAutoEnabledLabel}</span>
+        </label>
+
+        <button type="button" onClick={onSyncNow} disabled={syncBusy}>
+          {syncBusy ? t.syncNowRunningButton : t.syncNowButton}
+        </button>
+
+        {renderSyncStatus()}
       </article>
     </section>
   );

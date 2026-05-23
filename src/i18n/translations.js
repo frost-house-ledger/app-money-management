@@ -136,6 +136,41 @@ export const TRANSLATIONS = {
     en: "Choose a CSV with the same columns as format.csv to import daily entries in one batch.",
     de: "CSV mit derselben Spaltenstruktur wie format.csv waehlen, um Tageseintraege gesammelt zu importieren."
   },
+  syncSectionTitle: { jp: "LAN同期", en: "LAN sync", de: "LAN-Synchronisierung" },
+  syncSectionSubtext: {
+    jp: "Desktop 版と同じネットワークに接続中、自動で同期できます。",
+    en: "When connected to the same network as Desktop, data can sync automatically.",
+    de: "Bei Verbindung mit demselben Netzwerk wie die Desktop-Version kann automatisch synchronisiert werden."
+  },
+  syncDesktopDetected: {
+    jp: "Desktop 同期サーバー検出: {url}",
+    en: "Desktop sync server detected: {url}",
+    de: "Desktop-Sync-Server erkannt: {url}"
+  },
+  syncDesktopUrlLabel: { jp: "Desktop URL", en: "Desktop URL", de: "Desktop-URL" },
+  syncDesktopUrlPlaceholder: {
+    jp: "例: http://192.168.1.10:30303",
+    en: "e.g. http://192.168.1.10:30303",
+    de: "z. B. http://192.168.1.10:30303"
+  },
+  syncAutoEnabledLabel: {
+    jp: "同一LAN内で1分ごとに自動同期",
+    en: "Auto-sync every minute on the same LAN",
+    de: "Bei gleichem LAN jede Minute automatisch synchronisieren"
+  },
+  syncNowButton: { jp: "今すぐ同期", en: "Sync now", de: "Jetzt synchronisieren" },
+  syncNowRunningButton: { jp: "同期中...", en: "Syncing...", de: "Synchronisiert..." },
+  syncStatusIdle: { jp: "同期待機中", en: "Sync idle", de: "Synchronisierung wartet" },
+  syncStatusSyncing: { jp: "同期中...", en: "Syncing...", de: "Synchronisiert..." },
+  syncStatusSuccessManual: { jp: "手動同期が完了しました。", en: "Manual sync completed.", de: "Manuelle Synchronisierung abgeschlossen." },
+  syncStatusSuccessAuto: { jp: "自動同期が完了しました。", en: "Auto-sync completed.", de: "Automatische Synchronisierung abgeschlossen." },
+  syncStatusFailed: { jp: "同期に失敗しました。", en: "Sync failed.", de: "Synchronisierung fehlgeschlagen." },
+  syncToastSuccess: { jp: "同期が完了しました。", en: "Sync completed.", de: "Synchronisierung abgeschlossen." },
+  syncUrlRequired: {
+    jp: "Desktop URL を設定してください。",
+    en: "Please set the Desktop URL.",
+    de: "Bitte die Desktop-URL festlegen."
+  },
   toastCsvImported: {
     jp: "CSV を {count} 件取り込みました。",
     en: "Imported {count} rows from CSV.",

@@ -620,6 +620,63 @@ button {
   gap: 10px;
 }
 
+.settings-input {
+  font-weight: 600;
+  color: #dcecff;
+  border-color: rgba(105, 168, 232, 0.42);
+  background: linear-gradient(135deg, #1f2c3f, #121a27);
+}
+
+.settings-divider {
+  width: 100%;
+  border: 0;
+  height: 1px;
+  background: var(--line);
+  margin: 6px 0;
+}
+
+.settings-subtitle {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.sync-server-hint {
+  margin-top: -4px;
+}
+
+.sync-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sync-checkbox-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+}
+
+.sync-status {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.sync-status--idle {
+  color: var(--ink-soft);
+}
+
+.sync-status--syncing {
+  color: #7dc6f5;
+}
+
+.sync-status--success {
+  color: #4fcf88;
+}
+
+.sync-status--error {
+  color: #f5a623;
+}
+
 .settings-select {
   font-weight: 700;
   color: #dcecff;

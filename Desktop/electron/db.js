@@ -572,6 +572,111 @@ export function createLedgerStore(dataDir) {
       });
   }
 
+  function exportSyncData() {
+    const dailyEntries = db
+      .prepare(`
+        SELECT id, type, title, amount, entry_date AS entryDate, category_id AS categoryId, category, note, created_at AS createdAt
+        FROM daily_entries
+        ORDER BY id ASC
+      `)
+      .all();
+
+    const inputLogs = db
+      .prepare(`
+        SELECT id, source, action, type, title, amount, target_date AS targetDate,
+               category_id AS categoryId, category, note, payload_json AS payloadJson, logged_at AS loggedAt
+        FROM input_logs
+        ORDER BY id ASC
+      `)
+      .all();
+
+    return {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      categories: categoryStore.listCategories({ includeInactive: true }),
+      recurring: recurringStore.listRecurringItems(),
+      dailyEntries,
+      inputLogs
+    };
+  }
+
+  function importSyncData(payload) {
+    if (!payload || typeof payload !== "object") {
+      throw new Error("同期データが不正です。");
+    }
+
+    const categories = Array.isArray(payload.categories) ? payload.categories : [];
+    const recurring = Array.isArray(payload.recurring) ? payload.recurring : [];
+    const dailyEntries = Array.isArray(payload.dailyEntries) ? payload.dailyEntries : [];
+    const inputLogs = Array.isArray(payload.inputLogs) ? payload.inputLogs : [];
+
+    categoryStore.replaceCategoriesForSync(categories);
+    recurringStore.replaceRecurringItemsForSync(recurring);
+
+    const insertDailyForSyncStmt = db.prepare(`
+      INSERT INTO daily_entries (id, type, title, amount, entry_date, category_id, category, note, created_at)
+      VALUES (@id, @type, @title, @amount, @entryDate, @categoryId, @category, @note, @createdAt)
+    `);
+
+    const insertLogForSyncStmt = db.prepare(`
+      INSERT INTO input_logs (id, source, action, type, title, amount, target_date, category_id, category, note, payload_json, logged_at)
+      VALUES (@id, @source, @action, @type, @title, @amount, @targetDate, @categoryId, @category, @note, @payloadJson, @loggedAt)
+    `);
+
+    const tx = db.transaction(() => {
+      db.exec("DELETE FROM input_logs");
+      db.exec("DELETE FROM daily_entries");
+
+      dailyEntries.forEach((row, index) => {
+        insertDailyForSyncStmt.run({
+          id: Number.isInteger(Number(row.id)) ? Number(row.id) : index + 1,
+          type: row.type === "income" ? "income" : "fee",
+          title: String(row.title || ""),
+          amount: Number(row.amount || 0),
+          entryDate: String(row.entryDate || ""),
+          categoryId: row.type === "fee" ? String(row.categoryId || "other") : null,
+          category: row.type === "fee" ? String(row.category || "Other") : null,
+          note: row.note ? String(row.note) : null,
+          createdAt: row.createdAt ? String(row.createdAt) : new Date().toISOString()
+        });
+      });
+
+      inputLogs.forEach((row, index) => {
+        insertLogForSyncStmt.run({
+          id: Number.isInteger(Number(row.id)) ? Number(row.id) : index + 1,
+          source: row.source === "monthly" ? "monthly" : "daily",
+          action: row.action || "add",
+          type: row.type === "income" ? "income" : "fee",
+          title: String(row.title || ""),
+          amount: Number(row.amount || 0),
+          targetDate: String(row.targetDate || ""),
+          categoryId: row.type === "fee" ? String(row.categoryId || "other") : null,
+          category: row.type === "fee" ? String(row.category || "Other") : null,
+          note: row.note ? String(row.note) : null,
+          payloadJson: row.payloadJson ? String(row.payloadJson) : null,
+          loggedAt: row.loggedAt ? String(row.loggedAt) : new Date().toISOString()
+        });
+      });
+    });
+
+    tx();
+    db.exec("DELETE FROM sqlite_sequence WHERE name = 'daily_entries' OR name = 'input_logs'");
+    db.prepare("UPDATE sqlite_sequence SET seq = (SELECT COALESCE(MAX(id), 0) FROM daily_entries) WHERE name = 'daily_entries'").run();
+    db.prepare("UPDATE sqlite_sequence SET seq = (SELECT COALESCE(MAX(id), 0) FROM input_logs) WHERE name = 'input_logs'").run();
+
+    const cachePath = rebuildMonthlyJsonCache();
+    return {
+      ok: true,
+      cachePath,
+      counts: {
+        categories: categories.length,
+        recurring: recurring.length,
+        dailyEntries: dailyEntries.length,
+        inputLogs: inputLogs.length
+      }
+    };
+  }
+
   categoryStore.ensureDefaultCategories();
   categoryStore.migrateLegacyDailyCategories();
   recurringStore.migrateRecurringItemsToJson();
@@ -598,6 +703,8 @@ export function createLedgerStore(dataDir) {
     getMonthSummary,
     getMonthRangeSummary,
     rebuildMonthlyJsonCache,
+    exportSyncData,
+    importSyncData,
     getInitialCachePath: () => initialCachePath
   };
 }

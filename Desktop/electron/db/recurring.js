@@ -228,11 +228,42 @@ export function createRecurringStore({
     return { id, cachePath };
   }
 
+  function replaceRecurringItemsForSync(items) {
+    if (!Array.isArray(items)) {
+      throw new Error("同期固定項目データが不正です。");
+    }
+
+    const normalized = items
+      .map((item) => ({
+        id: String(item.id || globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`),
+        type: item.type === "income" ? "income" : "fee",
+        categoryId: item.type === "fee" ? String(item.categoryId || "other") : null,
+        title: String(item.title || "").trim(),
+        amount: Number(item.amount || 0),
+        startMonth: String(item.startMonth || ""),
+        endMonth: item.endMonth ? String(item.endMonth) : null,
+        createdAt: item.createdAt ? String(item.createdAt) : new Date().toISOString()
+      }))
+      .filter((item) => item.title && item.startMonth)
+      .sort((a, b) => {
+        const monthCompare = a.startMonth.localeCompare(b.startMonth);
+        if (monthCompare !== 0) {
+          return monthCompare;
+        }
+        return String(a.createdAt).localeCompare(String(b.createdAt));
+      });
+
+    writeRecurringItems(normalized);
+    rebuildMonthlyJsonCache();
+    return { count: normalized.length };
+  }
+
   return {
     migrateRecurringItemsToJson,
     listRecurringItems,
     listRecurring: () => listRecurringItems(),
     sumRecurringByType,
+    replaceRecurringItemsForSync,
     addRecurring,
     updateRecurring,
     deleteRecurring

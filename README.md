@@ -23,6 +23,49 @@ npm install
 npm run dev
 ```
 
+## Androidで使う（Capacitor）
+
+このプロジェクトは **React Native ではなく**、React (Web) を Capacitor で Android アプリ化して動かします。
+
+1. Android Studio（SDK/Platform Tools含む）をインストール
+2. 依存関係をインストール
+
+```bash
+npm install
+```
+
+3. Android プロジェクトへ同期して Android Studio を開く
+
+```bash
+npm run android:studio
+```
+
+4. Android Studio でエミュレータまたは実機を選び、Run で起動
+
+APK を CLI で作る場合:
+
+```bash
+npm run android:apk:debug
+```
+
+生成先: `android/app/build/outputs/apk/debug/app-debug.apk`
+
+## Desktop / Android 同期（同一LAN）
+
+Desktop 版は起動中に同期サーバーを自動で起動します（ポート `30303`）。
+
+1. Desktop 版を起動する
+2. Android 版を起動して「設定 > LAN同期」を開く
+3. `Desktop URL` に `http://<DesktopのIP>:30303` を入力
+4. 「今すぐ同期」で手動同期
+5. 必要なら「同一LAN内で1分ごとに自動同期」をON
+
+例: `http://192.168.1.10:30303`
+
+補足:
+- 同期は同一ネットワーク内でのみ動作します
+- Desktop を閉じると同期サーバーは停止します
+
 ## データ保存先
 
 OS の userData フォルダに自動保存されます（アプリ内には含まれません）。

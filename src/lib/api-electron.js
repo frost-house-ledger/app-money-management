@@ -33,6 +33,12 @@ export function createElectronApi() {
       categoryBreakdown: (payload) => window.ledgerApi.summary.categoryBreakdown(payload),
       categoryTrend: (payload) => window.ledgerApi.summary.categoryTrend(payload),
       cachePath: () => window.ledgerApi.summary.cachePath()
+    },
+    sync: {
+      serverInfo: () => window.ledgerApi.sync.serverInfo(),
+      exportData: () => window.ledgerApi.sync.exportData(),
+      importData: (payload) => window.ledgerApi.sync.importData(payload),
+      syncNow: async () => ({ ok: true, mode: "desktop-server" })
     }
   };
 }

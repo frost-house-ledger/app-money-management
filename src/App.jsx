@@ -39,8 +39,13 @@ export default function App() {
   const [selectedDailyCategory, setSelectedDailyCategory] = useState("all");
   const [selectedCurrency, setSelectedCurrency] = useState(() => localStorage.getItem("settings.currency") || "JPY");
   const [locale, setLocale] = useState(() => localStorage.getItem("settings.locale") || "ja");
+  const [syncDesktopUrl, setSyncDesktopUrl] = useState(() => localStorage.getItem("settings.syncDesktopUrl") || "");
+  const [syncAutoEnabled, setSyncAutoEnabled] = useState(() => localStorage.getItem("settings.syncAutoEnabled") === "1");
   const [exchangeRates, setExchangeRates] = useState(null);
   const [exchangeRateStatus, setExchangeRateStatus] = useState({ state: "loading", updatedAt: null });
+  const [syncStatus, setSyncStatus] = useState({ state: "idle", message: "", lastAt: null });
+  const [syncServerInfo, setSyncServerInfo] = useState(null);
+  const [syncBusy, setSyncBusy] = useState(false);
   const [categories, setCategories] = useState([]);
 
   const [monthlySummary, setMonthlySummary] = useState(null);
@@ -182,6 +187,14 @@ export default function App() {
   }, [selectedCurrency]);
 
   useEffect(() => {
+    localStorage.setItem("settings.syncDesktopUrl", syncDesktopUrl);
+  }, [syncDesktopUrl]);
+
+  useEffect(() => {
+    localStorage.setItem("settings.syncAutoEnabled", syncAutoEnabled ? "1" : "0");
+  }, [syncAutoEnabled]);
+
+  useEffect(() => {
     loadExchangeRates().then((rates) => {
       if (rates) {
         setExchangeRates(rates);
@@ -191,6 +204,65 @@ export default function App() {
       }
     });
   }, []);
+
+  useEffect(() => {
+    api.sync.serverInfo()
+      .then((info) => {
+        if (!info) {
+          return;
+        }
+        setSyncServerInfo(info);
+        if (!syncDesktopUrl && Array.isArray(info.urls) && info.urls.length > 0) {
+          setSyncDesktopUrl(info.urls[0]);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  async function runSync(mode = "manual") {
+    if (!syncDesktopUrl.trim()) {
+      setSyncStatus({ state: "error", message: t.syncUrlRequired, lastAt: Date.now() });
+      return;
+    }
+    if (syncBusy) {
+      return;
+    }
+
+    setSyncBusy(true);
+    setSyncStatus({ state: "syncing", message: t.syncStatusSyncing, lastAt: Date.now() });
+
+    try {
+      await api.sync.syncNow({ desktopUrl: syncDesktopUrl.trim() });
+      await refreshAll(selectedMonth, range);
+      const successMessage = mode === "manual" ? t.syncStatusSuccessManual : t.syncStatusSuccessAuto;
+      setSyncStatus({ state: "success", message: successMessage, lastAt: Date.now() });
+      if (mode === "manual") {
+        showToast(t.syncToastSuccess);
+      }
+    } catch (error) {
+      const message = error?.message || t.syncStatusFailed;
+      setSyncStatus({ state: "error", message, lastAt: Date.now() });
+      if (mode === "manual") {
+        setErrorText(message);
+      }
+    } finally {
+      setSyncBusy(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!syncAutoEnabled || !syncDesktopUrl.trim()) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      runSync("auto");
+    }, 60000);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [syncAutoEnabled, syncDesktopUrl, selectedMonth, range.fromMonth, range.toMonth]);
 
   const filteredRecurring = useMemo(() => {
     const categoryMap = new Map(
@@ -673,6 +745,14 @@ export default function App() {
           selectedCurrency={selectedCurrency}
           setSelectedCurrency={setSelectedCurrency}
           exchangeRateStatus={exchangeRateStatus}
+          syncDesktopUrl={syncDesktopUrl}
+          setSyncDesktopUrl={setSyncDesktopUrl}
+          syncAutoEnabled={syncAutoEnabled}
+          setSyncAutoEnabled={setSyncAutoEnabled}
+          syncStatus={syncStatus}
+          syncBusy={syncBusy}
+          syncServerInfo={syncServerInfo}
+          onSyncNow={() => runSync("manual")}
           onImportCsv={onImportCsv}
           t={t}
         />

@@ -23,6 +23,49 @@ npm install
 npm run dev
 ```
 
+## Use On Android (Capacitor)
+
+This project runs on Android via Capacitor (WebView), **not** via React Native.
+
+1. Install Android Studio (with SDK/Platform Tools)
+2. Install dependencies
+
+```bash
+npm install
+```
+
+3. Sync web assets and open Android Studio
+
+```bash
+npm run android:studio
+```
+
+4. In Android Studio, select an emulator/device and click Run
+
+To build a debug APK from CLI:
+
+```bash
+npm run android:apk:debug
+```
+
+Output: `android/app/build/outputs/apk/debug/app-debug.apk`
+
+## Desktop / Android Sync (Same LAN)
+
+The Desktop app starts a sync server automatically while running (port `30303`).
+
+1. Start the Desktop app
+2. Open Android app and go to Settings > LAN sync
+3. Set `Desktop URL` to `http://<Desktop-IP>:30303`
+4. Press Sync now for manual sync
+5. Optionally enable auto-sync every minute
+
+Example: `http://192.168.1.10:30303`
+
+Notes:
+- Sync works only within the same network
+- The sync server stops when the Desktop app is closed
+
 ## Data Storage
 
 All data is stored locally in your OS user data folder (not bundled in the app).

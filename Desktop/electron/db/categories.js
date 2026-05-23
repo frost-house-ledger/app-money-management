@@ -300,6 +300,24 @@ export function createCategoryStore({
     return { ok: true };
   }
 
+  function replaceCategoriesForSync(items) {
+    if (!Array.isArray(items)) {
+      throw new Error("同期カテゴリデータが不正です。");
+    }
+    const normalized = items
+      .map((item, index) => normalizeCategoryRecord(item, (index + 1) * 10))
+      .filter((item) => item.id && item.nameJp && item.nameEn && item.nameDe)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+
+    if (normalized.length === 0) {
+      throw new Error("同期カテゴリデータが空です。");
+    }
+
+    writeCategoriesFile(normalized);
+    migrateLegacyDailyCategories();
+    return { count: normalized.length };
+  }
+
   function getCategoryMap() {
     return new Map(readCategoriesFile().map((item) => [item.id, item]));
   }
@@ -313,6 +331,7 @@ export function createCategoryStore({
     updateCategory,
     deleteCategory,
     reorderCategories,
+    replaceCategoriesForSync,
     getCategoryMap
   };
 }

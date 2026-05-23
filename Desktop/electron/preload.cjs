@@ -30,6 +30,11 @@ contextBridge.exposeInMainWorld("ledgerApi", {
     categoryBreakdown: (payload) => ipcRenderer.invoke("summary:categoryBreakdown", payload),
     categoryTrend: (payload) => ipcRenderer.invoke("summary:categoryTrend", payload),
     cachePath: () => ipcRenderer.invoke("summary:cachePath")
+  },
+  sync: {
+    serverInfo: () => ipcRenderer.invoke("sync:serverInfo"),
+    exportData: () => ipcRenderer.invoke("sync:export"),
+    importData: (payload) => ipcRenderer.invoke("sync:import", payload)
   }
 });
 

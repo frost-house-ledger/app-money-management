@@ -1,4 +1,6 @@
 import path from "node:path";
+import os from "node:os";
+import http from "node:http";
 import { fileURLToPath } from "node:url";
 import { app, BrowserWindow, ipcMain, net } from "electron";
 import { createLedgerStore } from "./db.js";
@@ -8,6 +10,8 @@ const __dirname = path.dirname(__filename);
 
 const isDev = !app.isPackaged;
 let mainWindow = null;
+let syncServer = null;
+const SYNC_PORT = 30303;
 
 // Exchange rates — in-memory cache (cleared on app restart, TTL 24 h)
 let _erCache = null;
@@ -128,15 +132,119 @@ async function createMainWindow(ledger) {
 
   ipcMain.handle("exchange-rates:fetch", () => fetchExchangeRates());
 
+  ipcMain.handle("sync:serverInfo", () => {
+    return {
+      running: Boolean(syncServer?.listening),
+      port: SYNC_PORT,
+      urls: getLanUrls(SYNC_PORT)
+    };
+  });
+
+  ipcMain.handle("sync:export", () => ledger.exportSyncData());
+
+  ipcMain.handle("sync:import", (_event, payload) => ledger.importSyncData(payload || {}));
+
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
 
 }
 
+function getLanUrls(port) {
+  const interfaces = os.networkInterfaces();
+  const urls = [];
+  Object.values(interfaces).forEach((entries) => {
+    (entries || []).forEach((entry) => {
+      if (!entry || entry.internal || entry.family !== "IPv4") {
+        return;
+      }
+      urls.push(`http://${entry.address}:${port}`);
+    });
+  });
+  return Array.from(new Set(urls));
+}
+
+function writeJson(res, statusCode, payload) {
+  res.writeHead(statusCode, {
+    "Content-Type": "application/json; charset=utf-8",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type"
+  });
+  res.end(JSON.stringify(payload));
+}
+
+function readJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    let raw = "";
+    req.on("data", (chunk) => {
+      raw += String(chunk);
+      if (raw.length > 8 * 1024 * 1024) {
+        reject(new Error("Payload too large"));
+      }
+    });
+    req.on("end", () => {
+      if (!raw.trim()) {
+        resolve({});
+        return;
+      }
+      try {
+        resolve(JSON.parse(raw));
+      } catch {
+        reject(new Error("Invalid JSON"));
+      }
+    });
+    req.on("error", reject);
+  });
+}
+
+function startSyncServer(ledger) {
+  const server = http.createServer(async (req, res) => {
+    const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
+
+    if (req.method === "OPTIONS") {
+      writeJson(res, 200, { ok: true });
+      return;
+    }
+
+    try {
+      if (req.method === "GET" && url.pathname === "/sync/ping") {
+        writeJson(res, 200, {
+          ok: true,
+          app: "MoneyManagement",
+          version: app.getVersion(),
+          now: new Date().toISOString(),
+          urls: getLanUrls(SYNC_PORT)
+        });
+        return;
+      }
+
+      if (req.method === "GET" && url.pathname === "/sync/export") {
+        writeJson(res, 200, ledger.exportSyncData());
+        return;
+      }
+
+      if (req.method === "POST" && url.pathname === "/sync/import") {
+        const payload = await readJsonBody(req);
+        const result = ledger.importSyncData(payload);
+        writeJson(res, 200, result);
+        return;
+      }
+
+      writeJson(res, 404, { ok: false, error: "Not found" });
+    } catch (error) {
+      writeJson(res, 500, { ok: false, error: error?.message || "Sync server error" });
+    }
+  });
+
+  server.listen(SYNC_PORT, "0.0.0.0");
+  return server;
+}
+
 app.whenReady().then(() => {
   const dataDir = app.getPath("userData");
   const ledger = createLedgerStore(dataDir);
+  syncServer = startSyncServer(ledger);
 
   createMainWindow(ledger);
 
@@ -148,6 +256,10 @@ app.whenReady().then(() => {
 });
 
 app.on("window-all-closed", () => {
+  if (syncServer) {
+    syncServer.close();
+    syncServer = null;
+  }
   if (process.platform !== "darwin") {
     app.quit();
   }
