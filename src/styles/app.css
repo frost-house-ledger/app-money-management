@@ -577,6 +577,44 @@ button {
   width: fit-content;
 }
 
+.savings-sim-phase-list {
+  display: grid;
+  gap: 10px;
+}
+
+.savings-sim-phase-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.savings-sim-phase-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.savings-sim-phase-help {
+  margin: -2px 0 0;
+}
+
+.savings-sim-phase-add {
+  width: fit-content;
+}
+
+.savings-sim-phase-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+.savings-sim-phase-remove {
+  width: fit-content;
+}
+
 .savings-sim-empty {
   margin: 4px 0 0;
 }

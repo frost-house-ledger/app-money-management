@@ -222,6 +222,24 @@ export const TRANSLATIONS = {
   },
   savingsSimCurrentLabel: { jp: "現在の貯金額", en: "Current savings", de: "Aktuelle Ersparnisse" },
   savingsSimIncomeLabel: { jp: "月間収入見込み", en: "Expected monthly income", de: "Erwartetes monatl. Einkommen" },
+  savingsSimIncomeChangesLabel: { jp: "収入変更ポイント", en: "Income changes", de: "Einkommensaenderungen" },
+  savingsSimIncomeChangesHelp: {
+    jp: "必要なら、途中で変わる給料を何件でも追加できます。",
+    en: "Add as many salary changes as needed for later months.",
+    de: "Fuegen Sie bei Bedarf beliebig viele spaetere Einkommensaenderungen hinzu."
+  },
+  savingsSimIncomeChangeAfterLabel: {
+    jp: "変更 {index}: 何ヶ月後から",
+    en: "Change {index}: after how many months",
+    de: "Aenderung {index}: nach wie vielen Monaten"
+  },
+  savingsSimIncomeChangeAmountLabel: {
+    jp: "変更後の月間収入",
+    en: "Monthly income after the change",
+    de: "Monatl. Einkommen nach der Aenderung"
+  },
+  savingsSimAddIncomeChange: { jp: "収入変更を追加", en: "Add income change", de: "Einkommensaenderung hinzufuegen" },
+  savingsSimRemoveIncomeChange: { jp: "削除", en: "Remove", de: "Entfernen" },
   savingsSimExpenseLabel: { jp: "月間支出見込み", en: "Expected monthly expense", de: "Erwartete monatl. Ausgaben" },
   savingsSimMonthsLabel: { jp: "シミュレート期間（ヶ月）", en: "Simulation period (months)", de: "Simulationszeitraum (Monate)" },
   savingsSimAutoFill: { jp: "実績平均で自動入力", en: "Fill from actual avg", de: "Aus Ist-Daten befüllen" },
