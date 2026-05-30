@@ -1,12 +1,15 @@
 [
-  { "name": "Food", "icon": "🍽️" },
-  { "name": "Transport", "icon": "🚌" },
-  { "name": "Housing", "icon": "🏠" },
-  { "name": "Utilities", "icon": "💡" },
-  { "name": "Medical", "icon": "💊" },
-  { "name": "Education", "icon": "📚" },
-  { "name": "Entertainment", "icon": "🎬" },
-  { "name": "Shopping", "icon": "🛍️" },
-  { "name": "Subscription", "icon": "🔁" },
-  { "name": "Other", "icon": "📦" }
+  { "id": "food", "name": "Food", "icon": "🍽️" },
+  { "id": "beverage", "name": "Beverage", "icon": "☕" },
+  { "id": "transport", "name": "Transport", "icon": "🚌" },
+  { "id": "housing", "name": "Housing", "icon": "🏠" },
+  { "id": "utilities", "name": "Utilities", "icon": "💡" },
+  { "id": "medical", "name": "Medical", "icon": "💊" },
+  { "id": "education", "name": "Education", "icon": "📚" },
+  { "id": "entertainment", "name": "Entertainment", "icon": "🎬" },
+  { "id": "travel", "name": "Travel", "icon": "✈️" },
+  { "id": "shopping", "name": "Shopping", "icon": "🛍️" },
+  { "id": "subscription", "name": "Subscription", "icon": "🔁" },
+  { "id": "insurance", "name": "Insurance", "icon": "🛡️" },
+  { "id": "other", "name": "Other", "icon": "📦" }
 ]

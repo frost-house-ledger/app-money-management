@@ -31,7 +31,7 @@ export default function RecurringSection({
             setRecurringForm((curr) => ({
               ...curr,
               type: nextType,
-              categoryId: nextType === "fee" ? curr.categoryId || dailyCategoryOptions[0]?.id || "other" : ""
+              categoryId: nextType === "fee" ? curr.categoryId || dailyCategoryOptions[0]?.id || "food" : "🍽️"
             }));
           }}
         >
@@ -126,7 +126,7 @@ export function RecurringListSection({
   const [inlineEditId, setInlineEditId] = React.useState(null);
   const [inlineForm, setInlineForm] = React.useState({
     type: "fee",
-    categoryId: "other",
+    categoryId: "food",
     title: "",
     amount: "",
     startMonth: "",
@@ -161,7 +161,7 @@ export function RecurringListSection({
     setInlineEditId(row.id);
     setInlineForm({
       type: row.type,
-      categoryId: row.categoryId || "other",
+      categoryId: row.categoryId || "food",
       title: row.title || "",
       amount: formatBaseAmountForInput(row.amount, selectedCurrency, exchangeRates),
       startMonth: row.startMonth || "",
@@ -174,7 +174,7 @@ export function RecurringListSection({
     setInlineError("");
     setInlineForm({
       type: "fee",
-      categoryId: "other",
+      categoryId: "food",
       title: "",
       amount: "",
       startMonth: "",
@@ -190,7 +190,7 @@ export function RecurringListSection({
         id: inlineEditId,
         ...inlineForm,
         endMonth: inlineForm.endMonth || null,
-        categoryId: inlineForm.type === "fee" ? inlineForm.categoryId || "other" : null
+        categoryId: inlineForm.type === "fee" ? inlineForm.categoryId || "food" : null
       });
       cancelInlineEdit();
     } catch (error) {
@@ -271,7 +271,7 @@ export function RecurringListSection({
                       setInlineForm((current) => ({
                         ...current,
                         type: nextType,
-                        categoryId: nextType === "fee" ? current.categoryId || dailyCategoryOptions[0]?.id || "other" : ""
+                        categoryId: nextType === "fee" ? current.categoryId || dailyCategoryOptions[0]?.id || "food" : ""
                       }));
                     }}
                   >

@@ -32,7 +32,7 @@ export default function DailySection({
             setDailyForm((curr) => ({
               ...curr,
               type: nextType,
-              categoryId: nextType === "fee" ? curr.categoryId || dailyCategoryOptions[0]?.id || "other" : ""
+              categoryId: nextType === "fee" ? curr.categoryId || dailyCategoryOptions[0]?.id || "food" : ""
             }));
           }}
         >
@@ -41,21 +41,23 @@ export default function DailySection({
         </select>
       </label>
 
+      {/* category selection */}
       <label>
         {t.categoryLabel}
         <select
-          value={dailyForm.categoryId}
+          value={dailyForm.categoryId || ""}
           onChange={(e) => setDailyForm((curr) => ({ ...curr, categoryId: e.target.value }))}
           disabled={dailyForm.type !== "fee"}
         >
           {dailyCategoryOptions.map((category) => (
             <option key={category.id} value={category.id}>
-              {category.icon || "🏷️"} {category.label}
+              {category.icon || "🍽️"} {category.label}
             </option>
           ))}
         </select>
       </label>
-
+      
+      {/* daily title input such as supermarket, restaurant, etc. */}
       <label>
         {t.titleLabel}
         <input
@@ -67,7 +69,9 @@ export default function DailySection({
           placeholder={t.dailyTitlePlaceholder}
         />
       </label>
+      
 
+      {/* suggestions based on previous entries */}
       {dailyTitleSuggestions.length > 0 && (
         <datalist id="daily-title-suggestions">
           {dailyTitleSuggestions.map((title) => (
@@ -130,12 +134,13 @@ export function DailyListSection({
   exchangeRates,
   onUpdateDailyInline,
   onDeleteDaily,
+  selectedMonth,
   t
 }) {
   const [inlineEditId, setInlineEditId] = React.useState(null);
   const [inlineForm, setInlineForm] = React.useState({
     type: "fee",
-    categoryId: "Other",
+    categoryId: dailyCategoryOptions[0]?.name || "Food",
     title: "",
     amount: "",
     entryDate: "",
@@ -165,7 +170,7 @@ export function DailyListSection({
     setInlineEditId(row.id);
     setInlineForm({
       type: row.type,
-      categoryId: row.categoryId || "Other",
+      categoryId: row.categoryId || dailyCategoryOptions[0]?.name || "Food",
       title: row.title || "",
       amount: formatBaseAmountForInput(row.amount, selectedCurrency, exchangeRates),
       entryDate: row.entryDate || "",
@@ -178,7 +183,7 @@ export function DailyListSection({
     setInlineError("");
     setInlineForm({
       type: "fee",
-      categoryId: "Other",
+      categoryId: dailyCategoryOptions[0]?.name || "Food",
       title: "",
       amount: "",
       entryDate: "",
@@ -193,7 +198,7 @@ export function DailyListSection({
       await onUpdateDailyInline({
         id: inlineEditId,
         ...inlineForm,
-        categoryId: inlineForm.type === "fee" ? inlineForm.categoryId || "other" : null
+        categoryId: inlineForm.type === "fee" ? inlineForm.categoryId || "Food" : null
       });
       cancelInlineEdit();
     } catch (error) {
@@ -237,18 +242,21 @@ export function DailyListSection({
     pendingDeleteTimersRef.current.set(id, timerId);
   }
 
-  const dailyFee = dailyRows
-    .filter((row) => row.type === "fee")
-    .reduce((sum, row) => sum + Number(row.amount || 0), 0);
-  const dailyIncome = dailyRows
-    .filter((row) => row.type === "income")
-    .reduce((sum, row) => sum + Number(row.amount || 0), 0);
-  const recurringFee = (filteredRecurring || [])
-    .filter((row) => row.type === "fee")
-    .reduce((sum, row) => sum + Number(row.amount || 0), 0);
-  const recurringIncome = (filteredRecurring || [])
-    .filter((row) => row.type === "income")
-    .reduce((sum, row) => sum + Number(row.amount || 0), 0);
+
+  // limit dailyRows to the selected month
+  const monthPrefix = selectedMonth || (new Date().toISOString().slice(0, 7));
+  const filteredDailyRows = dailyRows.filter(row =>
+    row.entryDate && row.entryDate.startsWith(monthPrefix)
+  );
+  const filteredRecurringRows = (filteredRecurring || []).filter(row =>
+    row.startMonth <= monthPrefix && (!row.endMonth || monthPrefix <= row.endMonth)
+  );
+
+  const dailyFee = filteredDailyRows.filter(row => row.type === "fee").reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  const dailyIncome = filteredDailyRows.filter(row => row.type === "income").reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  const recurringFee = filteredRecurringRows.filter(row => row.type === "fee").reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  const recurringIncome = filteredRecurringRows.filter(row => row.type === "income").reduce((sum, row) => sum + Number(row.amount || 0), 0);
+
   const totalFee = dailyFee + recurringFee;
   const totalIncome = dailyIncome + recurringIncome;
 
@@ -281,7 +289,7 @@ export function DailyListSection({
                       setInlineForm((current) => ({
                         ...current,
                         type: nextType,
-                        categoryId: nextType === "fee" ? current.categoryId || dailyCategoryOptions[0]?.id || "other" : ""
+                        categoryId: nextType === "fee" ? current.categoryId || dailyCategoryOptions[0]?.name || "Food" : ""
                       }));
                     }}
                   >
@@ -297,7 +305,7 @@ export function DailyListSection({
                   >
                     {dailyCategoryOptions.map((category) => (
                       <option key={category.id} value={category.id}>
-                        {category.icon || "🏷️"} {category.label}
+                        {category.icon || "🍽️"} {category.label}
                       </option>
                     ))}
                   </select>
@@ -353,7 +361,7 @@ export function DailyListSection({
                 <strong>{row.entryDate}</strong>
                 <span>{row.type}</span>
                 <span>
-                  {row.categoryDisplay ? `${row.categoryIcon || "🏷️"} ${row.categoryDisplay}` : "-"}
+                  {row.categoryDisplay ? `${row.categoryIcon || "🍽️"} ${row.categoryDisplay}` : "-"}
                 </span>
                 <span>{row.title}</span>
                 <span>{formatCurrency(row.amount, selectedCurrency, exchangeRates)}</span>

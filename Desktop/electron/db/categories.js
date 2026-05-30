@@ -22,7 +22,7 @@ function normalizeCategoryRecord(item, fallbackSortOrder = 0) {
 
 export function pickCategoryName(category, locale = "jp") {
   if (!category) {
-    return locale === "de" ? "Sonstiges" : locale === "en" ? "Other" : "その他";
+    return locale === "de" ? "Sonstiges" : locale === "en" ? "Food" : "食費";
   }
   if (locale === "de") {
     return category.nameDe || category.nameEn || category.nameJp;
@@ -202,7 +202,7 @@ export function createCategoryStore({
       nameJp: rawName,
       nameEn: rawName,
       nameDe: rawName,
-      icon: "🏷️",
+      icon: "🍽️",
       sortOrder: maxOrder + 10,
       isActive: 1,
       updatedAt: new Date().toISOString()

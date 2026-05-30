@@ -317,19 +317,19 @@ export default function App() {
         return {
           ...row,
           categoryDisplay: category?.label || "-",
-          categoryIcon: category?.icon || "🏷️"
+          categoryIcon: category?.icon || "🍽️"
         };
       });
     }
     return recurringRows
       .filter((row) => row.type === filterType)
       .map((row) => {
-        const categoryId = row.type === "fee" ? row.categoryId || "Other" : null;
+        const categoryId = row.type === "fee" ? row.categoryId || "Food" : null;
         const category = categoryId ? categoryMap.get(categoryId) : null;
         return {
           ...row,
           categoryDisplay: category?.label || "-",
-          categoryIcon: category?.icon || "🏷️"
+          categoryIcon: category?.icon || "🍽️"
         };
       });
   }, [recurringRows, filterType, categories, locale]);
@@ -394,11 +394,11 @@ export default function App() {
         setSelectedDailyCategory("all");
       }
       if (dailyForm.categoryId === id) {
-        setDailyForm((current) => ({ ...current, categoryId: "Other" }));
+        setDailyForm((current) => ({ ...current, categoryId: "Food" }));
       }
       setRecurringForm((current) => ({
         ...current,
-        categoryId: current.categoryId === id ? "Other" : current.categoryId
+        categoryId: current.categoryId === id ? "Food" : current.categoryId
       }));
     } catch (error) {
       setErrorText(error.message || t.errorCategoryRequired);
@@ -422,7 +422,7 @@ export default function App() {
     try {
       const payload = {
         ...recurringForm,
-        categoryId: recurringForm.type === "fee" ? recurringForm.categoryId || "Other" : null,
+        categoryId: recurringForm.type === "fee" ? recurringForm.categoryId || "Food" : null,
         // Persist amounts in base currency; UI input is in selected display currency.
         amount: convertDisplayAmountToBase(recurringForm.amount, selectedCurrency, exchangeRates)
       };
@@ -439,7 +439,7 @@ export default function App() {
       setRecurringForm((current) => ({
         ...current,
         type: "fee",
-        categoryId: "Other",
+        categoryId: "Food",
         title: "",
         amount: "",
         startMonth: baseMonth,
@@ -457,7 +457,7 @@ export default function App() {
   function onEditRecurring(item) {
     setRecurringForm({
       type: item.type,
-      categoryId: item.categoryId || "Other",
+      categoryId: item.categoryId || "Food",
       title: item.title,
       amount: formatBaseAmountForInput(item.amount, selectedCurrency, exchangeRates),
       startMonth: item.startMonth,
@@ -469,7 +469,7 @@ export default function App() {
   function onCancelRecurringEdit() {
     setRecurringForm({
       type: "fee",
-      categoryId: "Other",
+      categoryId: "Food",
       title: "",
       amount: "",
       startMonth: baseMonth,
@@ -523,7 +523,7 @@ export default function App() {
         await api.entry.update({
           ...dailyForm,
           id: editingDailyId,
-          categoryId: dailyForm.type === "fee" ? dailyForm.categoryId || "Other" : null,
+          categoryId: dailyForm.type === "fee" ? dailyForm.categoryId || "Food" : null,
           amount: convertDisplayAmountToBase(dailyForm.amount, selectedCurrency, exchangeRates)
         });
         setEditingDailyId(null);
@@ -531,7 +531,7 @@ export default function App() {
           ...current,
           title: "",
           amount: "",
-          categoryId: current.type === "fee" ? current.categoryId || "Other" : "Other",
+          categoryId: current.type === "fee" ? current.categoryId || "Food" : "Food",
           note: ""
         }));
         await refreshAll(selectedMonth, range);
@@ -539,14 +539,14 @@ export default function App() {
       } else {
         await api.entry.add({
           ...dailyForm,
-          categoryId: dailyForm.type === "fee" ? dailyForm.categoryId || "Other" : null,
+          categoryId: dailyForm.type === "fee" ? dailyForm.categoryId || "Food" : null,
           amount: convertDisplayAmountToBase(dailyForm.amount, selectedCurrency, exchangeRates)
         });
         setDailyForm((current) => ({
           ...current,
           title: "",
           amount: "",
-          categoryId: current.type === "fee" ? current.categoryId || "Other" : "Other",
+          categoryId: current.type === "fee" ? current.categoryId || "Food" : "Food",
           note: ""
         }));
         await refreshAll(selectedMonth, range);
@@ -561,7 +561,7 @@ export default function App() {
     setEditingDailyId(row.id);
     setDailyForm({
       type: row.type,
-      categoryId: row.categoryId || "Other",
+      categoryId: row.categoryId || "Food",
       title: row.title,
       amount: formatBaseAmountForInput(row.amount, selectedCurrency, exchangeRates),
       entryDate: row.entryDate,
@@ -591,7 +591,7 @@ export default function App() {
     try {
       await api.entry.update({
         ...payload,
-        categoryId: payload.type === "fee" ? payload.categoryId || "Other" : null,
+        categoryId: payload.type === "fee" ? payload.categoryId || "Food" : null,
         amount: convertDisplayAmountToBase(payload.amount, selectedCurrency, exchangeRates)
       });
       setEditingDailyId(null);
@@ -771,6 +771,7 @@ export default function App() {
           selectedCurrency={selectedCurrency}
           locale={locale}
           exchangeRates={exchangeRates}
+          selectedMonth={selectedMonth}
           t={t}
         />
       ) : activePage === "settings" ? (

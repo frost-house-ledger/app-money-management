@@ -24,6 +24,7 @@ export default function DailyEntryPage({
   selectedCurrency,
   exchangeRates,
   locale,
+  selectedMonth,
   t
 }) {
   return (
@@ -62,6 +63,7 @@ export default function DailyEntryPage({
           onEditDaily={onEditDaily}
           onUpdateDailyInline={onUpdateDailyInline}
           onDeleteDaily={onDeleteDaily}
+          selectedMonth={selectedMonth}
           t={t}
         />
       </section>

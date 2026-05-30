@@ -37,14 +37,29 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
     load();
   }, [selectedMonth, range.fromMonth, range.toMonth, locale]);
 
-  const total = useMemo(() => breakdownRows.reduce((sum, row) => sum + Number(row.total || 0), 0), [breakdownRows]);
+
+  // summary: breakdownRows with categoryDisplay
+  const mergedRows = useMemo(() => {
+    const map = new Map();
+    for (const row of breakdownRows) {
+      const key = row.categoryDisplay;
+      if (map.has(key)) {
+        map.get(key).total += Number(row.total || 0);
+      } else {
+        map.set(key, { ...row, total: Number(row.total || 0) });
+      }
+    }
+    return Array.from(map.values());
+  }, [breakdownRows]);
+
+  const total = useMemo(() => mergedRows.reduce((sum, row) => sum + Number(row.total || 0), 0), [mergedRows]);
 
   const pieData = useMemo(() => {
-    return breakdownRows.map((row) => ({
+    return mergedRows.map((row) => ({
       name: `${row.categoryIcon} ${row.categoryDisplay}`,
       value: Number(row.total || 0)
     }));
-  }, [breakdownRows]);
+  }, [mergedRows]);
 
   const trendData = useMemo(() => {
     const byMonth = new Map();
@@ -67,10 +82,10 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
         <p className="subtext">{t.categoryAnalysisSubtext}</p>
 
         <ul className="list category-ratio-list">
-          {breakdownRows.map((row) => {
+          {mergedRows.map((row) => {
             const ratio = total > 0 ? (Number(row.total || 0) / total) * 100 : 0;
             return (
-              <li key={row.categoryId} className="daily-list-item">
+              <li key={row.categoryDisplay} className="daily-list-item">
                 <strong>{row.categoryIcon} {row.categoryDisplay}</strong>
                 <span>{ratio.toFixed(1)}%</span>
                 <span>{formatCurrency(row.total, selectedCurrency, exchangeRates)}</span>
