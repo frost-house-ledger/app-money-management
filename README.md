@@ -1,6 +1,6 @@
-# AMM – 家計簿アプリ
+# 家計簿アプリ
 
-Electron + React 製のローカル家計簿アプリです。データはすべて手元に保存されます。クラウド不要・アカウント不要。
+Electron + React で作成したローカル家計簿アプリです。データはすべて手元に保存されます。クラウド・アカウント不要。
 
 ## 機能
 
@@ -15,6 +15,7 @@ Electron + React 製のローカル家計簿アプリです。データはすべ
 ## インストール
 
 [Releases](../../releases) から `AMM-Setup-x64.exe`（64bit）または `AMM-Setup-ia32.exe`（32bit）をダウンロードして実行してください。
+
 
 ## 開発環境のセットアップ
 
@@ -34,15 +35,7 @@ npm run dev
 npm install
 ```
 
-3. Android プロジェクトへ同期して Android Studio を開く
-
-```bash
-npm run android:studio
-```
-
-4. Android Studio でエミュレータまたは実機を選び、Run で起動
-
-APK を CLI で作る場合:
+3. APK を CLI で作る
 
 ```bash
 npm run android:apk:debug
@@ -50,7 +43,8 @@ npm run android:apk:debug
 
 生成先: `android/app/build/outputs/apk/debug/app-money-management-debug.apk`
 
-## Desktop / Android 同期（同一LAN）
+
+## Desktop / Android 同期（同一LAN） ※現在、検証中
 
 Desktop 版は起動中に同期サーバーを自動で起動します（ポート `30303`）。
 
