@@ -1,8 +1,6 @@
 import React from "react";
 
 export default function DashboardFilters({
-  filterType,
-  setFilterType,
   range,
   setRange,
   dateRange,
@@ -14,15 +12,7 @@ export default function DashboardFilters({
 }) {
   return (
     <section className="toolbar card">
-      {/* All or fee, and income filter controls which types of records are included in totals and lists. */}
-      <label>
-        {t.filterLabel}
-        <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
-          <option value="all">{t.filterAll}</option>
-          <option value="fee">{t.filterFeeOnly}</option>
-          <option value="income">{t.filterIncomeOnly}</option>
-        </select>
-      </label>
+      {/* Removed filter-type control — showing all types by default. */}
 
       {/* Daily category filter controls which daily records are included in totals and lists. */}
       <label>

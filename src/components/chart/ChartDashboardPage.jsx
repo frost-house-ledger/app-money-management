@@ -6,8 +6,6 @@ import MonthlyChart from "./MonthlyChart.jsx";
 export default function ChartDashboardPage({
   selectedMonth,
   setSelectedMonth,
-  filterType,
-  setFilterType,
   selectedCurrency,
   exchangeRates,
   range,
@@ -24,9 +22,6 @@ export default function ChartDashboardPage({
   return (
     <section className="chart-dashboard-page">
       <DashboardFilters
-
-        filterType={filterType}
-        setFilterType={setFilterType}
         range={range}
         setRange={setRange}
         dateRange={dateRange}
@@ -37,7 +32,7 @@ export default function ChartDashboardPage({
         t={t}
       />
 
-      <SummaryCards monthlySummary={monthlySummary} selectedCurrency={selectedCurrency} exchangeRates={exchangeRates} t={t} />
+      <SummaryCards monthlySummary={monthlySummary} selectedCurrency={selectedCurrency} exchangeRates={exchangeRates} selectedDailyCategory={selectedDailyCategory} t={t} />
 
       <section className="card chart-card">
         <h2>{t.monthlyChartTitle}</h2>
@@ -46,7 +41,6 @@ export default function ChartDashboardPage({
         ) : (
           <MonthlyChart
             rows={monthlyRows}
-            filterType={filterType}
             currencyCode={selectedCurrency}
             exchangeRates={exchangeRates}
           />

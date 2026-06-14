@@ -41,6 +41,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
   }, [rows]);
 
   return (
+    /* Renders the annual summary page, including a header with the year selector, total balance, and a button to toggle the savings simulation panel. Also displays a list of monthly summaries with income, fee, balance, and difference from the previous month. */
     <section className="chart-dashboard-page">
       <section className="card annual-header-card">
         <h2>{t.annualSummaryTitle}</h2>
@@ -52,6 +53,8 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
         <p>
           {t.annualTotalBalanceLabel}: <strong>{formatCurrency(totalBalance, selectedCurrency, exchangeRates)}</strong>
         </p>
+
+        {/* Simulation button */}
         <button
           type="button"
           className={`secondary-button savings-sim-toggle ${showSimulation ? "active" : ""}`}
@@ -61,6 +64,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
         </button>
       </section>
 
+      {/* Simulation panel */}
       {showSimulation && (
         <SavingsSimulationPanel
           annualRows={rows}
@@ -70,36 +74,39 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
         />
       )}
 
-      <section className="card">
-        <div className="annual-list-head">
-          <span>{t.monthLabel}</span>
-          <span>{t.summaryIncome}</span>
-          <span>{t.summaryFee}</span>
-          <span>{t.summaryBalance}</span>
-          <span>{t.monthComparisonLabel}</span>
-        </div>
-        <ul className="list annual-list">
-          {rowsWithDiff.map((row) => (
-            <li key={row.month} className="daily-list-item">
-              <strong>{row.month}</strong>
-              <span>{formatCurrency(row.income, selectedCurrency, exchangeRates)}</span>
-              <span>{formatCurrency(row.fee, selectedCurrency, exchangeRates)}</span>
-              <span>{formatCurrency(row.balance, selectedCurrency, exchangeRates)}</span>
-              <span
-                className={
-                  row.diffFromPrevious == null
-                    ? "month-diff"
-                    : row.diffFromPrevious >= 0
-                      ? "month-diff positive"
-                      : "month-diff negative"
-                }
-              >
-                {row.diffFromPrevious == null ? "-" : formatDelta(row.diffFromPrevious, selectedCurrency, exchangeRates)}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {/* Annual summary when simulation is not shown */}
+      {!showSimulation && (
+        <section className="card">
+          <div className="annual-list-head">
+            <span>{t.monthLabel}</span>
+            <span>{t.summaryIncome}</span>
+            <span>{t.summaryFee}</span>
+            <span>{t.summaryBalance}</span>
+            <span>{t.monthComparisonLabel}</span>
+          </div>
+          <ul className="list annual-list">
+            {rowsWithDiff.map((row) => (
+              <li key={row.month} className="daily-list-item">
+                <strong>{row.month}</strong>
+                <span>{formatCurrency(row.income, selectedCurrency, exchangeRates)}</span>
+                <span>{formatCurrency(row.fee, selectedCurrency, exchangeRates)}</span>
+                <span>{formatCurrency(row.balance, selectedCurrency, exchangeRates)}</span>
+                <span
+                  className={
+                    row.diffFromPrevious == null
+                      ? "month-diff"
+                      : row.diffFromPrevious >= 0
+                        ? "month-diff positive"
+                        : "month-diff negative"
+                  }
+                >
+                  {row.diffFromPrevious == null ? "-" : formatDelta(row.diffFromPrevious, selectedCurrency, exchangeRates)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </section>
   );
 }

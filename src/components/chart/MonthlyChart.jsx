@@ -17,10 +17,10 @@ import { formatCurrency } from "../../lib/currency.js";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, BarController, LineElement, LineController, PointElement, Tooltip, Legend, Filler);
 
-export default function MonthlyChart({ rows, filterType, currencyCode = "JPY", exchangeRates = null }) {
+export default function MonthlyChart({ rows, currencyCode = "JPY", exchangeRates = null }) {
   const labels = rows.map((r) => r.month);
-  const showFee = filterType === "all" || filterType === "fee";
-  const showIncome = filterType === "all" || filterType === "income";
+  const showFee = true;
+  const showIncome = true;
 
   const datasets = [
     showFee && {

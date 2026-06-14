@@ -1,5 +1,5 @@
-export function buildEntryListPayload({ month, filterType, selectedDailyCategory, dateRange, locale }) {
-  const payload = { month, type: filterType, locale };
+export function buildEntryListPayload({ month, selectedDailyCategory, dateRange, locale }) {
+  const payload = { month, locale };
 
   if (selectedDailyCategory !== "all") {
     payload.categoryId = selectedDailyCategory;

@@ -35,7 +35,7 @@ export default function App() {
   const [range, setRange] = useState(defaultRange(baseMonth));
   const [dateRange, setDateRange] = useState({ fromDate: "", toDate: "" });
   const [activePage, setActivePage] = useState("daily");
-  const [filterType, setFilterType] = useState("all");
+  
   const [selectedDailyCategory, setSelectedDailyCategory] = useState("all");
   const [selectedCurrency, setSelectedCurrency] = useState(() => localStorage.getItem("settings.currency") || "JPY");
   const [locale, setLocale] = useState(() => localStorage.getItem("settings.locale") || "ja");
@@ -88,7 +88,7 @@ export default function App() {
   }
 
   async function loadMonthData(month) {
-    const payload = buildEntryListPayload({ month, filterType, selectedDailyCategory, dateRange, locale });
+    const payload = buildEntryListPayload({ month, selectedDailyCategory, dateRange, locale });
     const daily = await api.entry.list(payload);
     setDailyRows(daily);
   }
@@ -183,7 +183,7 @@ export default function App() {
 
   useEffect(() => {
     loadMonthData(selectedMonth);
-  }, [selectedMonth, filterType, selectedDailyCategory, dateRange.fromDate, dateRange.toDate, locale]);
+  }, [selectedMonth, selectedDailyCategory, dateRange.fromDate, dateRange.toDate, locale]);
 
   useEffect(() => {
     loadChartMonthSummary(selectedMonth);
@@ -312,30 +312,16 @@ export default function App() {
         }
       ])
     );
-
-    if (filterType === "all") {
-      return recurringRows.map((row) => {
-        const categoryId = row.type === "fee" ? row.categoryId || "Food" : null;
-        const category = categoryId ? categoryMap.get(categoryId) : null;
-        return {
-          ...row,
-          categoryDisplay: category?.label || "-",
-          categoryIcon: category?.icon || "🍽️"
-        };
-      });
-    }
-    return recurringRows
-      .filter((row) => row.type === filterType)
-      .map((row) => {
-        const categoryId = row.type === "fee" ? row.categoryId || "Food" : null;
-        const category = categoryId ? categoryMap.get(categoryId) : null;
-        return {
-          ...row,
-          categoryDisplay: category?.label || "-",
-          categoryIcon: category?.icon || "🍽️"
-        };
-      });
-  }, [recurringRows, filterType, categories, locale]);
+    return recurringRows.map((row) => {
+      const categoryId = row.type === "fee" ? row.categoryId || "Food" : null;
+      const category = categoryId ? categoryMap.get(categoryId) : null;
+      return {
+        ...row,
+        categoryDisplay: category?.label || "-",
+        categoryIcon: category?.icon || "🍽️"
+      };
+    });
+  }, [recurringRows, categories, locale]);
 
   const dailyTitleSuggestions = useMemo(() => {
     const seen = new Set();
@@ -723,8 +709,6 @@ export default function App() {
 
       {activePage === "chart" ? (
         <ChartDashboardPage
-          filterType={filterType}
-          setFilterType={setFilterType}
           selectedCurrency={selectedCurrency}
           range={range}
           setRange={setRange}
