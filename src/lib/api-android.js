@@ -24,8 +24,8 @@ const DEFAULT_CATEGORIES = [
   { id: "entertainment", nameJp: "娯楽",      nameEn: "Entertainment", nameDe: "Unterhaltung",    icon: "🎬",  sortOrder: 70,  isActive: 1 },
   { id: "travel",        nameJp: "旅行",      nameEn: "Travel",        nameDe: "Reisen",          icon: "✈️",  sortOrder: 80,  isActive: 1 },
   { id: "shopping",      nameJp: "買い物",    nameEn: "Shopping",      nameDe: "Einkauf",         icon: "🛍️", sortOrder: 90,  isActive: 1 },
-  { id: "insurance",     nameJp: "保険",      nameEn: "Insurance",     nameDe: "Versicherung",    icon: "⚕️",  sortOrder: 100,  isActive: 1 },
   { id: "subscription",  nameJp: "サブスク",  nameEn: "Subscription",  nameDe: "Abo",             icon: "🔁",  sortOrder: 110,  isActive: 1 },
+  { id: "insurance",     nameJp: "保険",      nameEn: "Insurance",     nameDe: "Versicherung",    icon: "⚕️",  sortOrder: 100,  isActive: 1 },
   { id: "other",         nameJp: "その他",    nameEn: "Other",         nameDe: "Sonstiges",       icon: "📦",  sortOrder: 120, isActive: 1 }
 ];
 
@@ -196,6 +196,16 @@ function sumRecurringByType(month, type, categoryId = null) {
         return true;
       }
       return String(item.categoryId || "other") === String(categoryId);
+    })
+    .reduce((total, item) => total + Number(item.amount || 0), 0);
+}
+
+function sumRecurringSalary(month) {
+  return readRecurring()
+    .filter((item) => {
+      const endMonth = item.endMonth || null;
+      const inRange = item.startMonth <= month && (!endMonth || month <= endMonth);
+      return item.type === "income" && inRange && Boolean(item.isSalary);
     })
     .reduce((total, item) => total + Number(item.amount || 0), 0);
 }
@@ -693,6 +703,7 @@ export function createAndroidApi() {
           amount: Number(input.amount ?? 0),
           startMonth: input.startMonth,
           endMonth: input.endMonth || null,
+          isSalary: Boolean(input.isSalary),
           createdAt: nowIso(),
           updatedAt: nowIso()
         };
@@ -711,6 +722,7 @@ export function createAndroidApi() {
           categoryId: input.type === "fee" ? String(input.categoryId || "other") : null,
           title: String(input.title || "").trim(),
           amount: Number(input.amount ?? 0),
+          isSalary: Boolean(input.isSalary),
           startMonth: input.startMonth,
           endMonth: input.endMonth || null,
           updatedAt: nowIso()
@@ -747,7 +759,7 @@ export function createAndroidApi() {
     // ── Summary ────────────────────────────────────────────────────────────
 
     summary: {
-      async month({ month, categoryId, fromDate, toDate } = {}) {
+      async month({ month, categoryId, fromDate, toDate, salaryOnly } = {}) {
         if (!month) return { fee: 0, income: 0, dailyFee: 0, dailyIncome: 0, recurringFee: 0, recurringIncome: 0 };
         const db = await getDb();
 
@@ -771,6 +783,20 @@ export function createAndroidApi() {
         const dailyIncome = dailyIncomeRes.values?.[0]?.total || 0;
         const recurringFee = noDateOverlap ? 0 : sumRecurringByType(month, "fee", categoryId || null);
         const recurringIncome = categoryId ? 0 : sumRecurringByType(month, "income");
+        const recurringSalary = noDateOverlap ? 0 : sumRecurringSalary(month);
+        const salaryTotal = Number(recurringSalary || 0);
+
+        if (salaryOnly) {
+          return {
+            fee: dailyFee + recurringFee,
+            income: salaryTotal,
+            dailyFee,
+            dailyIncome: 0,
+            recurringFee,
+            recurringIncome: salaryTotal,
+            salary: salaryTotal
+          };
+        }
 
         return {
           fee: dailyFee + recurringFee,
@@ -778,16 +804,17 @@ export function createAndroidApi() {
           dailyFee,
           dailyIncome,
           recurringFee,
-          recurringIncome
+          recurringIncome,
+          salary: salaryTotal
         };
       },
 
-      async range({ fromMonth, toMonth, categoryId, fromDate, toDate } = {}) {
+      async range({ fromMonth, toMonth, categoryId, fromDate, toDate, salaryOnly } = {}) {
         if (!fromMonth || !toMonth) return [];
         const results = [];
         let m = fromMonth;
         while (m <= toMonth) {
-          const summary = await this.month({ month: m, categoryId, fromDate, toDate });
+          const summary = await this.month({ month: m, categoryId, fromDate, toDate, salaryOnly });
           results.push({ month: m, ...summary });
           const [y, mo] = m.split("-").map(Number);
           const next = new Date(y, mo, 1);

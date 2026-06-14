@@ -9,10 +9,6 @@ export function buildEntryListPayload({ month, filterType, selectedDailyCategory
     payload.fromDate = dateRange.fromDate;
   }
 
-  if (dateRange.toDate) {
-    payload.toDate = dateRange.toDate;
-  }
-
   return payload;
 }
 
@@ -26,11 +22,6 @@ export function buildSummaryMonthPayload({ month, selectedDailyCategory, dateRan
   if (dateRange.fromDate) {
     payload.fromDate = dateRange.fromDate;
   }
-
-  if (dateRange.toDate) {
-    payload.toDate = dateRange.toDate;
-  }
-
   return payload;
 }
 
@@ -48,6 +39,5 @@ export function buildSummaryRangePayload({ fromMonth, toMonth, selectedDailyCate
   if (dateRange.toDate) {
     payload.toDate = dateRange.toDate;
   }
-
   return payload;
 }

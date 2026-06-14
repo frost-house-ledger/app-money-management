@@ -37,8 +37,13 @@ export const TRANSLATIONS = {
   chartFromLabel: { jp: "グラフ開始月", en: "Chart from", de: "Diagramm von" },
   chartToLabel: { jp: "グラフ終了月", en: "Chart to", de: "Diagramm bis" },
 
+  chartRangeInvalid: { jp: "グラフ開始月がグラフ終了月より後になっています", en: "Chart start month is after end month", de: "Diagramm-Startmonat ist nach dem Endmonat" },
+
+
   dateRangeFromLabel: { jp: "日付範囲 (開始)", en: "Date range from", de: "Datumsbereich von" },
   dateRangeToLabel: { jp: "日付範囲 (終了)", en: "Date range to", de: "Datumsbereich bis" },
+
+  salaryOnlyLabel: { jp: "給料のみ表示", en: "Salary only", de: "Nur Gehalt" },
 
   summaryIncome: { jp: "収入", en: "Income", de: "Einnahmen" },
   summaryFee: { jp: "費用", en: "Expense", de: "Ausgaben" },

@@ -41,12 +41,16 @@ export default function ChartDashboardPage({
 
       <section className="card chart-card">
         <h2>{t.monthlyChartTitle}</h2>
-        <MonthlyChart
-          rows={monthlyRows}
-          filterType={filterType}
-          currencyCode={selectedCurrency}
-          exchangeRates={exchangeRates}
-        />
+        {range && range.fromMonth && range.toMonth && range.fromMonth > range.toMonth ? (
+          <p className="error">{t.chartRangeInvalid || "グラフ開始月がグラフ終了月より後になっています"}</p>
+        ) : (
+          <MonthlyChart
+            rows={monthlyRows}
+            filterType={filterType}
+            currencyCode={selectedCurrency}
+            exchangeRates={exchangeRates}
+          />
+        )}
       </section>
     </section>
   );

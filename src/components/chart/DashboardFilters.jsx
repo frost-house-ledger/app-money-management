@@ -40,7 +40,7 @@ export default function DashboardFilters({
         </select>
       </label>
 
-      {/* Month range controls the x-axis window of the monthly chart. */}
+      {/* "from month" */}
       <label>
         {t.chartFromLabel}
         <input
@@ -50,7 +50,7 @@ export default function DashboardFilters({
         />
       </label>
 
-      {/* The "to" month filter is optional. If not set, the chart will show all months from the "from" month until the latest month with data. */}
+      {/* "to" month. This is optional. If not set, the chart will show all months from the "from" month until the latest month with data. */}
       <label>
         {t.chartToLabel}
         <input
@@ -69,7 +69,6 @@ export default function DashboardFilters({
           onChange={(e) => setDateRange((curr) => ({ ...curr, fromDate: e.target.value }))}
         />
       </label>
-
       {/* The "to" date filter is optional. If not set, all daily records from the "from" date until today will be included. */}
       <label>
         {t.dateRangeToLabel}

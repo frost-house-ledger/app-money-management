@@ -40,6 +40,17 @@ export default function RecurringSection({
         </select>
       </label>
 
+      {recurringForm.type === "income" && (
+        <label>
+          {t.recurringIsSalaryLabel || "This is salary"}
+          <input
+            type="checkbox"
+            checked={Boolean(recurringForm.isSalary)}
+            onChange={(e) => setRecurringForm((curr) => ({ ...curr, isSalary: Boolean(e.target.checked) }))}
+          />
+        </label>
+      )}
+
       <label>
         {t.categoryLabel}
         <select
@@ -130,7 +141,8 @@ export function RecurringListSection({
     title: "",
     amount: "",
     startMonth: "",
-    endMonth: ""
+    endMonth: "",
+    isSalary: false
   });
   const [inlineError, setInlineError] = React.useState("");
   const [isSaving, setIsSaving] = React.useState(false);
@@ -165,7 +177,8 @@ export function RecurringListSection({
       title: row.title || "",
       amount: formatBaseAmountForInput(row.amount, selectedCurrency, exchangeRates),
       startMonth: row.startMonth || "",
-      endMonth: row.endMonth || ""
+      endMonth: row.endMonth || "",
+      isSalary: Boolean(row.isSalary)
     });
   }
 
@@ -178,7 +191,8 @@ export function RecurringListSection({
       title: "",
       amount: "",
       startMonth: "",
-      endMonth: ""
+      endMonth: "",
+      isSalary: false
     });
   }
 
@@ -292,6 +306,16 @@ export function RecurringListSection({
                     ))}
                   </select>
                 </label>
+                {inlineForm.type === "income" && (
+                  <label>
+                    {t.recurringIsSalaryLabel || "This is salary"}
+                    <input
+                      type="checkbox"
+                      checked={Boolean(inlineForm.isSalary)}
+                      onChange={(e) => setInlineForm((current) => ({ ...current, isSalary: Boolean(e.target.checked) }))}
+                    />
+                  </label>
+                )}
                 <label>
                   <input
                     type="text"
@@ -350,6 +374,9 @@ export function RecurringListSection({
                   {row.type === "fee" ? `${row.categoryIcon || "🏷️"} ${row.categoryDisplay || "-"}` : "-"}
                 </span>
                 <span>{row.title}</span>
+                {row.type === "income" && row.isSalary && (
+                  <span title={t.recurringIsSalaryLabel || "Salary"} style={{ marginLeft: 6 }}>💼</span>
+                )}
                 <span>{formatCurrency(row.amount, selectedCurrency, exchangeRates)}</span>
                 <span className="daily-row-actions">
                   {isPendingDelete ? (

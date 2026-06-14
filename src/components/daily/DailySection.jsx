@@ -17,6 +17,23 @@ export default function DailySection({
   dailyTitleSuggestions,
   t
 }) {
+  const [showSuggestions, setShowSuggestions] = React.useState(false);
+  const [highlightedIndex, setHighlightedIndex] = React.useState(-1);
+  const sortedTitleSuggestions = React.useMemo(() => {
+    try {
+      return Array.from(new Set(dailyTitleSuggestions)).sort((a, b) =>
+        a.localeCompare(b, undefined, { sensitivity: "base" })
+      );
+    } catch (e) {
+      return dailyTitleSuggestions.slice().sort();
+    }
+  }, [dailyTitleSuggestions]);
+
+  const filteredTitleSuggestions = React.useMemo(() => {
+    const q = (dailyForm.title || "").trim().toLowerCase();
+    if (!q) return sortedTitleSuggestions;
+    return sortedTitleSuggestions.filter((s) => s.toLowerCase().includes(q));
+  }, [dailyForm.title, sortedTitleSuggestions]);
     // return the form part here, and the list part is moved to DailyListSection to avoid re-rendering the list when the form state changes
   return (
     <form className="card" onSubmit={onSubmit}>
@@ -58,27 +75,92 @@ export default function DailySection({
       </label>
       
       {/* daily title input such as supermarket, restaurant, etc. */}
-      <label>
+      <label style={{ position: "relative" }}>
         {t.titleLabel}
         <input
           type="text"
-          list="daily-title-suggestions"
           autoComplete="on"
           value={dailyForm.title}
-          onChange={(e) => setDailyForm((curr) => ({ ...curr, title: e.target.value }))}
+          onChange={(e) => {
+            const v = e.target.value;
+            setDailyForm((curr) => ({ ...curr, title: v }));
+            setShowSuggestions(true);
+            setHighlightedIndex(0);
+          }}
+          onFocus={() => {
+            if (filteredTitleSuggestions.length > 0) setShowSuggestions(true);
+          }}
+          onBlur={() => {
+            // delay hiding so click events on suggestions register
+            setTimeout(() => setShowSuggestions(false), 150);
+          }}
+          onKeyDown={(e) => {
+            if (!filteredTitleSuggestions || filteredTitleSuggestions.length === 0) return;
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              setShowSuggestions(true);
+              setHighlightedIndex((i) => Math.min(i + 1, filteredTitleSuggestions.length - 1));
+            } else if (e.key === "ArrowUp") {
+              e.preventDefault();
+              setHighlightedIndex((i) => Math.max(i - 1, 0));
+            } else if (e.key === "Enter") {
+              if (showSuggestions && highlightedIndex >= 0) {
+                e.preventDefault();
+                const sel = filteredTitleSuggestions[highlightedIndex];
+                if (sel) {
+                  setDailyForm((curr) => ({ ...curr, title: sel }));
+                }
+                setShowSuggestions(false);
+              }
+            } else if (e.key === "Escape") {
+              setShowSuggestions(false);
+            }
+          }}
           placeholder={t.dailyTitlePlaceholder}
         />
-      </label>
-      
 
-      {/* suggestions based on previous entries */}
-      {dailyTitleSuggestions.length > 0 && (
-        <datalist id="daily-title-suggestions">
-          {dailyTitleSuggestions.map((title) => (
-            <option key={title} value={title} />
-          ))}
-        </datalist>
-      )}
+        {showSuggestions && filteredTitleSuggestions.length > 0 && (
+          <div
+            role="listbox"
+            aria-label={t.titleLabel}
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              zIndex: 100,
+              border: "1px solid var(--line)",
+              background: "var(--bg-1)",
+              color: "var(--ink)",
+              maxHeight: 160,
+              overflow: "auto"
+            }}
+          >
+            {filteredTitleSuggestions.map((s, idx) => (
+              <div
+                key={s}
+                role="option"
+                aria-selected={highlightedIndex === idx}
+                onMouseDown={(ev) => {
+                  // prevent blur before click
+                  ev.preventDefault();
+                }}
+                onClick={() => {
+                  setDailyForm((curr) => ({ ...curr, title: s }));
+                  setShowSuggestions(false);
+                }}
+                onMouseEnter={() => setHighlightedIndex(idx)}
+                style={{
+                  padding: "6px 8px",
+                  cursor: "pointer",
+                  background: highlightedIndex === idx ? "var(--card)" : "transparent"
+                }}
+              >
+                {s}
+              </div>
+            ))}
+          </div>
+        )}
+      </label>
 
       <label>
         {t.amountLabel}

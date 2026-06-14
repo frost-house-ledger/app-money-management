@@ -61,7 +61,8 @@ export default function App() {
     title: "",
     amount: "",
     startMonth: baseMonth,
-    endMonth: ""
+    endMonth: "",
+    isSalary: false
   });
 
   const [dailyForm, setDailyForm] = useState({
@@ -191,6 +192,8 @@ export default function App() {
   useEffect(() => {
     loadRangeData(range.fromMonth, range.toMonth);
   }, [range.fromMonth, range.toMonth, selectedDailyCategory, dateRange.fromDate, dateRange.toDate]);
+
+  
 
   useEffect(() => {
     loadHistory();
@@ -426,6 +429,8 @@ export default function App() {
         // Persist amounts in base currency; UI input is in selected display currency.
         amount: convertDisplayAmountToBase(recurringForm.amount, selectedCurrency, exchangeRates)
       };
+      // Ensure isSalary flag is passed as boolean
+      payload.isSalary = Boolean(recurringForm.isSalary);
 
       if (editingRecurringId) {
         await api.recurring.update({
@@ -462,6 +467,8 @@ export default function App() {
       amount: formatBaseAmountForInput(item.amount, selectedCurrency, exchangeRates),
       startMonth: item.startMonth,
       endMonth: item.endMonth || ""
+      ,
+      isSalary: Boolean(item.isSalary)
     });
     setEditingRecurringId(item.id);
   }

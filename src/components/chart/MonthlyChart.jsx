@@ -34,7 +34,7 @@ export default function MonthlyChart({ rows, filterType, currencyCode = "JPY", e
     showIncome && {
       type: "bar",
       label: "income",
-      data: rows.map((r) => Math.round(r.income)),
+      data: rows.map((r) => Math.round(Number(r.income) || 0)),
       backgroundColor: "#2fbc9d",
       borderRadius: 8,
       order: 2,
