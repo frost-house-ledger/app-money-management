@@ -156,16 +156,25 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
             {mergedRows.map((row) => {
               const ratio = total > 0 ? (Number(row.total || 0) / total) * 100 : 0;
               const key = row.categoryId || row.categoryDisplay;
+
+              const targetVal = targets[key] === "" || targets[key] === undefined ? null : Number(targets[key]);
+              const amountVal = Number(row.total || 0);
+              const exceeded = targetVal !== null && !Number.isNaN(targetVal) && amountVal > targetVal;
+
               return (
                 <tr key={key} className="daily-list-item">
                   <td>
                     <strong>{row.categoryIcon} {row.categoryDisplay}</strong>
                   </td>
-                  <td>{formatCurrency(row.total, selectedCurrency, exchangeRates)}</td>
+
+                  <td className={`amount ${exceeded ? "exceeded" : ""}`}>{formatCurrency(row.total, selectedCurrency, exchangeRates)}</td>
+
                   <td>{ratio.toFixed(1)}%</td>
+
                   <td>
                     <input
                       type="number"
+                      className={`category-target-input`}
                       value={targets[key] === undefined ? "" : targets[key]}
                       onChange={(e) => handleTargetChange(key, e.target.value)}
                       placeholder=""
@@ -176,6 +185,8 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
             })}
           </tbody>
         </table>
+        
+        <br />
 
         {/* Category target fee save button */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

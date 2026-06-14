@@ -408,6 +408,19 @@ button {
   color: var(--ink);
 }
 
+/* Target exceeded styling */
+.category-target-input.exceeded {
+  color: var(--fee);
+  border-color: rgba(249,127,105,0.6);
+  background: rgba(249,127,105,0.04);
+}
+
+/* Amount cell exceeded */
+.app-table td.amount.exceeded {
+  color: var(--fee);
+  font-weight: 700;
+}
+
 @media (max-width: 640px) {
   .table-header {
     display: none;

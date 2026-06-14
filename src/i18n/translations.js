@@ -95,7 +95,7 @@ export const TRANSLATIONS = {
   categoryNameDePlaceholder: { jp: "ドイツ語名", en: "German name", de: "Deutscher Name" },
   addCategoryIconPlaceholder: { jp: "アイコン (例: 🍜)", en: "Icon (e.g. 🍜)", de: "Symbol (z. B. 🍜)" },
   addCategoryButton: { jp: "追加", en: "Add", de: "Hinzufuegen" },
-  saveButton: { jp: "保存", en: "Save", de: "Speichern" },
+  saveButton: { jp: "目標額を保存", en: "Save the target amount", de: "Zielbetrag speichern" },
   deleteButton: { jp: "削除", en: "Delete", de: "Loeschen" },
   restoreButton: { jp: "復元", en: "Restore", de: "Wiederherstellen" },
   dailyTitlePlaceholder: { jp: "スーパー / 副業", en: "Supermarket / Side job", de: "Supermarkt / Nebenjob" },
@@ -112,6 +112,8 @@ export const TRANSLATIONS = {
   errorDailyUpdateFailed: { jp: "更新に失敗しました。", en: "Failed to update entry.", de: "Eintrag konnte nicht aktualisiert werden." },
   recurringListTitle: { jp: "固定項目一覧", en: "Recurring items", de: "Fixpostenliste" },
   dailyListTitle: { jp: "{month} の日次項目", en: "Daily entries for {month}", de: "Tageseintraege fuer {month}" },
+
+  // history
   historyTitle: { jp: "入力履歴", en: "Input history", de: "Eingabeverlauf" },
   historySubtext: {
     jp: "monthly と daily の保存履歴を時系列で表示します。",
@@ -130,11 +132,10 @@ export const TRANSLATIONS = {
     en: "Manage core display and language preferences here.",
     de: "Verwalten Sie hier die grundlegenden Anzeige- und Spracheinstellungen."
   },
+
+  // settings
   settingsLanguageLabel: { jp: "言語", en: "Language", de: "Sprache" },
   settingsCurrencyLabel: { jp: "通貨", en: "Currency", de: "Waehrung" },
-  settingsThemeLabel: { jp: "テーマ", en: "Theme", de: "Design" },
-  settingsThemeLight: { jp: "ライト", en: "Light", de: "Hell" },
-  settingsThemeDark: { jp: "ダーク", en: "Dark", de: "Dunkel" },
   csvImportLabel: { jp: "CSV 取り込み", en: "CSV import", de: "CSV-Import" },
   csvImportSubtext: {
     jp: "従来の format.csv 形式と、record_scope 列つきのバックアップ CSV の両方を取り込めます。",
@@ -203,9 +204,9 @@ export const TRANSLATIONS = {
   erStatusFallback: { jp: "フォールバックレート使用中（オフラインまたは取得失敗）", en: "Using fallback rates (offline or fetch failed)", de: "Fallback-Kurse in Verwendung (offline oder Abruf fehlgeschlagen)" },
   categoryAnalysisTitle: { jp: "カテゴリ別分析", en: "Category analysis", de: "Kategorieanalyse" },
   categoryAnalysisSubtext: {
-    jp: "カテゴリ別の支出割合と推移を確認できます。",
-    en: "View spending ratios and trends by category.",
-    de: "Ausgabenanteile und Trends nach Kategorien anzeigen."
+    jp: "カテゴリ別の支出割合と推移を確認できます。また、カテゴリごとに月間目標を設定できます。実際の支出が目標を超えている場合、金額が赤く表示されます。",
+    en: "View spending ratios and trends by category. You can also set monthly targets for each category. If actual spending exceeds the target, the amount is shown in red.",
+    de: "Ausgabenanteile und Trends nach Kategorien anzeigen. Sie können auch monatliche Ziele für jede Kategorie festlegen. Wenn die tatsächlichen Ausgaben das Ziel überschreiten, wird der Betrag rot angezeigt."
   },
   categoryRatioChartTitle: { jp: "カテゴリ割合", en: "Category ratio", de: "Kategorieanteil" },
   categoryTrendChartTitle: { jp: "カテゴリ推移", en: "Category trend", de: "Kategorietrend" },
