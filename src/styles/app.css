@@ -352,6 +352,73 @@ button {
   text-decoration: line-through;
 }
 
+/* Category targets table styles (balanced fixed layout) */
+.app-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 8px;
+  table-layout: fixed; /* use fixed layout for balanced column widths */
+}
+
+.app-table thead th {
+  padding: 10px 12px;
+  background: linear-gradient(90deg, rgba(15,110,176,0.95), rgba(19,98,160,0.95));
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.app-table tbody tr {
+  background: var(--item-bg);
+}
+
+.app-table td {
+  vertical-align: middle;
+  color: var(--ink);
+  font-size: 0.95rem;
+  padding: 8px 12px;
+}
+
+.app-table td:first-child strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+
+/* column widths for balanced layout */
+.app-table td:nth-child(1) { width: 34%; }
+.app-table td:nth-child(2) { width: 18%; text-align: center; }
+.app-table td:nth-child(3) { width: 18%; text-align: center; }
+.app-table td:nth-child(4) { width: 30%; }
+
+.category-target-input {
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--input-bg);
+  color: var(--ink);
+}
+
+@media (max-width: 640px) {
+  .table-header {
+    display: none;
+  }
+  .app-table, .app-table tbody, .app-table tr, .app-table td {
+    display: block;
+    width: 100%;
+  }
+  .app-table tr { margin-bottom: 8px; }
+  .app-table td { padding: 8px; }
+}
 /* 履歴画面の action バッジ */
 .history-badge {
   display: inline-block;

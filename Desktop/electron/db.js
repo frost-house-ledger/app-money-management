@@ -40,6 +40,9 @@ export function createLedgerStore(dataDir) {
     listInputLogsStmt,
     sumCategoryByRangeStmt,
     listCategoryMonthlyTrendStmt,
+    selectCategoryTargetsByMonthStmt,
+    upsertCategoryTargetStmt,
+    deleteCategoryTargetsByMonthStmt,
     deleteDailyStmt,
     getDailyByIdStmt,
     updateDailyStmt
@@ -611,6 +614,26 @@ export function createLedgerStore(dataDir) {
     };
   }
 
+  // Category targets
+  async function getCategoryTargets(month) {
+    if (!month) return [];
+    const rows = selectCategoryTargetsByMonthStmt.all({ month });
+    return rows.map((r) => ({ month: r.month, categoryId: r.categoryId, amount: Number(r.amount || 0), updatedAt: r.updatedAt }));
+  }
+
+  async function saveCategoryTargets({ month, targets = {} } = {}) {
+    if (!month) throw new Error("month is required");
+    const tx = db.transaction(() => {
+      deleteCategoryTargetsByMonthStmt.run({ month });
+      Object.entries(targets || {}).forEach(([categoryId, amount]) => {
+        const num = Number(amount || 0);
+        upsertCategoryTargetStmt.run({ month, categoryId, amount: num });
+      });
+    });
+    tx();
+    return { ok: true };
+  }
+
   function importSyncData(payload) {
     if (!payload || typeof payload !== "object") {
       throw new Error("同期データが不正です。");
@@ -730,6 +753,8 @@ export function createLedgerStore(dataDir) {
     getCategoryTrend,
     getMonthSummary,
     getMonthRangeSummary,
+    getCategoryTargets,
+    saveCategoryTargets,
     rebuildMonthlyJsonCache,
     exportBackupCsv: backupService.exportBackupCsv,
     importBackupCsv: backupService.importBackupCsv,

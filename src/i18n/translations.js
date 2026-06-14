@@ -209,6 +209,7 @@ export const TRANSLATIONS = {
   },
   categoryRatioChartTitle: { jp: "カテゴリ割合", en: "Category ratio", de: "Kategorieanteil" },
   categoryTrendChartTitle: { jp: "カテゴリ推移", en: "Category trend", de: "Kategorietrend" },
+  monthlyTargetLabel: { jp: "月間目標", en: "Monthly target", de: "Monatliches Ziel" },
   annualSummaryTitle: { jp: "年間サマリー", en: "Annual summary", de: "Jahresuebersicht" },
   annualSummarySubtext: {
     jp: "月ごとの収支を年間で確認できます。",

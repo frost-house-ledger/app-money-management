@@ -71,6 +71,13 @@ async function getDb() {
       note TEXT,
       logged_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
+    CREATE TABLE IF NOT EXISTS category_targets (
+      month TEXT NOT NULL,
+      category_id TEXT NOT NULL,
+      amount REAL NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      PRIMARY KEY (month, category_id)
+    );
   `);
   await _db.execute("ALTER TABLE daily_entries ADD COLUMN sync_id TEXT;", false).catch(() => {});
   await _db.execute("ALTER TABLE daily_entries ADD COLUMN updated_at TEXT NOT NULL DEFAULT (datetime('now'));", false).catch(() => {});
@@ -821,6 +828,34 @@ export function createAndroidApi() {
           m = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}`;
         }
         return results;
+      },
+
+      // ── Targets ───────────────────────────────────────────────────────────
+      targets: {
+        async get(monthOrObj = {}) {
+          const month = typeof monthOrObj === "string" ? monthOrObj : (monthOrObj && monthOrObj.month);
+          validateMonthValue(month, "month");
+          const db = await getDb();
+          const res = await db.query(
+            `SELECT category_id AS categoryId, amount FROM category_targets WHERE month = ?`,
+            [String(month)]
+          );
+          return (res.values || []).map((r) => ({ categoryId: r.categoryId, amount: Number(r.amount || 0) }));
+        },
+        async save({ month, targets = {} } = {}) {
+          validateMonthValue(month, "month");
+          const db = await getDb();
+          await db.run(`DELETE FROM category_targets WHERE month = ?`, [String(month)]);
+          const entries = Object.entries(targets || {});
+          for (let i = 0; i < entries.length; i++) {
+            const [categoryId, amount] = entries[i];
+            await db.run(
+              `INSERT INTO category_targets(month, category_id, amount, updated_at) VALUES (?,?,?,?)`,
+              [String(month), String(categoryId), Number(amount || 0), nowIso()]
+            );
+          }
+          return { ok: true };
+        }
       },
 
       async categoryBreakdown({ month, locale = "jp" } = {}) {

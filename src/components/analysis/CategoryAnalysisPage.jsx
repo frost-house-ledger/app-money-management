@@ -19,6 +19,9 @@ const COLORS = ["#f97f69", "#2fbc9d", "#4f86c6", "#f4b942", "#b892ff", "#6bc1a7"
 export default function CategoryAnalysisPage({ selectedMonth, range, selectedCurrency, exchangeRates, locale, t }) {
   const [breakdownRows, setBreakdownRows] = useState([]);
   const [trendRows, setTrendRows] = useState([]);
+  const [targets, setTargets] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -37,16 +40,74 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
     load();
   }, [selectedMonth, range.fromMonth, range.toMonth, locale]);
 
+  // Load saved monthly targets for the selected month from localStorage
+  useEffect(() => {
+    async function loadTargets() {
+      // Prefer DB-stored targets when available
+      try {
+        const fromDb = await api.targets.get(selectedMonth);
+        if (Array.isArray(fromDb) && fromDb.length > 0) {
+          const map = Object.fromEntries(fromDb.map((r) => [r.categoryId, Number(r.amount || 0)]));
+          setTargets(map);
+          return;
+        }
+      } catch (e) {
+        // ignore
+      }
+      const key = `categoryTargets:${selectedMonth}`;
+      try {
+        const saved = JSON.parse(localStorage.getItem(key) || "{}");
+        setTargets(saved);
+      } catch (e) {
+        setTargets({});
+      }
+    }
+    loadTargets();
+  }, [selectedMonth]);
+
+  function handleTargetChange(categoryKey, value) {
+    const keyName = `categoryTargets:${selectedMonth}`;
+    const num = value === "" ? "" : Number(value || 0);
+    setTargets((prev) => {
+      const next = { ...(prev || {}), [categoryKey]: num };
+      try {
+        localStorage.setItem(keyName, JSON.stringify(next));
+      } catch (e) {
+        // ignore storage errors
+      }
+      return next;
+    });
+  }
+
+  async function handleSaveTargets() {
+    setSaving(true);
+    setSaveMessage("");
+    try {
+      await api.targets.save({ month: selectedMonth, targets });
+      setSaveMessage("Saved");
+      setTimeout(() => setSaveMessage(""), 2000);
+    } catch (err) {
+      setSaveMessage(err?.message || "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
 
   // summary: breakdownRows with categoryDisplay
   const mergedRows = useMemo(() => {
+    // Merge rows by display name to avoid duplicate categoryDisplay entries
     const map = new Map();
     for (const row of breakdownRows) {
-      const key = row.categoryDisplay;
-      if (map.has(key)) {
-        map.get(key).total += Number(row.total || 0);
+      const display = String(row.categoryDisplay || "");
+      if (map.has(display)) {
+        const existing = map.get(display);
+        existing.total = Number(existing.total || 0) + Number(row.total || 0);
+        // prefer an explicit categoryId if we don't have one yet
+        if (!existing.categoryId && row.categoryId) existing.categoryId = row.categoryId;
+        if (!existing.categoryIcon && row.categoryIcon) existing.categoryIcon = row.categoryIcon;
       } else {
-        map.set(key, { ...row, total: Number(row.total || 0) });
+        map.set(display, { ...row, total: Number(row.total || 0), categoryId: row.categoryId });
       }
     }
     return Array.from(map.values());
@@ -81,20 +142,52 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
         <h2>{t.categoryAnalysisTitle}</h2>
         <p className="subtext">{t.categoryAnalysisSubtext}</p>
 
-        <ul className="list category-ratio-list">
-          {mergedRows.map((row) => {
-            const ratio = total > 0 ? (Number(row.total || 0) / total) * 100 : 0;
-            return (
-              <li key={row.categoryDisplay} className="daily-list-item">
-                <strong>{row.categoryIcon} {row.categoryDisplay}</strong>
-                <span>{ratio.toFixed(1)}%</span>
-                <span>{formatCurrency(row.total, selectedCurrency, exchangeRates)}</span>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
+        {/* Category ratio table with targets input */}
+        <table className="app-table">
+          <thead>
+            <tr>
+              <th>カテゴリ</th>
+              <th>金額</th>
+              <th>パーセンテージ</th>
+              <th>目標額</th>
+            </tr>
+          </thead>
+          <tbody>
+            {mergedRows.map((row) => {
+              const ratio = total > 0 ? (Number(row.total || 0) / total) * 100 : 0;
+              const key = row.categoryId || row.categoryDisplay;
+              return (
+                <tr key={key} className="daily-list-item">
+                  <td>
+                    <strong>{row.categoryIcon} {row.categoryDisplay}</strong>
+                  </td>
+                  <td>{formatCurrency(row.total, selectedCurrency, exchangeRates)}</td>
+                  <td>{ratio.toFixed(1)}%</td>
+                  <td>
+                    <input
+                      type="number"
+                      value={targets[key] === undefined ? "" : targets[key]}
+                      onChange={(e) => handleTargetChange(key, e.target.value)}
+                      placeholder=""
+                    />
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
 
+        {/* Category target fee save button */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button className="secondary-button" type="button" onClick={handleSaveTargets} disabled={saving}>
+            {t.saveButton}
+          </button>
+          <span style={{ color: "#8fa8c8" }}>{saveMessage}</span>
+        </div>
+
+      </section>
+      
+      {/* Pie graph */}
       <section className="card chart-card">
         <h2>{t.categoryRatioChartTitle}</h2>
         <div className="chart-wrap chart-wrap--pie">
@@ -124,6 +217,7 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
         </div>
       </section>
 
+      {/* Trend graph */}
       <section className="card chart-card">
         <h2>{t.categoryTrendChartTitle}</h2>
         <div className="chart-wrap">

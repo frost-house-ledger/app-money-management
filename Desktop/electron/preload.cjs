@@ -32,6 +32,10 @@ contextBridge.exposeInMainWorld("ledgerApi", {
     categoryTrend: (payload) => ipcRenderer.invoke("summary:categoryTrend", payload),
     cachePath: () => ipcRenderer.invoke("summary:cachePath")
   },
+  targets: {
+    get: (month) => ipcRenderer.invoke("targets:get", month),
+    save: (payload) => ipcRenderer.invoke("targets:save", payload)
+  },
   sync: {
     serverInfo: () => ipcRenderer.invoke("sync:serverInfo"),
     exportData: () => ipcRenderer.invoke("sync:export"),

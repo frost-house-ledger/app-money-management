@@ -28,6 +28,14 @@ export function ensureLedgerSchema(db) {
       payload_json TEXT,
       logged_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS category_targets (
+      month TEXT NOT NULL,
+      category_id TEXT NOT NULL,
+      amount REAL NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (month, category_id)
+    );
   `);
 
   const dailyColumns = db.prepare("PRAGMA table_info(daily_entries)").all();
@@ -150,6 +158,22 @@ export function createLedgerStatements(db) {
     ORDER BY month ASC
   `);
 
+  const selectCategoryTargetsByMonthStmt = db.prepare(`
+    SELECT month, category_id AS categoryId, amount, updated_at AS updatedAt
+    FROM category_targets
+    WHERE month = @month
+  `);
+
+  const upsertCategoryTargetStmt = db.prepare(`
+    INSERT INTO category_targets(month, category_id, amount, updated_at)
+    VALUES (@month, @categoryId, @amount, CURRENT_TIMESTAMP)
+    ON CONFLICT(month, category_id) DO UPDATE SET amount = excluded.amount, updated_at = excluded.updated_at
+  `);
+
+  const deleteCategoryTargetsByMonthStmt = db.prepare(`
+    DELETE FROM category_targets WHERE month = @month
+  `);
+
   const deleteDailyStmt = db.prepare(`
     DELETE FROM daily_entries WHERE id = @id
   `);
@@ -185,6 +209,9 @@ export function createLedgerStatements(db) {
     listInputLogsStmt,
     sumCategoryByRangeStmt,
     listCategoryMonthlyTrendStmt,
+    selectCategoryTargetsByMonthStmt,
+    upsertCategoryTargetStmt,
+    deleteCategoryTargetsByMonthStmt,
     deleteDailyStmt,
     getDailyByIdStmt,
     updateDailyStmt

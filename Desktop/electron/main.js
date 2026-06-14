@@ -126,6 +126,14 @@ async function createMainWindow(ledger) {
 
   ipcMain.handle("summary:cachePath", async () => ledger.rebuildMonthlyJsonCache());
 
+  ipcMain.handle("targets:get", async (_event, month) => {
+    return ledger.getCategoryTargets(month);
+  });
+
+  ipcMain.handle("targets:save", async (_event, payload) => {
+    return ledger.saveCategoryTargets(payload || {});
+  });
+
   ipcMain.handle("exchange-rates:fetch", () => fetchExchangeRates());
 
   ipcMain.handle("sync:serverInfo", () => {

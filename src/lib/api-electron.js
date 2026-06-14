@@ -35,6 +35,10 @@ export function createElectronApi() {
       categoryTrend: (payload) => window.ledgerApi.summary.categoryTrend(payload),
       cachePath: () => window.ledgerApi.summary.cachePath()
     },
+    targets: {
+      get: (month) => window.ledgerApi.targets.get(month),
+      save: (payload) => window.ledgerApi.targets.save(payload)
+    },
     sync: {
       serverInfo: (_payload) => window.ledgerApi.sync.serverInfo(),
       exportData: () => window.ledgerApi.sync.exportData(),
