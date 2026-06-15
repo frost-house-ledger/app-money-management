@@ -27,6 +27,8 @@ export default function ChartDashboardPage({
         dailyCategoryOptions={dailyCategoryOptions}
         t={t}
       />
+      {/* Debug: show currently selected category (temporary) */}
+      <div style={{ color: "#aec0d4", fontSize: "0.9rem", margin: "6px 0" }}>selectedDailyCategory: {String(selectedDailyCategory)}</div>
 
       <SummaryCards monthlySummary={monthlySummary} selectedCurrency={selectedCurrency} exchangeRates={exchangeRates} selectedDailyCategory={selectedDailyCategory} t={t} />
 
@@ -39,6 +41,7 @@ export default function ChartDashboardPage({
             rows={monthlyRows}
             currencyCode={selectedCurrency}
             exchangeRates={exchangeRates}
+            selectedDailyCategory={selectedDailyCategory}
           />
         )}
       </section>

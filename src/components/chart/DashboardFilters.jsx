@@ -47,8 +47,6 @@ export default function DashboardFilters({
           onChange={(e) => setRange((curr) => ({ ...curr, toMonth: e.target.value }))}
         />
       </label>
-
-      {/* Date range filters removed — charts use month range only. */}
     </section>
   );
 }
