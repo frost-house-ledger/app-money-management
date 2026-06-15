@@ -259,7 +259,7 @@ export function RecurringListSection({
           return (
           <li
             key={`rec-${row.id}`}
-            className={`recurring-list-item ${inlineEditId === row.id ? "recurring-list-item--editing" : ""} ${isPendingDelete ? "recurring-list-item--pending-delete" : ""}`}
+            className={`recurring-list-item ${inlineEditId === row.id ? "recurring-list-item--editing" : ""} ${isPendingDelete ? "recurring-list-item--pending-delete" : ""} ${isExpired ? "recurring-list-item--expired" : ""}`}
           >
             {inlineEditId === row.id ? (
               <>

@@ -347,6 +347,26 @@ button {
   color: #f5a623;
 }
 
+/* Expired recurring row: draw a red horizontal strike-through across the whole row */
+.recurring-list-item--expired {
+  position: relative;
+  opacity: 0.95;
+}
+.recurring-list-item--expired::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-top: 2px solid rgba(255, 80, 80, 0.95); /* red line */
+  pointer-events: none;
+}
+.recurring-list-item--expired > * {
+  position: relative; /* ensure content stays above line */
+  z-index: 2;
+}
+
 .daily-list-item--pending-delete > strong,
 .daily-list-item--pending-delete > span:not(.daily-row-actions) {
   text-decoration: line-through;
