@@ -10,8 +10,6 @@ export default function ChartDashboardPage({
   exchangeRates,
   range,
   setRange,
-  dateRange,
-  setDateRange,
   selectedDailyCategory,
   setSelectedDailyCategory,
   dailyCategoryOptions,
@@ -24,8 +22,6 @@ export default function ChartDashboardPage({
       <DashboardFilters
         range={range}
         setRange={setRange}
-        dateRange={dateRange}
-        setDateRange={setDateRange}
         selectedDailyCategory={selectedDailyCategory}
         setSelectedDailyCategory={setSelectedDailyCategory}
         dailyCategoryOptions={dailyCategoryOptions}

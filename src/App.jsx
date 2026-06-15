@@ -712,8 +712,6 @@ export default function App() {
           selectedCurrency={selectedCurrency}
           range={range}
           setRange={setRange}
-          dateRange={dateRange}
-          setDateRange={setDateRange}
           selectedDailyCategory={selectedDailyCategory}
           setSelectedDailyCategory={setSelectedDailyCategory}
           dailyCategoryOptions={dailyCategoryOptions}

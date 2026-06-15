@@ -3,8 +3,6 @@ import React from "react";
 export default function DashboardFilters({
   range,
   setRange,
-  dateRange,
-  setDateRange,
   selectedDailyCategory,
   setSelectedDailyCategory,
   dailyCategoryOptions,
@@ -50,24 +48,7 @@ export default function DashboardFilters({
         />
       </label>
 
-      {/* Date range filters which daily records are included in totals and lists. */}
-      <label>
-        {t.dateRangeFromLabel}
-        <input
-          type="date"
-          value={dateRange.fromDate}
-          onChange={(e) => setDateRange((curr) => ({ ...curr, fromDate: e.target.value }))}
-        />
-      </label>
-      {/* The "to" date filter is optional. If not set, all daily records from the "from" date until today will be included. */}
-      <label>
-        {t.dateRangeToLabel}
-        <input
-          type="date"
-          value={dateRange.toDate}
-          onChange={(e) => setDateRange((curr) => ({ ...curr, toDate: e.target.value }))}
-        />
-      </label>
+      {/* Date range filters removed — charts use month range only. */}
     </section>
   );
 }
