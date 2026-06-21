@@ -845,20 +845,65 @@ button {
   color: #f0d080;
 }
 
+/* Asian currencies */
 .settings-select option[value="JPY"] {
   background: #2a1e1a;
   color: #f4a98a;
 }
 
-.settings-select option[value="NZD"] {
-  background: #142a20;
-  color: #6fe0b0;
+.settings-select option[value="TWD"] {
+  background: #2a1e1a;
+  color: #f4a98a;
 }
 
+/* South Asian currencies */
+.settings-select option[value="SGD"] {
+  background: #2a1e1a;
+  color: #8af4aa;
+}
+
+.settings-select option[value="INR"] {
+  background: #2a1e1a;
+  color: #8af4aa;
+}
+
+/* European / Oceanian currencies */
 .settings-select option[value="EUR"] {
   background: #1a2035;
   color: #90b8f5;
 }
+
+.settings-select option[value="GBP"] {
+  background: #1a2035;
+  color: #90b8f5;
+}
+
+.settings-select option[value="CHF"] {
+  background: #1a2035;
+  color: #90b8f5;
+}
+
+.settings-select option[value="AUD"] {
+  background: #1a2035;
+  color: #90b8f5;
+}
+
+.settings-select option[value="NZD"] {
+  background: #1a2035;
+  color: #90b8f5;
+}
+
+/* North American currencies */
+.settings-select option[value="CAD"] {
+  background: #1a2035;
+  color: #f590eb;
+}
+
+.settings-select option[value="USD"] {
+  background: #1a2035;
+  color: #f590eb;
+}
+
 
 .er-status {
   display: block;

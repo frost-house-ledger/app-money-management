@@ -506,10 +506,7 @@ export default function App() {
     event.preventDefault();
     setErrorText("");
 
-    if (dailyForm.entryDate.slice(0, 7) > currentYYYYMM) {
-      setErrorText(t.errorFutureDate);
-      return;
-    }
+    // Allow future dates: no restriction on entryDate month
 
     try {
       if (editingDailyId) {
@@ -576,10 +573,7 @@ export default function App() {
   async function onUpdateDailyInline(payload) {
     setErrorText("");
 
-    if ((payload.entryDate || "").slice(0, 7) > currentYYYYMM) {
-      setErrorText(t.errorFutureDate);
-      throw new Error(t.errorFutureDate);
-    }
+    // Allow future dates for inline updates as well
 
     try {
       await api.entry.update({

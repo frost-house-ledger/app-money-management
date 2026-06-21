@@ -76,9 +76,17 @@ export default function SettingsPage({
             value={selectedCurrency}
             onChange={(e) => setSelectedCurrency(e.target.value)}
           >
-            <option value="JPY">JPY</option>
-            <option value="NZD">NZD</option>
-            <option value="EUR">EUR</option>
+            <option value="JPY">JPY(Japanese Yen)</option>
+            <option value="EUR">EUR(Euro)</option>
+            <option value="GBP">GBP(British Pound)</option>
+            <option value="CHF">CHF(Swiss Franc)</option>
+            <option value="AUD">AUD(Australian Dollar)</option>
+            <option value="NZD">NZD(New Zealand Dollar)</option>
+            <option value="TWD">TWD(Taiwan Dollar)</option>
+            <option value="SGD">SGD(Singapore Dollar)</option>
+            <option value="INR">INR(Indian Rupee)</option>
+            <option value="CAD">CAD(Canadian Dollar)</option>
+            <option value="USD">USD(United States Dollar)</option>
           </select>
           {renderErStatus()}
         </label>
