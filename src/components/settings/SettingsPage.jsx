@@ -50,6 +50,34 @@ export default function SettingsPage({
 
   const syncServerUrls = Array.isArray(syncServerInfo?.urls) ? syncServerInfo.urls : [];
 
+  const CURRENCY_LIST = [
+    { code: 'JPY', name: 'Japanese Yen' },
+    { code: 'TWD', name: 'Taiwan Dollar' },
+    { code: 'EUR', name: 'Euro' },
+    { code: 'GBP', name: 'British Pound' },
+    { code: 'CHF', name: 'Swiss Franc' },
+    { code: 'AUD', name: 'Australian Dollar' },
+    { code: 'NZD', name: 'New Zealand Dollar' },
+    { code: 'SGD', name: 'Singapore Dollar' },
+    { code: 'INR', name: 'Indian Rupee' },
+    { code: 'CAD', name: 'Canadian Dollar' },
+    { code: 'USD', name: 'United States Dollar' }
+  ];
+
+  const LanguageOptions = [
+    { code: 'ja', name: '日本語 (Japanese)', flag: '🇯🇵' },
+    { code: 'en', name: 'English', flag: '🇬🇧' },
+    { code: 'de', name: 'Deutsch (German)', flag: '🇩🇪' },
+    { code: 'es', name: 'Español (Spanish)', flag: '🇪🇸' },
+    { code: 'pt', name: 'Português (Portuguese)', flag: '🇵🇹' },
+    { code: 'it', name: 'Italiano (Italian)', flag: '🇮🇹' },
+    { code: 'fr', name: 'Français (French)', flag: '🇫🇷' },
+    { code: 'ru', name: 'Русский (Russian)', flag: '🇷🇺' },
+    { code: 'tw', name: '中文 (Chinese)', flag: '🇹🇼' },
+    { code: 'ko', name: '한국어 (Korean)', flag: '🇰🇷' },
+    {}
+  ];
+
   return (
     <section className="forms-grid settings-page">
       <article className="card settings-card">
@@ -63,9 +91,11 @@ export default function SettingsPage({
             value={locale}
             onChange={(e) => setLocale(e.target.value)}
           >
-            <option value="ja">JP</option>
-            <option value="en">EN</option>
-            <option value="de">DE</option>
+            {LanguageOptions.map((language) => (
+              <option key={language.code} value={language.code}>
+                {language.flag} {language.name}
+              </option>
+            ))}
           </select>
         </label>
 
@@ -76,19 +106,12 @@ export default function SettingsPage({
             value={selectedCurrency}
             onChange={(e) => setSelectedCurrency(e.target.value)}
           >
-            <option value="JPY">JPY(Japanese Yen)</option>
-            <option value="EUR">EUR(Euro)</option>
-            <option value="GBP">GBP(British Pound)</option>
-            <option value="CHF">CHF(Swiss Franc)</option>
-            <option value="AUD">AUD(Australian Dollar)</option>
-            <option value="NZD">NZD(New Zealand Dollar)</option>
-            <option value="TWD">TWD(Taiwan Dollar)</option>
-            <option value="SGD">SGD(Singapore Dollar)</option>
-            <option value="INR">INR(Indian Rupee)</option>
-            <option value="CAD">CAD(Canadian Dollar)</option>
-            <option value="USD">USD(United States Dollar)</option>
+            {CURRENCY_LIST.map((currency) => (
+              <option key={currency.code} value={currency.code}>
+                {currency.code}({currency.name})
+              </option>
+            ))}
           </select>
-          {renderErStatus()}
         </label>
 
         <label>

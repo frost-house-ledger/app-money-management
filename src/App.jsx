@@ -80,6 +80,17 @@ export default function App() {
   const [editingDailyId, setEditingDailyId] = useState(null);
   const t = useMemo(() => getMessages(locale), [locale]);
 
+  useEffect(() => {
+    const raw = (locale || "").toLowerCase();
+    const base = raw.split('-')[0] || 'en';
+    const htmlLang = base === 'ja' ? 'ja' : base;
+    try {
+      document.documentElement.lang = htmlLang;
+    } catch (e) {
+      // ignore in non-browser contexts
+    }
+  }, [locale]);
+
   function showToast(message) {
     setToastText(message);
     window.setTimeout(() => {

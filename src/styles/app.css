@@ -74,6 +74,30 @@ body {
   color: var(--ink-soft);
 }
 
+/* Language-specific fixes */
+html[lang="ru"] .hero h1 {
+  /* Cyrillic fonts often need different letter-spacing and fallback fonts */
+  letter-spacing: 0;
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+html[lang="ru"] .hero p {
+  letter-spacing: normal;
+  /* allow long words/phrases to wrap cleanly in Cyrillic */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
+/* Style optgroup labels inside settings select to visually separate continents */
+.settings-select optgroup {
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+.settings-select optgroup[label] {
+  padding: 6px 8px;
+}
+
 .card {
   backdrop-filter: blur(8px);
   border: 1px solid var(--line);
@@ -822,14 +846,14 @@ button {
   background: linear-gradient(135deg, #1f2c3f, #121a27);
 }
 
-/* デフォルト: 動的な option（カテゴリ等）の背景色 */
+/* Default: Dynamic option (categories, etc.) background color */
 .settings-select option {
   background: #1a2638;
   color: #dcecff;
   font-weight: 500;
 }
 
-/* --- プルダウン内の各 option の個別背景色 --- */
+/* Language options */
 .settings-select option[value="ja"] {
   background: #2a1e1a;
   color: #f4a98a;
@@ -858,12 +882,12 @@ button {
 
 /* South Asian currencies */
 .settings-select option[value="SGD"] {
-  background: #2a1e1a;
+  background: #292a1a;
   color: #8af4aa;
 }
 
 .settings-select option[value="INR"] {
-  background: #2a1e1a;
+  background: #292a1a;
   color: #8af4aa;
 }
 
