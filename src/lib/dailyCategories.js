@@ -1,9 +1,18 @@
 import dailyCategoryDefinitions from "./dailyCategories.json";
+import { getCategoryName } from "../i18n/translations.js";
 
 export const DAILY_CATEGORY_DEFINITIONS = dailyCategoryDefinitions;
 
-export const DAILY_FEE_CATEGORIES = DAILY_CATEGORY_DEFINITIONS.map((item) => item.name);
+// Keep dailyCategories.json minimal: use id as canonical key
+export const DAILY_FEE_CATEGORIES = DAILY_CATEGORY_DEFINITIONS.map((item) => item.id);
 
 export const DAILY_CATEGORY_ICONS = Object.fromEntries(
-  DAILY_CATEGORY_DEFINITIONS.map((item) => [item.name, item.icon])
+  DAILY_CATEGORY_DEFINITIONS.map((item) => [item.id, item.icon])
 );
+
+export function getCategoryLabelByLocale(itemOrId, locale = "jp") {
+  if (!itemOrId) return "";
+  const id = typeof itemOrId === "string" ? itemOrId : itemOrId.id || itemOrId.name || null;
+  if (!id) return "";
+  return getCategoryName(id, locale);
+}

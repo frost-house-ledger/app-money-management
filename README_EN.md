@@ -1,76 +1,118 @@
-# AMM – App Money Management
+# HouseLedger
 
-A local-first personal finance app built with Electron + React. All data is stored on your machine — no cloud, no accounts required.
+Local-first personal finance — your data stays on your machine.
 
-## Features
+HouseLedger is a focused, privacy-first finance app built with Electron and React.
+It’s lightweight, works offline, and is designed for daily use on desktop and Android (via Capacitor).
 
-- **Monthly recurring entries** — Register fixed income/expenses (e.g. rent, salary) once and they carry forward automatically
-- **Daily entries** — Log day-to-day spending with date, category, and notes
-- **Charts** — Monthly bar/line chart and category breakdown (pie + stacked bar)
-- **Multi-currency** — Display amounts in JPY, NZD, EUR, and more with live exchange rates
-- **History log** — Track every add, update, and delete with before→after diff view
-- **Annual summary** — Year-at-a-glance overview
-- **Multi-language** — Japanese / English / German
+## Demo
 
-## Installation
+[Demo video](demo/video/HouseLedger-demo.mp4)
 
-Download `AMM-Setup-x64.exe` (64-bit) or `AMM-Setup-ia32.exe` (32-bit) from [Releases](../../releases) and run the installer.
+## Why I created this app
 
-## Development Setup
+- **Simple and focused**: core features for daily money tracking without bloat.
+- **Privacy-first**: data is stored locally by default; no cloud account is required.
+- **Fast**: local storage keeps the app responsive and usable offline.
+
+
+## Features (one-line summary)
+
+- **Core** — Daily entries, recurring items, and editable history with diffs.
+- **Analysis** — Monthly charts, category breakdowns, and annual summaries.
+- **Sync** — Optional LAN sync between Desktop and Android (no cloud required).
+- **Multi-currency** — Display amounts in multiple currencies with exchange-rate support.
+- **Localization** — Multi-language UI and locale-aware formatting.
+
+
+## Tech stack
+
+| Component | Purpose |
+|---|---|
+| Electron + React | Desktop UI and application framework |
+| Vite | Development server and build tooling |
+| SQLite | Local relational storage for ledger and app data |
+| Capacitor | Android WebView wrapper for mobile distribution |
+| Node.js | Build scripts and the local LAN sync server |
+
+## Security & Privacy (specifics)
+
+- Storage location: data is saved in the Electron user data directory (`app.getPath('userData')`). Typical paths:
+	- Windows: `%APPDATA%/HouseLedger` or `%LOCALAPPDATA%/HouseLedger`
+	- macOS: `~/Library/Application Support/HouseLedger`
+	- Linux: `~/.config/HouseLedger`
+- What is never sent: your ledger, transactions, categories, and personal notes are not uploaded anywhere by default.
+- LAN sync behavior: when LAN sync is enabled, data is transferred directly between devices on the same local network — nothing is forwarded to third-party servers.
+- Telemetry: HouseLedger does not send usage analytics or account identifiers by default.
+- Recommendations: enable OS-level disk encryption and use secure backups for extra protection. Encrypted backup/export is planned.
+
+## LAN Sync (how it works)
+
+HouseLedger runs a small sync server on the Desktop app while it’s open. Android clients can connect directly to the Desktop server on the local network to exchange data.
+
+Simple diagram (ASCII):
+
+```
+Android Device  <--HTTP-->  Desktop (HouseLedger sync server)
+			 (Wi‑Fi/LAN)             (port 30303)
+```
+
+How to use:
+1. Start the Desktop app (it opens the sync server on port `30303`).
+2. In the Android app: Settings → LAN sync → enter `http://<DESKTOP-IP>:30303`.
+3. Tap **Sync now** (or enable auto-sync).
+
+Notes:
+- Sync only works within the same local network.
+- The Desktop sync server runs only while the Desktop app is open.
+- Data is transferred directly between devices; nothing is uploaded to third-party servers.
+
+## Installation (quick per-OS)
+
+- Windows: download the installer (`HouseLedger-Setup-*.exe`) from Releases and run it.
+- macOS: use the provided `.dmg` or build with `npm run build:mac` when available.
+- Linux: use AppImage or build from source. For development and generic builds:
+
+```bash
+npm install
+npm run build
+```
+
+Development (run locally):
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Use On Android (Capacitor)
+## Use on Android (Capacitor)
 
-This project runs on Android via Capacitor (WebView), **not** via React Native.
+1. Install Android Studio (with SDK/Platform Tools).
+2. Install dependencies: `npm install`.
+3. Sync web assets and open Android Studio: `npm run android:studio`.
 
-1. Install Android Studio (with SDK/Platform Tools)
-2. Install dependencies
+Output (debug APK): `android/app/build/outputs/apk/debug/houseledger-debug.apk`
 
-```bash
-npm install
-```
+## Data storage
 
-3. Sync web assets and open Android Studio
-
-```bash
-npm run android:studio
-```
-
-4. In Android Studio, select an emulator/device and click Run
-
-To build a debug APK from CLI:
-
-```bash
-npm run android:apk:debug
-```
-
-Output: `android/app/build/outputs/apk/debug/app-money-management-debug.apk`
-
-## Desktop / Android Sync (Same LAN)
-
-The Desktop app starts a sync server automatically while running (port `30303`).
-
-1. Start the Desktop app
-2. Open Android app and go to Settings > LAN sync
-3. Set `Desktop URL` to `http://<Desktop-IP>:30303`
-4. Press Sync now for manual sync
-5. Optionally enable auto-sync every minute
-
-Example: `http://192.168.1.10:30303`
-
-Notes:
-- Sync works only within the same network
-- The sync server stops when the Desktop app is closed
-
-## Data Storage
-
-All data is stored locally in your OS user data folder (not bundled in the app).
+All app data is stored locally in the user's app data folder.
 
 | File | Contents |
 |---|---|
 | `ledger.sqlite` | Daily entries and input history |
 | `recurring-items.json` | Monthly recurring entries |
+
+## Roadmap
+
+- Encrypted backups and optional end-to-end encrypted sync (opt-in)
+- Live exchange-rate management with auto refresh and manual override
+- Improved Android UI and offline resilience
+- More locales and translation polish
+- CSV import/export improvements (mapping, category matching)
+
+---
+
+If you'd like, I can:
+- add real screenshots to `assets/screenshots/` and update the README links, or
+- produce a small diagram image for the LAN sync section to replace the ASCII art.
+

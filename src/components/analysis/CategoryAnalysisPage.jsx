@@ -146,10 +146,10 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
         <table className="app-table">
           <thead>
             <tr>
-              <th>カテゴリ</th>
-              <th>金額</th>
-              <th>パーセンテージ</th>
-              <th>目標額</th>
+              <th>{t.categoryLabel}</th>
+              <th>{t.amountLabel}</th>
+              <th>{t.percentageLabel}</th>
+              <th>{t.targetAmountLabel}</th>
             </tr>
           </thead>
           <tbody>

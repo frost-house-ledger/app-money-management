@@ -109,10 +109,39 @@ export const BASE_CURRENCY_CODE = "JPY";
 
 const FALLBACK_RATES_FROM_JPY = {
   JPY: 1,
-  EUR: 0.0054,
-  NZD: 0.0108,
-  USD: 0.0064,
-  GBP: 0.0046
+  USD: 0.0070,
+  EUR: 0.0060,
+  GBP: 0.0052,
+  AUD: 0.0108,
+  NZD: 0.0110,
+  CAD: 0.0086,
+  CHF: 0.0065,
+  CNY: 0.0490,
+  KRW: 9.8000,
+  SGD: 0.0094,
+  HKD: 0.0550,
+  TWD: 0.2200,
+  THB: 0.2400,
+  VND: 170.0,
+  INR: 0.61,
+  BRL: 0.034,
+  MXN: 0.13,
+  ZAR: 0.12,
+  SEK: 0.066,
+  NOK: 0.065,
+  DKK: 0.056,
+  PLN: 0.026,
+  RUB: 0.66,
+  TRY: 0.18,
+  AED: 0.025,
+  SAR: 0.026,
+  IDR: 96.0,
+  PHP: 0.39,
+  MYR: 0.032,
+  KWD: 0.0021,
+  BHD: 0.0020,
+  OMR: 0.0018,
+  ILS: 0.022
 };
 
 export const SUPPORTED_CURRENCIES = Object.keys(CURRENCY_PRESETS);
@@ -248,27 +277,63 @@ export function formatCurrency(value, code = "JPY", rates = null) {
     maximumFractionDigits: preset.maximumFractionDigits
   }).format(amount);
 }
-
-export function formatYen(value) {
-  return formatCurrency(value, "JPY");
+// Generic formatter helpers and convenient exports for many patterns
+export function formatByCode(value, code, rates = null) {
+  return formatCurrency(value, code, rates);
 }
 
-export function formatUsd(value) {
-  return formatCurrency(value, "USD");
+export function getCurrencyFormatter(code, rates = null) {
+  return (value) => formatCurrency(value, code, rates);
 }
 
-export function formatEuro(value) {
-  return formatCurrency(value, "EUR");
+const COMMON_FORMATTER_NAMES = {
+  yen: "JPY",
+  jpy: "JPY",
+  usd: "USD",
+  dollar: "USD",
+  eur: "EUR",
+  euro: "EUR",
+  gbp: "GBP",
+  pound: "GBP",
+  pounds: "GBP",
+  aud: "AUD",
+  nzd: "NZD",
+  cad: "CAD",
+  cny: "CNY",
+  rmb: "CNY",
+  yuan: "CNY",
+  krw: "KRW",
+  won: "KRW",
+  sgd: "SGD",
+  hkd: "HKD",
+  twd: "TWD",
+  thb: "THB",
+  inr: "INR",
+  brl: "BRL",
+  mxn: "MXN",
+  zar: "ZAR",
+  sek: "SEK",
+  nok: "NOK",
+  dkk: "DKK",
+  pln: "PLN",
+  rub: "RUB",
+  try: "TRY"
+};
+
+export function formatByName(name, value, rates = null) {
+  const normalized = String(name ?? "").trim().toLowerCase();
+  const code = COMMON_FORMATTER_NAMES[normalized] || normalizeCurrencyCode(normalized);
+  return formatCurrency(value, code, rates);
 }
 
-export function formatNzd(value) {
-  return formatCurrency(value, "NZD");
-}
-
-export function formatAud(value) {
-  return formatCurrency(value, "AUD");
-}
-
-export function formatPound(value) {
-  return formatCurrency(value, "GBP");
-}
+// Convenient ISO-code named exports
+export const formatJPY = (v, rates = null) => formatCurrency(v, "JPY", rates);
+export const formatUSD = (v, rates = null) => formatCurrency(v, "USD", rates);
+export const formatEUR = (v, rates = null) => formatCurrency(v, "EUR", rates);
+export const formatGBP = (v, rates = null) => formatCurrency(v, "GBP", rates);
+export const formatAUD = (v, rates = null) => formatCurrency(v, "AUD", rates);
+export const formatNZD = (v, rates = null) => formatCurrency(v, "NZD", rates);
+export const formatCNY = (v, rates = null) => formatCurrency(v, "CNY", rates);
+export const formatKRW = (v, rates = null) => formatCurrency(v, "KRW", rates);
+export const formatSGD = (v, rates = null) => formatCurrency(v, "SGD", rates);
+export const formatCAD = (v, rates = null) => formatCurrency(v, "CAD", rates);

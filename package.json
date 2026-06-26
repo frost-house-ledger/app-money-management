@@ -1,5 +1,5 @@
 {
-  "name": "app-money-management",
+  "name": "house-ledger",
   "version": "0.1.0",
   "description": "Electron + React personal money management app",
   "author": "Frost",
@@ -57,8 +57,8 @@
     "wait-on": "^9.0.4"
   },
   "build": {
-    "appId": "com.frost.appmoneymanagement",
-    "productName": "MoneyManagement",
+    "appId": "com.frost.houseledger",
+    "productName": "HouseLedger",
     "files": [
       "Desktop/electron/**/*",
       "dist/**/*",
@@ -71,8 +71,8 @@
       "output": "release"
     },
     "win": {
-      "executableName": "MoneyManagement",
-      "artifactName": "MoneyManagement-${version}-${arch}.${ext}",
+      "executableName": "HouseLedger",
+      "artifactName": "HouseLedger-${version}-${arch}.${ext}",
       "target": [
         {
           "target": "nsis",
@@ -84,8 +84,8 @@
       ]
     },
     "mac": {
-      "executableName": "MoneyManagement",
-      "artifactName": "MoneyManagement-mac-${version}-${arch}.${ext}",
+      "executableName": "HouseLedger",
+      "artifactName": "HouseLedger-mac-${version}-${arch}.${ext}",
       "target": [
         {
           "target": "dmg",
@@ -107,11 +107,11 @@
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
-      "guid": "com.frost.appmoneymanagement",
+      "guid": "com.frost.houseledger",
       "deleteAppDataOnUninstall": false,
       "createStartMenuShortcut": true,
       "createDesktopShortcut": true,
-      "shortcutName": "MoneyManagement"
+      "shortcutName": "HouseLedger"
     },
     "extraMetadata": {
       "main": "Desktop/electron/main.js"

@@ -222,7 +222,7 @@ export function DailyListSection({
   const [inlineEditId, setInlineEditId] = React.useState(null);
   const [inlineForm, setInlineForm] = React.useState({
     type: "fee",
-    categoryId: dailyCategoryOptions[0]?.name || "Food",
+    categoryId: dailyCategoryOptions[0]?.id || "food",
     title: "",
     amount: "",
     entryDate: "",
@@ -252,7 +252,7 @@ export function DailyListSection({
     setInlineEditId(row.id);
     setInlineForm({
       type: row.type,
-      categoryId: row.categoryId || dailyCategoryOptions[0]?.name || "Food",
+      categoryId: (row.categoryId || dailyCategoryOptions[0]?.id || "food").toLowerCase(),
       title: row.title || "",
       amount: formatBaseAmountForInput(row.amount, selectedCurrency, exchangeRates),
       entryDate: row.entryDate || "",
@@ -265,7 +265,7 @@ export function DailyListSection({
     setInlineError("");
     setInlineForm({
       type: "fee",
-      categoryId: dailyCategoryOptions[0]?.name || "Food",
+      categoryId: dailyCategoryOptions[0]?.id || "food",
       title: "",
       amount: "",
       entryDate: "",
@@ -280,7 +280,7 @@ export function DailyListSection({
       await onUpdateDailyInline({
         id: inlineEditId,
         ...inlineForm,
-        categoryId: inlineForm.type === "fee" ? inlineForm.categoryId || "Food" : null
+        categoryId: inlineForm.type === "fee" ? inlineForm.categoryId || "food" : null
       });
       cancelInlineEdit();
     } catch (error) {
@@ -370,8 +370,8 @@ export function DailyListSection({
                       const nextType = e.target.value;
                       setInlineForm((current) => ({
                         ...current,
-                        type: nextType,
-                        categoryId: nextType === "fee" ? current.categoryId || dailyCategoryOptions[0]?.name || "Food" : ""
+                          type: nextType,
+                          categoryId: nextType === "fee" ? current.categoryId || dailyCategoryOptions[0]?.id || "food" : ""
                       }));
                     }}
                   >
@@ -485,10 +485,10 @@ export function DailyListSection({
       {(dailyRows.length > 0 || (filteredRecurring && filteredRecurring.length > 0)) && (
         <div className="daily-totals">
           {totalFee > 0 && (
-            <span className="daily-total-fee">月次費用合計: {formatCurrency(totalFee, selectedCurrency, exchangeRates)}</span>
+            <span className="daily-total-fee">{t.monthlyExpenseTotal}: {formatCurrency(totalFee, selectedCurrency, exchangeRates)}</span>
           )}
           {totalIncome > 0 && (
-            <span className="daily-total-income">月次収入合計: {formatCurrency(totalIncome, selectedCurrency, exchangeRates)}</span>
+            <span className="daily-total-income">{t.monthlyIncomeTotal}: {formatCurrency(totalIncome, selectedCurrency, exchangeRates)}</span>
           )}
         </div>
       )}

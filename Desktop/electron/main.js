@@ -5,6 +5,18 @@ import { fileURLToPath } from "node:url";
 import { app, BrowserWindow, ipcMain, net } from "electron";
 import { createLedgerStore } from "./db.js";
 
+// Ensure the application name is set to 'HouseLedger' so Electron uses
+// that name for the userData directory and other platform-specific paths.
+try {
+  if (typeof app.setName === "function") {
+    app.setName("HouseLedger");
+  } else {
+    app.name = "HouseLedger";
+  }
+} catch (e) {
+  // ignore if not supported in this environment
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -221,7 +233,7 @@ function startSyncServer(ledger) {
       if (req.method === "GET" && url.pathname === "/sync/ping") {
         writeJson(res, 200, {
           ok: true,
-          app: "MoneyManagement",
+          app: app.name || "HouseLedger",
           version: app.getVersion(),
           now: new Date().toISOString(),
           urls: getLanUrls(SYNC_PORT)
@@ -253,6 +265,42 @@ function startSyncServer(ledger) {
 
 app.whenReady().then(() => {
   const dataDir = app.getPath("userData");
+
+  // Simple migration: if there is an existing user data folder under a
+  // previous app name (e.g. MoneyManagement or app-money-management), move
+  // its contents to the new HouseLedger userData folder on first run.
+  try {
+    const possibleOldNames = ["MoneyManagement", "app-money-management", "AMM"];
+    const userParent = path.dirname(dataDir);
+    for (const oldName of possibleOldNames) {
+      const oldDir = path.join(userParent, oldName);
+      if (oldDir === dataDir) continue;
+      try {
+        if (fs.existsSync && fs.existsSync(oldDir)) {
+          const files = fs.readdirSync(oldDir).filter((f) => f && f !== "\"" && f !== "" );
+          const newExists = fs.existsSync(dataDir) && fs.readdirSync(dataDir).length > 0;
+          if (files.length > 0 && !newExists) {
+            // move oldDir contents into dataDir
+            fs.mkdirSync(dataDir, { recursive: true });
+            for (const f of files) {
+              const src = path.join(oldDir, f);
+              const dst = path.join(dataDir, f);
+              fs.renameSync(src, dst);
+            }
+            // optionally remove oldDir if empty
+            try {
+              const rem = fs.readdirSync(oldDir);
+              if (rem.length === 0) fs.rmdirSync(oldDir);
+            } catch {}
+            break;
+          }
+        }
+      } catch (e) {
+        // ignore migration errors
+      }
+    }
+  } catch (e) {}
+
   const ledger = createLedgerStore(dataDir);
   syncServer = startSyncServer(ledger);
 

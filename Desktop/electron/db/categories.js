@@ -21,16 +21,37 @@ function normalizeCategoryRecord(item, fallbackSortOrder = 0) {
 }
 
 export function pickCategoryName(category, locale = "jp") {
+  const code = String(locale || "").toLowerCase().split("-")[0];
+
+  function pickFromEntry(entry) {
+    if (!entry) return "";
+    if (code === "en") return entry.nameEn || entry.nameJp || entry.id;
+    if (code === "de") return entry.nameDe || entry.nameEn || entry.nameJp || entry.id;
+    if (code === "fr") return entry.nameFr || entry.nameEn || entry.nameJp || entry.id;
+    if (code === "es") return entry.nameEs || entry.nameEn || entry.nameJp || entry.id;
+    return entry.nameJp || entry.nameEn || entry.id;
+  }
+
   if (!category) {
-    return locale === "de" ? "Sonstiges" : locale === "en" ? "Food" : "食費";
+    const other = DEFAULT_CATEGORIES.find((c) => c.id === "other");
+    return pickFromEntry(other) || (code === "en" ? "Other" : "その他");
   }
-  if (locale === "de") {
-    return category.nameDe || category.nameEn || category.nameJp;
+
+  const id = typeof category === "string" ? category : category.id || null;
+  if (id) {
+    const found = DEFAULT_CATEGORIES.find((c) => c.id === id);
+    if (found) return pickFromEntry(found);
   }
-  if (locale === "en") {
-    return category.nameEn || category.nameJp;
-  }
-  return category.nameJp || category.nameEn;
+
+  // fallback: category object with name fields
+  return pickFromEntry({
+    id: (typeof category === "string" ? category : category.id) || "",
+    nameJp: category?.nameJp || category?.name || "",
+    nameEn: category?.nameEn || category?.name || "",
+    nameDe: category?.nameDe || "",
+    nameFr: category?.nameFr || "",
+    nameEs: category?.nameEs || ""
+  });
 }
 
 export function createCategoryStore({

@@ -59,7 +59,7 @@ export default function HistoryPage({ historyRows, selectedCurrency, exchangeRat
                   </div>
 
                   <div className="history-item-body">
-                    {/* 追加 */}
+                    {/* add */}
                     {row.action === "add" && (
                       <EntryLine
                         data={{ title: row.title, amount: row.amount, entryDate: row.targetDate, categoryIcon: row.categoryIcon, note: row.note }}
@@ -68,7 +68,7 @@ export default function HistoryPage({ historyRows, selectedCurrency, exchangeRat
                       />
                     )}
 
-                    {/* 更新: before → after */}
+                    {/* update: before → after */}
                     {row.action === "update" && (
                       <>
                         <EntryLine data={before} selectedCurrency={selectedCurrency} exchangeRates={exchangeRates} faded />
@@ -77,7 +77,7 @@ export default function HistoryPage({ historyRows, selectedCurrency, exchangeRat
                       </>
                     )}
 
-                    {/* 削除: before → 削除 */}
+                    {/* delete: before → delete */}
                     {row.action === "delete" && (
                       <>
                         <EntryLine data={before} selectedCurrency={selectedCurrency} exchangeRates={exchangeRates} faded />
@@ -85,7 +85,7 @@ export default function HistoryPage({ historyRows, selectedCurrency, exchangeRat
                       </>
                     )}
 
-                    {/* フォールバック: payload 未対応の旧ログ */}
+                    {/* fallback: payload old log */}
                     {row.action !== "add" && !before && (
                       <EntryLine
                         data={{ title: row.title, amount: row.amount, entryDate: row.targetDate, categoryIcon: row.categoryIcon, note: row.note }}

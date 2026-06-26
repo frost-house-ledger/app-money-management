@@ -47,8 +47,17 @@ export const TRANSLATIONS = {
   filterIncomeOnly: { jp: "income のみ", en: "income only", de: "nur Einnahmen", es: "solo ingresos", pt: "apenas rendimentos", it: "solo entrate", fr: "revenus seulement", ru: "только доходы", tw: "僅收入", ko: "수입만", ar: "الإيرادات فقط" },
   currencyLabel: { jp: "通貨", en: "Currency", de: "Waehrung", es: "Moneda", pt: "Moeda", it: "Valuta", fr: "Devise", ru: "Валюта", tw: "貨幣", ko: "통화", ar: "العملة" },
 
+  categoryLabel: { jp: "カテゴリ", en: "Category", de: "Kategorie", es: "Categoría", pt: "Categoria", it: "Categoria", fr: "Catégorie", ru: "Категория", tw: "分類", ko: "카테고리", ar: "الفئة" },
+  amountLabel: { jp: "金額", en: "Amount", de: "Betrag", es: "Cantidad", pt: "Quantia", it: "Importo", fr: "Montant", ru: "Сумма", tw: "金額", ko: "금액", ar: "المبلغ" },
+  percentageLabel: { jp: "パーセンテージ", en: "Percentage", de: "Prozentsatz", es: "Porcentaje", pt: "Percentagem", it: "Percentuale", fr: "Pourcentage", ru: "Процент", tw: "百分比", ko: "백분율", ar: "النسبة المئوية" },
+  targetAmountLabel: { jp: "目標額", en: "Target amount", de: "Zielbetrag", es: "Cantidad objetivo", pt: "Valor alvo", it: "Importo target", fr: "Montant cible", ru: "Целевая сумма", tw: "目標金額", ko: "목표 금액", ar: "المبلغ المستهدف" },
+
   dailyCategoryLabel: { jp: "dailyカテゴリ", en: "Daily category", de: "Tageskategorie", es: "Categoría diaria", pt: "Categoria diária", it: "Categoria giornaliera", fr: "Catégorie quotidienne", ru: "Ежедневная категория", tw: "每日分類", ko: "일일 카테고리", ar: "الفئة اليومية" },
   allCategories: { jp: "all categories", en: "all categories", de: "alle Kategorien", es: "todas las categorías", pt: "todas as categorias", it: "tutte le categorie", fr: "toutes les catégories", ru: "все категории", tw: "所有分類", ko: "모든 카테고리", ar: "جميع الفئات" },
+
+  monthlyExpenseTotal: { jp: "月次費用合計", en: "Monthly expense total", de: "Monatliche Gesamtausgaben", es: "Total de gastos mensuales", pt: "Total de despesas mensais", it: "Totale spese mensili", fr: "Total des dépenses mensuelles", ru: "Общие ежемесячные расходы", tw: "月度支出總計", ko: "월간 지출 합계", ar: "إجمالي المصروفات الشهرية" },
+  monthlyIncomeTotal: { jp: "月次収入合計", en: "Monthly income total", de: "Monatliche Gesamteinnahmen", es: "Total de ingresos mensuales", pt: "Total de rendimentos mensais", it: "Totale entrate mensili", fr: "Total des revenus mensuels", ru: "Общий ежемесячный доход", tw: "月度收入總計", ko: "월간 수입 합계", ar: "إجمالي الدخل الشهري" },
+  monthlyError: { jp: "グラフ開始月がグラフ終了月より後になっています", en: "Chart start month is after end month", de: "Diagramm-Startmonat ist nach dem Endmonat", es: "El mes de inicio es posterior al mes de fin", pt: "O mês inicial é posterior ao mês final", it: "Il mese di inizio è successivo al mese di fine", fr: "Le mois de début est après le mois de fin", ru: "Месяц начала позже месяца окончания", tw: "圖表起始月晚於結束月", ko: "차트 시작월이 종료월보다 큽니다", ar: "شهر بدء الرسم البياني بعد شهر الانتهاء" },
 
   chartFromLabel: { jp: "グラフ開始月", en: "Chart from", de: "Diagramm von", es: "Gráfico desde", pt: "Gráfico desde", it: "Grafico da", fr: "Graphique depuis", ru: "График с", tw: "圖表 起始月", ko: "차트 시작", ar: "الرسم البياني من" },
   chartToLabel: { jp: "グラフ終了月", en: "Chart to", de: "Diagramm bis", es: "Gráfico hasta", pt: "Gráfico até", it: "Grafico a", fr: "Graphique jusqu'à", ru: "График по", tw: "圖表 結束月", ko: "차트 종료", ar: "الرسم البياني حتى" },
@@ -522,15 +531,68 @@ export const TRANSLATIONS = {
   }
 };
 
+// Category name translations — map category id -> localized labels
+TRANSLATIONS.categoryNames = {
+  food: { jp: "食費", en: "Food", de: "Essen", fr: "Nourriture", es: "Comida", pt: "Alimentação", it: "Cibo", ru: "Питание", tw: "食費", ko: "식비", ar: "الطعام" },
+  beverage: { jp: "飲料", en: "Beverage", de: "Getränke", fr: "Boisson", es: "Bebida", pt: "Bebida", it: "Bevanda", ru: "Напитки", tw: "飲料", ko: "음료", ar: "مشروبات" },
+  transport: { jp: "交通", en: "Transport", de: "Verkehr", fr: "Transport", es: "Transporte", pt: "Transporte", it: "Trasporto", ru: "Транспорт", tw: "交通", ko: "교통", ar: "المواصلات" },
+  housing: { jp: "住居", en: "Housing", de: "Wohnen", fr: "Logement", es: "Vivienda", pt: "Habitação", it: "Alloggio", ru: "Жилье", tw: "住居", ko: "주거", ar: "السكن" },
+  utilities: { jp: "光熱費", en: "Utilities", de: "Nebenkosten", fr: "Services", es: "Servicios", pt: "Utilidades", it: "Utenze", ru: "Коммунальные услуги", tw: "水電費", ko: "공과금", ar: "المرافق" },
+  medical: { jp: "医療", en: "Medical", de: "Medizin", fr: "Médical", es: "Médico", pt: "Médico", it: "Medico", ru: "Медицина", tw: "醫療", ko: "의료", ar: "طبي" },
+  education: { jp: "教育", en: "Education", de: "Bildung", fr: "Éducation", es: "Educación", pt: "Educação", it: "Istruzione", ru: "Образование", tw: "教育", ko: "교육", ar: "التعليم" },
+  entertainment: { jp: "娯楽", en: "Entertainment", de: "Unterhaltung", fr: "Divertissement", es: "Entretenimiento", pt: "Entretenimento", it: "Intrattenimento", ru: "Развлечения", tw: "娛樂", ko: "여가", ar: "ترفيه" },
+  travel: { jp: "旅行", en: "Travel", de: "Reisen", fr: "Voyage", es: "Viajar", pt: "Viagem", it: "Viaggio", ru: "Путешествия", tw: "旅行", ko: "여행", ar: "السفر" },
+  shopping: { jp: "買い物", en: "Shopping", de: "Einkauf", fr: "Shopping", es: "Compras", pt: "Compras", it: "Shopping", ru: "Покупки", tw: "購物", ko: "쇼핑", ar: "تسوق" },
+  subscription: { jp: "サブスク", en: "Subscription", de: "Abo", fr: "Abonnement", es: "Suscripción", pt: "Assinatura", it: "Abbonamento", ru: "Подписка", tw: "訂閱", ko: "구독", ar: "اشتراك" },
+  insurance: { jp: "保険", en: "Insurance", de: "Versicherung", fr: "Assurance", es: "Seguro", pt: "Seguro", it: "Assicurazione", ru: "Страхование", tw: "保險", ko: "보험", ar: "تأمين" },
+  other: { jp: "その他", en: "Other", de: "Sonstiges", fr: "Autre", es: "Otro", pt: "Outro", it: "Altro", ru: "Другое", tw: "其他", ko: "기타", ar: "أخرى" }
+};
+
+export function getCategoryName(id, locale = 'jp') {
+  if (!id) return '';
+  const entry = TRANSLATIONS.categoryNames && TRANSLATIONS.categoryNames[id];
+  if (!entry) return id;
+  const code = String(locale || '').toLowerCase();
+  const base = code.split('-')[0];
+
+  // normalize common locale codes to our translation keys
+  const map = {
+    jp: 'jp',
+    ja: 'jp',
+    de: 'de',
+    en: 'en',
+    es: 'es',
+    pt: 'pt',
+    it: 'it',
+    fr: 'fr',
+    ru: 'ru',
+    tw: 'tw',
+    zh: 'tw',
+    ko: 'ko',
+    ar: 'ar'
+  };
+
+  const target = map[code] || map[base] || null;
+  const order = [target, 'en', 'jp'];
+
+  for (const k of order) {
+    if (!k) continue;
+    if (entry[k]) return entry[k];
+  }
+
+  // fallback picks any available
+  return entry.en || entry.jp || Object.values(entry)[0] || id;
+}
+
 export function getMessages(locale) {
   const raw = (locale || '').toLowerCase();
 
   // map common locale codes to our translation keys
   const map = {
-    de: 'de',
-    en: 'en',
     jp: 'jp',
     ja: 'jp',
+    de: 'de',
+    en: 'en',
     es: 'es',
     pt: 'pt',
     it: 'it',

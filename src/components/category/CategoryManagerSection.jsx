@@ -98,7 +98,7 @@ export default function CategoryManagerSection({
           className="inline-action"
           onClick={() => setListOpen((v) => !v)}
         >
-          {listOpen ? t.categoryHideListButton ?? "▲ 閉じる" : t.categoryShowListButton ?? "▼ 一覧"}
+          {listOpen ? t.categoryHideListButton ?? "▲ Close" : t.categoryShowListButton ?? "▼ Show List"}
         </button>
       </div>
 
