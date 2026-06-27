@@ -6,6 +6,7 @@ import {
   sanitizeNumericInput
 } from "../../lib/currency.js";
 import { thisMonth } from "../../lib/date.js";
+import { logError } from "../../lib/logger.js";
 
 export default function RecurringSection({
   recurringForm,
@@ -17,110 +18,122 @@ export default function RecurringSection({
   dailyCategoryOptions,
   t
 }) {
-  return (
-    <form className="card" onSubmit={onSubmit}>
-      <h2>{t.recurringFormTitle}</h2>
-      <p className="subtext">{t.recurringFormSubtext}</p>
+  try {
+    const safeDailyCategoryOptions = Array.isArray(dailyCategoryOptions) ? dailyCategoryOptions : [];
+    const rf = recurringForm || {};
 
-      <label>
-        {t.typeLabel}
-        <select
-          value={recurringForm.type}
-          onChange={(e) => {
-            const nextType = e.target.value;
-            setRecurringForm((curr) => ({
-              ...curr,
-              type: nextType,
-              categoryId: nextType === "fee" ? curr.categoryId || dailyCategoryOptions[0]?.id || "food" : "🍽️"
-            }));
-          }}
-        >
-          <option value="fee">{t.typeFee}</option>
-          <option value="income">{t.typeIncome}</option>
-        </select>
-      </label>
+    return (
+      <form className="card" onSubmit={onSubmit}>
+        <h2>{t.recurringFormTitle}</h2>
+        <p className="subtext">{t.recurringFormSubtext}</p>
 
-      {recurringForm.type === "income" && (
         <label>
-          {t.recurringIsSalaryLabel || "This is salary"}
+          {t.typeLabel}
+          <select
+            value={rf.type}
+            onChange={(e) => {
+              const nextType = e.target.value;
+              setRecurringForm((curr) => ({
+                ...curr,
+                type: nextType,
+                categoryId: nextType === "fee" ? curr.categoryId || safeDailyCategoryOptions[0]?.id || "food" : "🍽️"
+              }));
+            }}
+          >
+            <option value="fee">{t.typeFee}</option>
+            <option value="income">{t.typeIncome}</option>
+          </select>
+        </label>
+
+        {rf.type === "income" && (
+          <label>
+            {t.recurringIsSalaryLabel || "This is salary"}
+            <input
+              type="checkbox"
+              checked={Boolean(rf.isSalary)}
+              onChange={(e) => setRecurringForm((curr) => ({ ...curr, isSalary: Boolean(e.target.checked) }))}
+            />
+          </label>
+        )}
+
+        <label>
+          {t.categoryLabel}
+          <select
+            value={rf.categoryId || ""}
+            onChange={(e) => setRecurringForm((curr) => ({ ...curr, categoryId: e.target.value }))}
+            disabled={rf.type !== "fee"}
+          >
+            {safeDailyCategoryOptions.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.icon || "🏷️"} {category.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          {t.titleLabel}
           <input
-            type="checkbox"
-            checked={Boolean(recurringForm.isSalary)}
-            onChange={(e) => setRecurringForm((curr) => ({ ...curr, isSalary: Boolean(e.target.checked) }))}
+            type="text"
+            value={rf.title}
+            onChange={(e) => setRecurringForm((curr) => ({ ...curr, title: e.target.value }))}
+            placeholder={t.recurringTitlePlaceholder}
           />
         </label>
-      )}
 
-      <label>
-        {t.categoryLabel}
-        <select
-          value={recurringForm.categoryId || ""}
-          onChange={(e) => setRecurringForm((curr) => ({ ...curr, categoryId: e.target.value }))}
-          disabled={recurringForm.type !== "fee"}
-        >
-          {dailyCategoryOptions.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.icon || "🏷️"} {category.label}
-            </option>
-          ))}
-        </select>
-      </label>
+        <label>
+          {t.amountLabel}
+          <input
+            type="text"
+            inputMode="decimal"
+            value={formatNumericInput(rf.amount)}
+            onChange={(e) =>
+              setRecurringForm((curr) => ({ ...curr, amount: sanitizeNumericInput(e.target.value) }))
+            }
+            placeholder={t.recurringAmountPlaceholder}
+          />
+        </label>
 
-      <label>
-        {t.titleLabel}
-        <input
-          type="text"
-          value={recurringForm.title}
-          onChange={(e) => setRecurringForm((curr) => ({ ...curr, title: e.target.value }))}
-          placeholder={t.recurringTitlePlaceholder}
-        />
-      </label>
+        <label>
+          {t.recurringStartMonthLabel}
+          <input
+            type="month"
+            value={rf.startMonth}
+            onChange={(e) => setRecurringForm((curr) => ({ ...curr, startMonth: e.target.value }))}
+            placeholder={currentYYYYMM}
+          />
+        </label>
 
-      <label>
-        {t.amountLabel}
-        <input
-          type="text"
-          inputMode="decimal"
-          value={formatNumericInput(recurringForm.amount)}
-          onChange={(e) =>
-            setRecurringForm((curr) => ({ ...curr, amount: sanitizeNumericInput(e.target.value) }))
-          }
-          placeholder={t.recurringAmountPlaceholder}
-        />
-      </label>
+        <label>
+          {t.recurringEndMonthLabel}
+          <input
+            type="month"
+            value={rf.endMonth || ""}
+            onChange={(e) => setRecurringForm((curr) => ({ ...curr, endMonth: e.target.value }))}
+            placeholder={currentYYYYMM}
+          />
+        </label>
 
-      <label>
-        {t.recurringStartMonthLabel}
-        <input
-          type="month"
-          value={recurringForm.startMonth}
-          onChange={(e) => setRecurringForm((curr) => ({ ...curr, startMonth: e.target.value }))}
-          placeholder={currentYYYYMM}
-        />
-      </label>
-
-      <label>
-        {t.recurringEndMonthLabel}
-        <input
-          type="month"
-          value={recurringForm.endMonth || ""}
-          onChange={(e) => setRecurringForm((curr) => ({ ...curr, endMonth: e.target.value }))}
-          placeholder={currentYYYYMM}
-        />
-      </label>
-
-      <div className="form-actions">
-        <button type="submit">
-          {editingRecurringId ? t.updateRecurringButton : t.saveRecurringButton}
-        </button>
-        {editingRecurringId && (
-          <button type="button" className="secondary-button" onClick={onCancelEdit}>
-            {t.cancelEditButton}
+        <div className="form-actions">
+          <button type="submit">
+            {editingRecurringId ? t.updateRecurringButton : t.saveRecurringButton}
           </button>
-        )}
-      </div>
-    </form>
-  );
+          {editingRecurringId && (
+            <button type="button" className="secondary-button" onClick={onCancelEdit}>
+              {t.cancelEditButton}
+            </button>
+          )}
+        </div>
+      </form>
+    );
+  } catch (err) {
+    logError("RecurringSection.render", err);
+    return (
+      <form className="card">
+        <p className="error">{t?.errorUnexpectedMessage || "表示中にエラーが発生しました"}</p>
+      </form>
+    );
+  }
 }
 
 export function RecurringListSection({
@@ -149,6 +162,8 @@ export function RecurringListSection({
   const [pendingDeleteIds, setPendingDeleteIds] = React.useState([]);
   const pendingDeleteTimersRef = React.useRef(new Map());
   const currentMonth = React.useMemo(() => thisMonth(), []);
+  const safeFilteredRecurring = Array.isArray(filteredRecurring) ? filteredRecurring : [];
+  const safeDailyCategoryOptions = Array.isArray(dailyCategoryOptions) ? dailyCategoryOptions : [];
 
   function isExpiredRecurring(row) {
     return Boolean(row.endMonth) && row.endMonth < currentMonth;
@@ -164,7 +179,7 @@ export function RecurringListSection({
   }, []);
 
   React.useEffect(() => {
-    const rowIds = new Set(filteredRecurring.map((row) => row.id));
+    const rowIds = new Set(safeFilteredRecurring.map((row) => row.id));
     setPendingDeleteIds((current) => current.filter((id) => rowIds.has(id)));
   }, [filteredRecurring]);
 
@@ -208,6 +223,7 @@ export function RecurringListSection({
       });
       cancelInlineEdit();
     } catch (error) {
+      logError("RecurringListSection.submitInlineEdit", error);
       setInlineError(error.message || t.errorRecurringFailed);
     } finally {
       setIsSaving(false);
@@ -238,6 +254,7 @@ export function RecurringListSection({
       try {
         await onDeleteRecurring(id);
       } catch (error) {
+        logError("RecurringListSection.requestDelete", error);
         setInlineError(error.message || t.errorRecurringDeleteFailed);
       } finally {
         pendingDeleteTimersRef.current.delete(id);
@@ -248,12 +265,13 @@ export function RecurringListSection({
     pendingDeleteTimersRef.current.set(id, timerId);
   }
 
-  return (
-    <article className="card">
-      <h2>{recurringTitle}</h2>
-      {inlineError && <p className="error">{inlineError}</p>}
-      <ul className="list recurring-list">
-        {filteredRecurring.map((row) => {
+  try {
+    return (
+      <article className="card">
+        <h2>{recurringTitle}</h2>
+        {inlineError && <p className="error">{inlineError}</p>}
+        <ul className="list recurring-list">
+          {safeFilteredRecurring.map((row) => {
           const isPendingDelete = pendingDeleteIds.includes(row.id);
           const isExpired = isExpiredRecurring(row);
           return (
@@ -406,8 +424,16 @@ export function RecurringListSection({
             )}
           </li>
           );
-        })}
-      </ul>
-    </article>
-  );
+          })}
+        </ul>
+      </article>
+    );
+  } catch (err) {
+    logError("RecurringListSection.render", err);
+    return (
+      <article className="card">
+        <p className="error">{t?.errorUnexpectedMessage || "表示中にエラーが発生しました"}</p>
+      </article>
+    );
+  }
 }

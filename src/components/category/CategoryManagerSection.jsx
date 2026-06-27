@@ -1,13 +1,13 @@
 import React from "react";
+import { logError } from "../../lib/logger.js";
 
 function displayName(category, locale) {
-  if (locale === "de") {
-    return category.nameDe;
+  // Prefer English names for management UI; show Japanese only when locale is Japanese
+  const raw = String(locale || '').toLowerCase();
+  if (raw === 'jp' || raw === 'ja') {
+    return category.nameJp || category.nameEn || category.nameDe || category.id;
   }
-  if (locale === "en") {
-    return category.nameEn;
-  }
-  return category.nameJp;
+  return category.nameEn || category.nameJp || category.nameDe || category.id;
 }
 
 export default function CategoryManagerSection({
@@ -21,33 +21,34 @@ export default function CategoryManagerSection({
 }) {
   const [newCategoryNameJp, setNewCategoryNameJp] = React.useState("");
   const [newCategoryNameEn, setNewCategoryNameEn] = React.useState("");
-  const [newCategoryNameDe, setNewCategoryNameDe] = React.useState("");
   const [newCategoryIcon, setNewCategoryIcon] = React.useState("");
   const [editingId, setEditingId] = React.useState("");
   const [editingJp, setEditingJp] = React.useState("");
   const [editingEn, setEditingEn] = React.useState("");
-  const [editingDe, setEditingDe] = React.useState("");
   const [editingIcon, setEditingIcon] = React.useState("");
   const [listOpen, setListOpen] = React.useState(false);
+  const safeCategories = Array.isArray(categories) ? categories : [];
+  const safeLocale = locale || "jp";
 
   async function submitNewCategory() {
-    await onCreateCategory({
-      nameJp: newCategoryNameJp,
-      nameEn: newCategoryNameEn,
-      nameDe: newCategoryNameDe,
-      icon: newCategoryIcon
-    });
-    setNewCategoryNameJp("");
-    setNewCategoryNameEn("");
-    setNewCategoryNameDe("");
-    setNewCategoryIcon("");
+    try {
+      await onCreateCategory({
+        nameJp: newCategoryNameJp,
+        nameEn: newCategoryNameEn,
+        icon: newCategoryIcon
+      });
+      setNewCategoryNameJp("");
+      setNewCategoryNameEn("");
+      setNewCategoryIcon("");
+    } catch (err) {
+      logError("CategoryManagerSection.submitNewCategory", err);
+    }
   }
 
   function startEdit(category) {
     setEditingId(category.id);
     setEditingJp(category.nameJp);
     setEditingEn(category.nameEn);
-    setEditingDe(category.nameDe);
     setEditingIcon(category.icon || "");
   }
 
@@ -55,7 +56,6 @@ export default function CategoryManagerSection({
     setEditingId("");
     setEditingJp("");
     setEditingEn("");
-    setEditingDe("");
     setEditingIcon("");
   }
 
@@ -63,27 +63,47 @@ export default function CategoryManagerSection({
     if (!editingId) {
       return;
     }
-    await onUpdateCategory({
-      id: editingId,
-      nameJp: editingJp,
-      nameEn: editingEn,
-      nameDe: editingDe,
-      icon: editingIcon
-    });
-    cancelEdit();
+    try {
+      const payload = {
+        id: editingId,
+        nameJp: editingJp,
+        nameEn: editingEn,
+        icon: editingIcon
+      };
+      await onUpdateCategory(payload);
+      cancelEdit();
+    } catch (err) {
+      logError("CategoryManagerSection.saveEdit", err);
+    }
   }
 
   async function moveCategory(id, direction) {
-    const active = categories.filter((item) => Number(item.isActive) === 1);
-    const index = active.findIndex((item) => item.id === id);
-    const target = index + direction;
-    if (index < 0 || target < 0 || target >= active.length) {
-      return;
+    try {
+      const active = safeCategories.filter((item) => Number(item.isActive) === 1);
+      const index = active.findIndex((item) => item.id === id);
+      const target = index + direction;
+      if (index < 0 || target < 0 || target >= active.length) {
+        return;
+      }
+      const next = [...active];
+      const [picked] = next.splice(index, 1);
+      next.splice(target, 0, picked);
+      try {
+        await onReorderCategories(next.map((item) => item.id));
+      } catch (err) {
+        logError("CategoryManagerSection.moveCategory.onReorder", err);
+      }
+    } catch (err) {
+      logError("CategoryManagerSection.moveCategory", err);
     }
-    const next = [...active];
-    const [picked] = next.splice(index, 1);
-    next.splice(target, 0, picked);
-    await onReorderCategories(next.map((item) => item.id));
+  }
+
+  async function safeDeleteCategory(id) {
+    try {
+      await onDeleteCategory(id);
+    } catch (err) {
+      logError("CategoryManagerSection.safeDeleteCategory", err);
+    }
   }
 
   return (
@@ -116,12 +136,7 @@ export default function CategoryManagerSection({
             onChange={(e) => setNewCategoryNameEn(e.target.value)}
             placeholder={t.categoryNameEnPlaceholder}
           />
-          <input
-            type="text"
-            value={newCategoryNameDe}
-            onChange={(e) => setNewCategoryNameDe(e.target.value)}
-            placeholder={t.categoryNameDePlaceholder}
-          />
+          {/* JP + EN only */}
           <input
             type="text"
             value={newCategoryIcon}
@@ -136,17 +151,16 @@ export default function CategoryManagerSection({
 
       {listOpen && (
         <ul className="list category-list">
-          {categories.map((category) => {
+          {safeCategories.map((category) => {
             const isEditing = editingId === category.id;
             return (
               <li key={category.id} className="category-row">
                 <span>{category.icon || "\uD83C\uDFF7\uFE0F"}</span>
-                <span>{displayName(category, locale)}</span>
+                <span>{displayName(category, safeLocale)}</span>
                 {isEditing ? (
                   <>
                     <input value={editingJp} onChange={(e) => setEditingJp(e.target.value)} />
                     <input value={editingEn} onChange={(e) => setEditingEn(e.target.value)} />
-                    <input value={editingDe} onChange={(e) => setEditingDe(e.target.value)} />
                     <input value={editingIcon} onChange={(e) => setEditingIcon(e.target.value)} />
                     <button type="button" className="inline-action" onClick={saveEdit}>{t.saveButton}</button>
                     <button type="button" className="inline-action" onClick={cancelEdit}>{t.cancelEditButton}</button>
@@ -159,7 +173,7 @@ export default function CategoryManagerSection({
                     <button
                       type="button"
                       className="inline-action"
-                      onClick={() => onDeleteCategory(category.id)}
+                      onClick={() => safeDeleteCategory(category.id)}
                       disabled={category.id === "other"}
                     >
                       {t.deleteButton}

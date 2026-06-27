@@ -132,6 +132,17 @@ html[lang="ru"] .hero p {
   height: 320px;
 }
 
+/* Ensure chart headings appear above chart canvas and use theme color */
+.chart-card h2 {
+  color: var(--ink) !important;
+  position: relative;
+  z-index: 3;
+}
+
+.chart-wrap {
+  z-index: 1;
+}
+
 .chart-wrap--pie {
   height: 280px;
 }
@@ -198,7 +209,7 @@ html[lang="ru"] .hero p {
   flex: 1;
   min-width: 0;
   background: transparent;
-  color: var(--ink);
+  color: var(--ink) !important;
   border: 1px solid var(--line);
   border-radius: 999px;
   box-shadow: none;

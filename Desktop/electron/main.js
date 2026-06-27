@@ -3,6 +3,7 @@ import os from "node:os";
 import http from "node:http";
 import { fileURLToPath } from "node:url";
 import { app, BrowserWindow, ipcMain, net } from "electron";
+import { logError } from "./logger.js";
 import { createLedgerStore } from "./db.js";
 
 // Ensure the application name is set to 'HouseLedger' so Electron uses
@@ -13,9 +14,9 @@ try {
   } else {
     app.name = "HouseLedger";
   }
-} catch (e) {
-  // ignore if not supported in this environment
-}
+  } catch (e) {
+    logError("app.setName", e);
+  }
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -291,15 +292,19 @@ app.whenReady().then(() => {
             try {
               const rem = fs.readdirSync(oldDir);
               if (rem.length === 0) fs.rmdirSync(oldDir);
-            } catch {}
+            } catch (e) {
+              logError("migration - remove oldDir", e);
+            }
             break;
           }
         }
       } catch (e) {
-        // ignore migration errors
+        logError("migration - scan oldDir", e);
       }
     }
-  } catch (e) {}
+  } catch (e) {
+    logError("app.whenReady migration", e);
+  }
 
   const ledger = createLedgerStore(dataDir);
   syncServer = startSyncServer(ledger);

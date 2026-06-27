@@ -1,8 +1,14 @@
 import React from "react";
+import { logError } from "../../lib/logger.js";
 import { formatCurrency } from "../../lib/currency.js";
 
 function parsePayload(payloadJson) {
-  try { return JSON.parse(payloadJson || "{}"); } catch { return {}; }
+  try {
+    return JSON.parse(payloadJson || "{}");
+  } catch (e) {
+    logError("HistoryPage.parsePayload", e);
+    return {};
+  }
 }
 
 function EntryLine({ data, selectedCurrency, exchangeRates, faded = false }) {
@@ -34,72 +40,86 @@ function ActionBadge({ action, t }) {
 }
 
 export default function HistoryPage({ historyRows, selectedCurrency, exchangeRates, t }) {
-  return (
-    <section className="lists-grid">
-      <article className="card">
-        <h2>{t.historyTitle}</h2>
-        <p className="subtext">{t.historySubtext}</p>
-        {historyRows.length === 0 ? (
-          <p>{t.historyEmpty}</p>
-        ) : (
-          <ul className="list history-list">
-            {historyRows.map((row) => {
-              const payload = parsePayload(row.payloadJson);
-              const before = payload.before;
-              const after = payload.after;
+  const safeHistoryRows = Array.isArray(historyRows) ? historyRows : [];
 
-              return (
-                <li key={`history-${row.id}`} className="history-item">
-                  <div className="history-item-header">
-                    <span className="history-item-time">{row.loggedAt}</span>
-                    <ActionBadge action={row.action} t={t} />
-                    <span className="history-item-source">
-                      {row.source === "monthly" ? t.historySourceMonthly : t.historySourceDaily}
-                    </span>
-                  </div>
+  try {
+    return (
+      <section className="lists-grid">
+        <article className="card">
+          <h2>{t.historyTitle}</h2>
+          <p className="subtext">{t.historySubtext}</p>
+          {safeHistoryRows.length === 0 ? (
+            <p>{t.historyEmpty}</p>
+          ) : (
+            <ul className="list history-list">
+              {safeHistoryRows.map((row) => {
+                const payload = parsePayload(row.payloadJson);
+                const before = payload.before;
+                const after = payload.after;
 
-                  <div className="history-item-body">
-                    {/* add */}
-                    {row.action === "add" && (
-                      <EntryLine
-                        data={{ title: row.title, amount: row.amount, entryDate: row.targetDate, categoryIcon: row.categoryIcon, note: row.note }}
-                        selectedCurrency={selectedCurrency}
-                        exchangeRates={exchangeRates}
-                      />
-                    )}
+                return (
+                  <li key={`history-${row.id}`} className="history-item">
+                    <div className="history-item-header">
+                      <span className="history-item-time">{row.loggedAt}</span>
+                      <ActionBadge action={row.action} t={t} />
+                      <span className="history-item-source">
+                        {row.source === "monthly" ? t.historySourceMonthly : t.historySourceDaily}
+                      </span>
+                    </div>
 
-                    {/* update: before → after */}
-                    {row.action === "update" && (
-                      <>
-                        <EntryLine data={before} selectedCurrency={selectedCurrency} exchangeRates={exchangeRates} faded />
-                        <span className="history-arrow">→</span>
-                        <EntryLine data={after} selectedCurrency={selectedCurrency} exchangeRates={exchangeRates} />
-                      </>
-                    )}
+                    <div className="history-item-body">
+                      {/* add */}
+                      {row.action === "add" && (
+                        <EntryLine
+                          data={{ title: row.title, amount: row.amount, entryDate: row.targetDate, categoryIcon: row.categoryIcon, note: row.note }}
+                          selectedCurrency={selectedCurrency}
+                          exchangeRates={exchangeRates}
+                        />
+                      )}
 
-                    {/* delete: before → delete */}
-                    {row.action === "delete" && (
-                      <>
-                        <EntryLine data={before} selectedCurrency={selectedCurrency} exchangeRates={exchangeRates} faded />
-                        <span className="history-arrow history-arrow--delete">→ {t.historyActionDelete}</span>
-                      </>
-                    )}
+                      {/* update: before → after */}
+                      {row.action === "update" && (
+                        <>
+                          <EntryLine data={before} selectedCurrency={selectedCurrency} exchangeRates={exchangeRates} faded />
+                          <span className="history-arrow">→</span>
+                          <EntryLine data={after} selectedCurrency={selectedCurrency} exchangeRates={exchangeRates} />
+                        </>
+                      )}
 
-                    {/* fallback: payload old log */}
-                    {row.action !== "add" && !before && (
-                      <EntryLine
-                        data={{ title: row.title, amount: row.amount, entryDate: row.targetDate, categoryIcon: row.categoryIcon, note: row.note }}
-                        selectedCurrency={selectedCurrency}
-                        exchangeRates={exchangeRates}
-                      />
-                    )}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </article>
-    </section>
-  );
+                      {/* delete: before → delete */}
+                      {row.action === "delete" && (
+                        <>
+                          <EntryLine data={before} selectedCurrency={selectedCurrency} exchangeRates={exchangeRates} faded />
+                          <span className="history-arrow history-arrow--delete">→ {t.historyActionDelete}</span>
+                        </>
+                      )}
+
+                      {/* fallback: payload old log */}
+                      {row.action !== "add" && !before && (
+                        <EntryLine
+                          data={{ title: row.title, amount: row.amount, entryDate: row.targetDate, categoryIcon: row.categoryIcon, note: row.note }}
+                          selectedCurrency={selectedCurrency}
+                          exchangeRates={exchangeRates}
+                        />
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </article>
+      </section>
+    );
+  } catch (err) {
+    logError("HistoryPage.render", err);
+    return (
+      <section className="lists-grid">
+        <article className="card">
+          <h2>{t.historyTitle}</h2>
+          <p className="error">{t?.errorUnexpectedMessage || "表示中にエラーが発生しました"}</p>
+        </article>
+      </section>
+    );
+  }
 }

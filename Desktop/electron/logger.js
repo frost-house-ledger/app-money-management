@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
 import { MongoClient } from "mongodb";
 
 export function createAppLogger(dataDir) {
@@ -46,4 +47,27 @@ export function createAppLogger(dataDir) {
   }
 
   return { log, close };
+}
+
+// Synchronous helper for logging errors from the Electron main process.
+// This writes to the system temp directory to ensure it's writable in packaged apps.
+export function logError(source, error) {
+  try {
+    const record = {
+      at: new Date().toISOString(),
+      source,
+      message: error?.message || String(error),
+      stack: error?.stack || null
+    };
+    const logPath = path.join(os.tmpdir(), "houseledger-main-errors.log");
+    try {
+      fs.appendFileSync(logPath, `${JSON.stringify(record)}\n`, "utf8");
+    } catch (e) {
+      // best-effort only
+    }
+    // also print to stderr for visibility in logs
+    console.error("[HouseLedger][ERROR]", source, record.message, record.stack || "");
+  } catch (e) {
+    try { console.error("[HouseLedger][ERROR] could not log error", String(e)); } catch (e2) {}
+  }
 }

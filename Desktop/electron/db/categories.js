@@ -25,16 +25,18 @@ export function pickCategoryName(category, locale = "jp") {
 
   function pickFromEntry(entry) {
     if (!entry) return "";
+    // Show Japanese when locale is Japanese; otherwise prefer English.
     if (code === "en") return entry.nameEn || entry.nameJp || entry.id;
-    if (code === "de") return entry.nameDe || entry.nameEn || entry.nameJp || entry.id;
-    if (code === "fr") return entry.nameFr || entry.nameEn || entry.nameJp || entry.id;
-    if (code === "es") return entry.nameEs || entry.nameEn || entry.nameJp || entry.id;
-    return entry.nameJp || entry.nameEn || entry.id;
+    if (code === "ja" || code === "jp") return entry.nameJp || entry.nameEn || entry.id;
+    // For all other locales, prefer English first, fallback to Japanese then id.
+    return entry.nameEn || entry.nameJp || entry.id;
   }
 
   if (!category) {
     const other = DEFAULT_CATEGORIES.find((c) => c.id === "other");
-    return pickFromEntry(other) || (code === "en" ? "Other" : "その他");
+    // If no category provided, default to English for non-Japanese locales.
+    if (code === "ja" || code === "jp") return pickFromEntry(other) || "その他";
+    return pickFromEntry(other) || "Other";
   }
 
   const id = typeof category === "string" ? category : category.id || null;

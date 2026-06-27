@@ -6,6 +6,7 @@
  * Database schema mirrors Desktop/electron/db/schema-input.js.
  */
 import { CapacitorSQLite, SQLiteConnection } from "@capacitor-community/sqlite";
+import { logError } from "./logger.js";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -79,9 +80,15 @@ async function getDb() {
       PRIMARY KEY (month, category_id)
     );
   `);
-  await _db.execute("ALTER TABLE daily_entries ADD COLUMN sync_id TEXT;", false).catch(() => {});
-  await _db.execute("ALTER TABLE daily_entries ADD COLUMN updated_at TEXT NOT NULL DEFAULT (datetime('now'));", false).catch(() => {});
-  await _db.execute("UPDATE daily_entries SET updated_at = COALESCE(updated_at, created_at, datetime('now')) WHERE updated_at IS NULL OR updated_at = '';", false).catch(() => {});
+  await _db.execute("ALTER TABLE daily_entries ADD COLUMN sync_id TEXT;", false).catch((err) => {
+    logError("getDb - ALTER TABLE add sync_id", err);
+  });
+  await _db.execute("ALTER TABLE daily_entries ADD COLUMN updated_at TEXT NOT NULL DEFAULT (datetime('now'));", false).catch((err) => {
+    logError("getDb - ALTER TABLE add updated_at", err);
+  });
+  await _db.execute("UPDATE daily_entries SET updated_at = COALESCE(updated_at, created_at, datetime('now')) WHERE updated_at IS NULL OR updated_at = '';", false).catch((err) => {
+    logError("getDb - UPDATE daily_entries set updated_at", err);
+  });
   return _db;
 }
 
@@ -155,15 +162,14 @@ function normalizeCategoryId(name) {
 
 function pickCategoryLabel(category, locale) {
   if (!category) {
-    return locale === "de" ? "Sonstiges" : locale === "en" ? "Other" : "その他";
+    // Show Japanese only for Japanese locale; otherwise show English
+    return locale === "jp" || locale === "ja" ? "その他" : "Other";
   }
-  if (locale === "de") {
-    return category.nameDe || category.nameEn || category.nameJp || category.id;
+  // Prefer Japanese when explicitly Japanese; otherwise prefer English.
+  if (locale === "jp" || locale === "ja") {
+    return category.nameJp || category.nameEn || category.id;
   }
-  if (locale === "en") {
-    return category.nameEn || category.nameJp || category.nameDe || category.id;
-  }
-  return category.nameJp || category.nameEn || category.nameDe || category.id;
+  return category.nameEn || category.nameJp || category.id;
 }
 
 // ─── Recurring store (localStorage) ──────────────────────────────────────────

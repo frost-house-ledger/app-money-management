@@ -11,6 +11,7 @@ import {
 } from "chart.js";
 import { Pie, Bar } from "react-chartjs-2";
 import { formatCurrency } from "../../lib/currency.js";
+import { logError } from "../../lib/logger.js";
 
 ChartJS.register(ArcElement, CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
@@ -25,16 +26,22 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
 
   useEffect(() => {
     async function load() {
-      const [breakdown, trend] = await Promise.all([
-        api.summary.categoryBreakdown({ month: selectedMonth, locale }),
-        api.summary.categoryTrend({
-          fromMonth: range.fromMonth,
-          toMonth: range.toMonth,
-          locale
-        })
-      ]);
-      setBreakdownRows(Array.isArray(breakdown) ? breakdown : []);
-      setTrendRows(Array.isArray(trend) ? trend : []);
+      try {
+        const [breakdown, trend] = await Promise.all([
+          api.summary.categoryBreakdown({ month: selectedMonth, locale }),
+          api.summary.categoryTrend({
+            fromMonth: range.fromMonth,
+            toMonth: range.toMonth,
+            locale
+          })
+        ]);
+        setBreakdownRows(Array.isArray(breakdown) ? breakdown : []);
+        setTrendRows(Array.isArray(trend) ? trend : []);
+      } catch (err) {
+        logError("CategoryAnalysisPage.load", err);
+        setBreakdownRows([]);
+        setTrendRows([]);
+      }
     }
 
     load();
@@ -52,13 +59,14 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
           return;
         }
       } catch (e) {
-        // ignore
+        logError("CategoryAnalysisPage.loadTargets.db", e);
       }
       const key = `categoryTargets:${selectedMonth}`;
       try {
         const saved = JSON.parse(localStorage.getItem(key) || "{}");
         setTargets(saved);
       } catch (e) {
+        logError("CategoryAnalysisPage.loadTargets.localStorage", e);
         setTargets({});
       }
     }
@@ -73,7 +81,7 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
       try {
         localStorage.setItem(keyName, JSON.stringify(next));
       } catch (e) {
-        // ignore storage errors
+        logError("CategoryAnalysisPage.handleTargetChange.localStorage", e);
       }
       return next;
     });
@@ -87,6 +95,7 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
       setSaveMessage("Saved");
       setTimeout(() => setSaveMessage(""), 2000);
     } catch (err) {
+      logError("CategoryAnalysisPage.handleSaveTargets", err);
       setSaveMessage(err?.message || "Save failed");
     } finally {
       setSaving(false);
@@ -95,46 +104,76 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
 
 
   // summary: breakdownRows with categoryDisplay
-  const mergedRows = useMemo(() => {
-    // Merge rows by display name to avoid duplicate categoryDisplay entries
-    const map = new Map();
-    for (const row of breakdownRows) {
-      const display = String(row.categoryDisplay || "");
-      if (map.has(display)) {
-        const existing = map.get(display);
-        existing.total = Number(existing.total || 0) + Number(row.total || 0);
-        // prefer an explicit categoryId if we don't have one yet
-        if (!existing.categoryId && row.categoryId) existing.categoryId = row.categoryId;
-        if (!existing.categoryIcon && row.categoryIcon) existing.categoryIcon = row.categoryIcon;
-      } else {
-        map.set(display, { ...row, total: Number(row.total || 0), categoryId: row.categoryId });
-      }
-    }
-    return Array.from(map.values());
-  }, [breakdownRows]);
+  const safeBreakdownRows = Array.isArray(breakdownRows) ? breakdownRows : [];
+  const safeTrendRows = Array.isArray(trendRows) ? trendRows : [];
 
-  const total = useMemo(() => mergedRows.reduce((sum, row) => sum + Number(row.total || 0), 0), [mergedRows]);
+  const mergedRows = useMemo(() => {
+    try {
+      // Merge rows by display name to avoid duplicate categoryDisplay entries
+      const map = new Map();
+      for (const row of safeBreakdownRows) {
+        const display = String(row.categoryDisplay || "");
+        if (map.has(display)) {
+          const existing = map.get(display);
+          existing.total = Number(existing.total || 0) + Number(row.total || 0);
+          // prefer an explicit categoryId if we don't have one yet
+          if (!existing.categoryId && row.categoryId) existing.categoryId = row.categoryId;
+          if (!existing.categoryIcon && row.categoryIcon) existing.categoryIcon = row.categoryIcon;
+        } else {
+          map.set(display, { ...row, total: Number(row.total || 0), categoryId: row.categoryId });
+        }
+      }
+      return Array.from(map.values());
+    } catch (err) {
+      logError("CategoryAnalysisPage.mergedRows", err);
+      return [];
+    }
+  }, [safeBreakdownRows]);
+
+  const total = useMemo(() => {
+    try {
+      return mergedRows.reduce((sum, row) => sum + Number(row.total || 0), 0);
+    } catch (err) {
+      logError("CategoryAnalysisPage.total", err);
+      return 0;
+    }
+  }, [mergedRows]);
 
   const pieData = useMemo(() => {
-    return mergedRows.map((row) => ({
-      name: `${row.categoryIcon} ${row.categoryDisplay}`,
-      value: Number(row.total || 0)
-    }));
+    try {
+      return mergedRows.map((row) => ({
+        name: `${row.categoryIcon} ${row.categoryDisplay}`,
+        value: Number(row.total || 0)
+      }));
+    } catch (err) {
+      logError("CategoryAnalysisPage.pieData", err);
+      return [];
+    }
   }, [mergedRows]);
 
   const trendData = useMemo(() => {
-    const byMonth = new Map();
-    trendRows.forEach((row) => {
-      const current = byMonth.get(row.month) || { month: row.month };
-      current[row.categoryDisplay] = Number(row.total || 0);
-      byMonth.set(row.month, current);
-    });
-    return Array.from(byMonth.values()).sort((a, b) => a.month.localeCompare(b.month));
-  }, [trendRows]);
+    try {
+      const byMonth = new Map();
+      safeTrendRows.forEach((row) => {
+        const current = byMonth.get(row.month) || { month: row.month };
+        current[row.categoryDisplay] = Number(row.total || 0);
+        byMonth.set(row.month, current);
+      });
+      return Array.from(byMonth.values()).sort((a, b) => a.month.localeCompare(b.month));
+    } catch (err) {
+      logError("CategoryAnalysisPage.trendData", err);
+      return [];
+    }
+  }, [safeTrendRows]);
 
   const trendKeys = useMemo(() => {
-    return Array.from(new Set(trendRows.map((row) => row.categoryDisplay)));
-  }, [trendRows]);
+    try {
+      return Array.from(new Set(safeTrendRows.map((row) => row.categoryDisplay)));
+    } catch (err) {
+      logError("CategoryAnalysisPage.trendKeys", err);
+      return [];
+    }
+  }, [safeTrendRows]);
 
   return (
     <section className="chart-dashboard-page">

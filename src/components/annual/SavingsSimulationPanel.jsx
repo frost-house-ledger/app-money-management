@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { formatCurrency, formatNumericInput, sanitizeNumericInput } from "../../lib/currency.js";
+import { logError } from "../../lib/logger.js";
 
 let nextIncomePhaseId = 1;
 
@@ -19,6 +20,7 @@ function createIncomePhase() {
 }
 
 export default function SavingsSimulationPanel({ annualRows, selectedCurrency, exchangeRates, t }) {
+  const safeAnnualRows = Array.isArray(annualRows) ? annualRows : [];
   const [currentSavings, setCurrentSavings] = useState("");
   const [monthlyIncome, setMonthlyIncome] = useState("");
   const [incomePhases, setIncomePhases] = useState([]);
@@ -26,16 +28,26 @@ export default function SavingsSimulationPanel({ annualRows, selectedCurrency, e
   const [simMonths, setSimMonths] = useState("24");
 
   const avgIncome = useMemo(() => {
-    if (!annualRows.length) return 0;
-    const total = annualRows.reduce((sum, r) => sum + Number(r.income || 0), 0);
-    return Math.round(total / annualRows.length);
-  }, [annualRows]);
+    try {
+      if (!safeAnnualRows.length) return 0;
+      const total = safeAnnualRows.reduce((sum, r) => sum + Number(r.income || 0), 0);
+      return Math.round(total / safeAnnualRows.length);
+    } catch (err) {
+      logError("SavingsSimulationPanel.avgIncome", err);
+      return 0;
+    }
+  }, [safeAnnualRows]);
 
   const avgExpense = useMemo(() => {
-    if (!annualRows.length) return 0;
-    const total = annualRows.reduce((sum, r) => sum + Number(r.fee || 0), 0);
-    return Math.round(total / annualRows.length);
-  }, [annualRows]);
+    try {
+      if (!safeAnnualRows.length) return 0;
+      const total = safeAnnualRows.reduce((sum, r) => sum + Number(r.fee || 0), 0);
+      return Math.round(total / safeAnnualRows.length);
+    } catch (err) {
+      logError("SavingsSimulationPanel.avgExpense", err);
+      return 0;
+    }
+  }, [safeAnnualRows]);
 
   function handleAutoFill() {
     setMonthlyIncome(String(avgIncome));
@@ -70,36 +82,37 @@ export default function SavingsSimulationPanel({ annualRows, selectedCurrency, e
     const months = Math.min(Math.max(1, Number(simMonths) || 0), 120);
     const initial = Number(currentSavings);
 
-    if (!Number.isFinite(income) || !Number.isFinite(expense) || !Number.isFinite(initial) || months <= 0) {
-      return [];
-    }
-    if (monthlyIncome === "" || monthlyExpense === "" || currentSavings === "") {
-      return [];
-    }
+    try {
+      if (!Number.isFinite(income) || !Number.isFinite(expense) || !Number.isFinite(initial) || months <= 0) {
+        return [];
+      }
+      if (monthlyIncome === "" || monthlyExpense === "" || currentSavings === "") {
+        return [];
+      }
 
     const today = new Date();
     const startYYYYMM = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
 
     // Normalize income phases: filter out invalid entries, convert to numbers, and sort by afterMonths.
-    const normalizedPhases = Array.from(
-      incomePhases.reduce((phaseMap, phase) => {
-        if (phase.afterMonths === "" || phase.income === "") {
+      const normalizedPhases = Array.from(
+        incomePhases.reduce((phaseMap, phase) => {
+          if (phase.afterMonths === "" || phase.income === "") {
+            return phaseMap;
+          }
+
+          const afterMonths = Math.min(Math.max(0, Number(phase.afterMonths) || 0), months);
+          const phaseIncome = Number(phase.income);
+
+          if (!Number.isFinite(phaseIncome)) {
+            return phaseMap;
+          }
+
+          phaseMap.set(afterMonths, phaseIncome);
           return phaseMap;
-        }
-
-        const afterMonths = Math.min(Math.max(0, Number(phase.afterMonths) || 0), months);
-        const phaseIncome = Number(phase.income);
-
-        if (!Number.isFinite(phaseIncome)) {
-          return phaseMap;
-        }
-
-        phaseMap.set(afterMonths, phaseIncome);
-        return phaseMap;
-      }, new Map())
-    )
-      .map(([afterMonths, phaseIncome]) => ({ afterMonths, income: phaseIncome }))
-      .sort((left, right) => left.afterMonths - right.afterMonths);
+        }, new Map())
+      )
+        .map(([afterMonths, phaseIncome]) => ({ afterMonths, income: phaseIncome }))
+        .sort((left, right) => left.afterMonths - right.afterMonths);
     const rows = [];
 
     // For each month, determine the applicable income based on the defined phases, calculate the monthly balance and cumulative savings.
@@ -116,13 +129,18 @@ export default function SavingsSimulationPanel({ annualRows, selectedCurrency, e
         savings: prevSavings + monthlyBalance
       });
     }
-    return rows;
+      return rows;
+    } catch (err) {
+      logError("SavingsSimulationPanel.simResult", err);
+      return [];
+    }
   }, [currentSavings, incomePhases, monthlyExpense, monthlyIncome, simMonths]);
 
-  return (
-    <section className="card savings-sim-panel">
-      <h2>{t.savingsSimTitle}</h2>
-      <p className="subtext">{t.savingsSimSubtext}</p>
+  try {
+    return (
+      <section className="card savings-sim-panel">
+        <h2>{t.savingsSimTitle}</h2>
+        <p className="subtext">{t.savingsSimSubtext}</p>
 
       <div className="savings-sim-inputs">
         <label>
@@ -266,6 +284,14 @@ export default function SavingsSimulationPanel({ annualRows, selectedCurrency, e
           </ul>
         </>
       )}
-    </section>
-  );
+      </section>
+    );
+  } catch (err) {
+    logError("SavingsSimulationPanel.render", err);
+    return (
+      <section className="card savings-sim-panel">
+        <p className="error">{t?.errorUnexpectedMessage || "表示中にエラーが発生しました"}</p>
+      </section>
+    );
+  }
 }

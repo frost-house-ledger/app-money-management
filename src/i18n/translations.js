@@ -1,4 +1,7 @@
 export const TRANSLATIONS = {
+  // -------------------------
+  // General
+  // -------------------------
   appTitle: { jp: "Life Ledger", en: "Life Ledger", de: "Life Ledger", es: "Life Ledger", pt: "Life Ledger", it: "Life Ledger", fr: "Life Ledger", ru: "Life Ledger", tw: "Life Ledger", ko: "Life Ledger", ar: "لايف ليدجر" },
   appDescription: {
     jp: "月次の固定費/固定収入を一度登録すると、それ以降の月に自動で反映されます。さらに日々の支出や収入を追加するとグラフと一覧に即時反映されます。",
@@ -17,14 +20,21 @@ export const TRANSLATIONS = {
   thisMonthExpenseLabel: { jp: "今月の費用", en: "This month expense", de: "Ausgaben diesen Monat", es: "Gastos de este mes", pt: "Despesas deste mês", it: "Spese di questo mese", fr: "Dépenses de ce mois", ru: "Расходы за этот месяц", tw: "本月支出", ko: "이번달 지출", ar: "مصاريف هذا الشهر" },
   thisMonthIncomeLabel: { jp: "今月の収入", en: "This month income", de: "Einnahmen diesen Monat", es: "Ingresos de este mes", pt: "Rendimento deste mês", it: "Entrate di questo mese", fr: "Revenus de ce mois", ru: "Доход за этот месяц", tw: "本月收入", ko: "이번달 수입", ar: "دخل هذا الشهر" },
   mainPageTab: { jp: "メイン", en: "Main", de: "Hauptseite", es: "Principal", pt: "Principal", it: "Principale", fr: "Accueil", ru: "Главная", tw: "主頁", ko: "메인", ar: "الرئيسية" },
-  monthlyPageTab: { jp: "月次入力", en: "Monthly Input", de: "Monatliche Eingabe", es: "Entrada mensual", pt: "Entrada mensal", it: "Inserimento mensile", fr: "Saisie mensuelle", ru: "Ежемесячный ввод", tw: "每月輸入", ko: "월별 입력", ar: "الإدخال الشهري" },
+  thisMonthIncomeLabel: { jp: "今月の収入", en: "This month income", de: "Einnahmen diesen Monat", es: "Ingresos de este mes", pt: "Rendimento deste mês", it: "Entrate di questo mese", fr: "Revenus de ce mois", ru: "Доход за этот месяц", tw: "本月收入", ko: "이번달 수입", ar: "دخل هذا الشهر" },
+
+  // -------------------------
+  // Page Tabs
+  // -------------------------
+  mainPageTab: { jp: "メイン", en: "Main", de: "Hauptseite", es: "Principal", pt: "Principal", it: "Principale", fr: "Accueil", ru: "Главная", tw: "主頁", ko: "メイン", ar: "الرئيسية" },
   dailyPageTab: { jp: "日次入力", en: "Daily Input", de: "Taegliche Eingabe", es: "Entrada diaria", pt: "Entrada diária", it: "Inserimento giornaliero", fr: "Saisie quotidienne", ru: "Ежедневный ввод", tw: "每日輸入", ko: "일일 입력", ar: "الإدخال اليومي" },
+  monthlyPageTab: { jp: "月次入力", en: "Monthly Input", de: "Monatliche Eingabe", es: "Entrada mensual", pt: "Entrada mensal", it: "Inserimento mensile", fr: "Saisie mensuelle", ru: "Ежемесячный ввод", tw: "月度輸入", ko: "월별 입력", ar: "الإدخال الشهري" },
   chartPageTab: { jp: "グラフ", en: "Charts", de: "Diagramme", es: "Gráficos", pt: "Gráficos", it: "Grafici", fr: "Graphiques", ru: "Графики", tw: "圖表", ko: "차트", ar: "الرسوم البيانية" },
   historyPageTab: { jp: "履歴", en: "History", de: "Verlauf", es: "Historial", pt: "Histórico", it: "Cronologia", fr: "Historique", ru: "История", tw: "歷史", ko: "히스토리", ar: "السجل" },
   settingsPageTab: { jp: "設定", en: "Settings", de: "Einstellungen", es: "Ajustes", pt: "Configurações", it: "Impostazioni", fr: "Paramètres", ru: "Настройки", tw: "設定", ko: "설정", ar: "الإعدادات" },
   analysisPageTab: { jp: "分析", en: "Analysis", de: "Analyse", es: "Análisis", pt: "Análise", it: "Analisi", fr: "Analyse", ru: "Анализ", tw: "分析", ko: "분석", ar: "التحليل" },
   annualPageTab: { jp: "年間", en: "Annual", de: "Jaehrlich", es: "Anual", pt: "Anual", it: "Annuale", fr: "Annuel", ru: "Годовой", tw: "年度", ko: "연간", ar: "سنوي" },
-  switchLanguage: { jp: "English", en: "Deutsch", de: "日本語", es: "日本語", pt: "日本語", it: "日本語", fr: "日本語", ru: "日本語", tw: "日本語", ko: "日本語", ar: "日本語" },
+  // label for a quick language switch control (shows the language to switch to)
+  switchLanguage: { jp: "English", en: "日本語", de: "日本語", es: "日本語", pt: "日本語", it: "日本語", fr: "日本語", ru: "日本語", tw: "日本語", ko: "日本語", ar: "日本語" },
   monthLabel: { jp: "表示月", en: "Month", de: "Monat", es: "Mes", pt: "Mês", it: "Mese", fr: "Mois", ru: "Месяц", tw: "月份", ko: "월", ar: "الشهر" },
   chartMonthLabel: { jp: "グラフの表示月", en: "Chart month", de: "Diagramm-Monat", es: "Mes del gráfico", pt: "Mês do gráfico", it: "Mese del grafico", fr: "Mois du graphique", ru: "Месяц графика", tw: "圖表月份", ko: "차트 월", ar: "شهر الرسم البياني" },
   applySelectedMonthToAllTabsButton: {
@@ -59,6 +69,9 @@ export const TRANSLATIONS = {
   monthlyIncomeTotal: { jp: "月次収入合計", en: "Monthly income total", de: "Monatliche Gesamteinnahmen", es: "Total de ingresos mensuales", pt: "Total de rendimentos mensais", it: "Totale entrate mensili", fr: "Total des revenus mensuels", ru: "Общий ежемесячный доход", tw: "月度收入總計", ko: "월간 수입 합계", ar: "إجمالي الدخل الشهري" },
   monthlyError: { jp: "グラフ開始月がグラフ終了月より後になっています", en: "Chart start month is after end month", de: "Diagramm-Startmonat ist nach dem Endmonat", es: "El mes de inicio es posterior al mes de fin", pt: "O mês inicial é posterior ao mês final", it: "Il mese di inizio è successivo al mese di fine", fr: "Le mois de début est après le mois de fin", ru: "Месяц начала позже месяца окончания", tw: "圖表起始月晚於結束月", ko: "차트 시작월이 종료월보다 큽니다", ar: "شهر بدء الرسم البياني بعد شهر الانتهاء" },
 
+  // -------------------------
+  // Charts
+  // -------------------------
   chartFromLabel: { jp: "グラフ開始月", en: "Chart from", de: "Diagramm von", es: "Gráfico desde", pt: "Gráfico desde", it: "Grafico da", fr: "Graphique depuis", ru: "График с", tw: "圖表 起始月", ko: "차트 시작", ar: "الرسم البياني من" },
   chartToLabel: { jp: "グラフ終了月", en: "Chart to", de: "Diagramm bis", es: "Gráfico hasta", pt: "Gráfico até", it: "Grafico a", fr: "Graphique jusqu'à", ru: "График по", tw: "圖表 結束月", ko: "차트 종료", ar: "الرسم البياني حتى" },
 
@@ -74,6 +87,9 @@ export const TRANSLATIONS = {
   summaryBalance: { jp: "収支", en: "Balance", de: "Saldo", es: "Balance", pt: "Saldo", it: "Saldo", fr: "Solde", ru: "Баланс", tw: "收支", ko: "수지", ar: "الرصيد" },
   monthlyChartTitle: { jp: "月次グラフ", en: "Monthly chart", de: "Monatsdiagramm", es: "Gráfico mensual", pt: "Gráfico mensal", it: "Grafico mensile", fr: "Graphique mensuel", ru: "Ежемесячный график", tw: "月度圖表", ko: "월간 차트", ar: "مخطط شهري" },
 
+  // -------------------------
+  // Monthly / Recurring
+  // -------------------------
   recurringFormTitle: { jp: "毎月の固定項目を追加", en: "Add monthly recurring item", de: "Monatlichen Fixposten hinzufuegen", es: "Agregar ítem recurrente mensual", pt: "Adicionar item recorrente mensal", it: "Aggiungi voce ricorrente mensile", fr: "Ajouter un élément récurrent mensuel", ru: "Добавить ежемесячный повторяющийся элемент", tw: "新增每月固定項目", ko: "월별 반복 항목 추가", ar: "إضافة بند متكرر شهريًا" },
   recurringFormSubtext: {
     jp: "例: 2026-04 に登録した家賃を 2026-05 以降にも反映",
@@ -107,6 +123,10 @@ export const TRANSLATIONS = {
 
   cancelEditButton: { jp: "編集をキャンセル", en: "Cancel edit", de: "Bearbeitung abbrechen", es: "Cancelar edición", pt: "Cancelar edição", it: "Annulla modifica", fr: "Annuler la modification", ru: "Отменить редактирование", tw: "取消編輯", ko: "편집 취소", ar: "إلغاء التعديل" },
   editRecurringButton: { jp: "編集", en: "Edit", de: "Bearbeiten", es: "Editar", pt: "Editar", it: "Modifica", fr: "Éditer", ru: "Редактировать", tw: "編輯", ko: "편집", ar: "تعديل" },
+
+  // -------------------------
+  // Daily
+  // -------------------------
   dailyFormTitle: { jp: "日次項目を追加", en: "Add daily entry", de: "Tageseintrag hinzufuegen", es: "Agregar entrada diaria", pt: "Adicionar entrada diária", it: "Aggiungi voce giornaliera", fr: "Ajouter une entrée quotidienne", ru: "Добавить ежедневную запись", tw: "新增日次項目", ko: "일일 항목 추가", ar: "إضافة إدخال يومي" },
   dailyFormSubtext: {
     jp: "日々の買い物や臨時収入を入力",
@@ -157,6 +177,10 @@ export const TRANSLATIONS = {
   toastDailyUpdated: { jp: "日次項目を更新しました。", en: "Daily entry updated.", de: "Tageseintrag aktualisiert.", es: "Entrada diaria actualizada.", pt: "Entrada diária atualizada.", it: "Voce giornaliera aggiornata.", fr: "Entrée quotidienne mise à jour.", ru: "Ежедневная запись обновлена.", tw: "日次項目已更新。", ko: "일일 항목이 업데이트되었습니다.", ar: "تم تحديث الإدخال اليومي." },
   toastDailyDeleted: { jp: "日次項目を削除しました。", en: "Daily entry deleted.", de: "Tageseintrag geloescht.", es: "Entrada diaria eliminada.", pt: "Entrada diária excluída.", it: "Voce giornaliera eliminata.", fr: "Entrée quotidienne supprimée.", ru: "Ежедневная запись удалена.", tw: "日次項目已刪除。", ko: "일일 항목이 삭제되었습니다.", ar: "تم حذف الإدخال اليومي." },
   errorDailyDeleteFailed: { jp: "削除に失敗しました。", en: "Failed to delete entry.", de: "Eintrag konnte nicht geloescht werden.", es: "Error al eliminar la entrada.", pt: "Falha ao excluir a entrada.", it: "Eliminazione voce non riuscita.", fr: "Échec de la suppression de l'entrée.", ru: "Не удалось удалить запись.", tw: "刪除失敗。", ko: "삭제에 실패했습니다.", ar: "فشل حذف الإدخال." },
+  errorUnexpectedTitle: { jp: "エラーが発生しました", en: "Something went wrong", de: "Ein Fehler ist aufgetreten", es: "Algo salió mal", pt: "Algo deu errado", it: "Si è verificato un errore", fr: "Une erreur est survenue", ru: "Произошла ошибка", tw: "發生錯誤", ko: "오류가 발생했습니다", ar: "حدث خطأ" },
+  errorUnexpectedMessage: { jp: "アプリの処理中に予期しないエラーが発生しました。再試行またはアプリを再読み込みしてください。", en: "An unexpected error occurred while running the app. Please retry or reload.", de: "Beim Ausführen der App ist ein unerwarteter Fehler aufgetreten. Bitte erneut versuchen oder die App neu laden.", es: "Se produjo un error inesperado al ejecutar la aplicación. Vuelva a intentarlo o recargue.", pt: "Ocorreu um erro inesperado ao executar o aplicativo. Tente novamente ou recarregue.", it: "Si è verificato un errore imprevisto durante l'esecuzione dell'app. Riprovare o ricaricare.", fr: "Une erreur inattendue s'est produite lors de l'exécution de l'application. Veuillez réessayer ou recharger.", ru: "Произошла непредвиденная ошибка при запуске приложения. Пожалуйста, повторите попытку или перезагрузите.", tw: "應用程式執行時發生未預期的錯誤。請重試或重新載入。", ko: "앱 실행 중 예기치 않은 오류가 발생했습니다. 다시 시도하거나 앱을 다시 로드하세요.", ar: "حدث خطأ غير متوقع أثناء تشغيل التطبيق. الرجاء المحاولة مرة أخرى أو إعادة التحميل." },
+  actionRetry: { jp: "再試行", en: "Retry", de: "Erneut versuchen", es: "Reintentar", pt: "Tentar novamente", it: "Riprova", fr: "Réessayer", ru: "Повторить", tw: "重試", ko: "재시도", ar: "أعد المحاولة" },
+  actionReload: { jp: "再読み込み", en: "Reload", de: "Neu laden", es: "Recargar", pt: "Recarregar", it: "Ricarica", fr: "Recharger", ru: "Перезагрузить", tw: "重新載入", ko: "새로고침", ar: "إعادة تحميل" },
   errorDailyUpdateFailed: { jp: "更新に失敗しました。", en: "Failed to update entry.", de: "Eintrag konnte nicht aktualisiert werden.", es: "Error al actualizar la entrada.", pt: "Falha ao atualizar a entrada.", it: "Aggiornamento voce non riuscito.", fr: "Échec de la mise à jour de l'entrée.", ru: "Не удалось обновить запись.", tw: "更新失敗。", ko: "업데이트에 실패했습니다.", ar: "فشل تحديث الإدخال." },
   recurringListTitle: { jp: "固定項目一覧", en: "Recurring items", de: "Fixpostenliste", es: "Elementos recurrentes", pt: "Itens recorrentes", it: "Voci ricorrenti", fr: "Éléments récurrents", ru: "Повторяющиеся элементы", tw: "固定項目列表", ko: "반복 항목 목록", ar: "عناصر متكررة" },
   dailyListTitle: { jp: "{month} の日次項目", en: "Daily entries for {month}", de: "Tageseintraege fuer {month}", es: "Entradas diarias para {month}", pt: "Entradas diárias para {month}", it: "Voci giornaliere per {month}", fr: "Entrées quotidiennes pour {month}", ru: "Ежедневные записи за {month}", tw: "{month} 的日次項目", ko: "{month}의 일일 항목", ar: "الإدخالات اليومية لشهر {month}" },
@@ -182,6 +206,10 @@ export const TRANSLATIONS = {
   historyActionAdd: { jp: "追加", en: "add", de: "hinzugefuegt", es: "agregado", pt: "adicionado", it: "aggiunto", fr: "ajouté", ru: "добавлено", tw: "新增", ko: "추가", ar: "أُضيف" },
   historyActionUpdate: { jp: "更新", en: "update", de: "aktualisiert", es: "actualizado", pt: "atualizado", it: "aggiornato", fr: "mis à jour", ru: "обновлено", tw: "更新", ko: "업데이트", ar: "تم التحديث" },
   historyActionDelete: { jp: "削除", en: "delete", de: "geloescht", es: "eliminado", pt: "excluído", it: "eliminato", fr: "supprimé", ru: "удалено", tw: "刪除", ko: "삭제", ar: "تم الحذف" },
+
+  // -------------------------
+  // Settings
+  // -------------------------
   settingsTitle: { jp: "設定", en: "Settings", de: "Einstellungen", es: "Ajustes", pt: "Configurações", it: "Impostazioni", fr: "Paramètres", ru: "Настройки", tw: "設定", ko: "설정", ar: "الإعدادات" },
   settingsSubtext: {
     jp: "表示と言語の基本設定をここで管理します。",
@@ -216,6 +244,10 @@ export const TRANSLATIONS = {
   },
   csvExportDailyButton: { jp: "日次CSVを保存", en: "Download daily CSV", de: "Taegliche CSV speichern", es: "Descargar CSV diario", pt: "Baixar CSV diário", it: "Scarica CSV giornaliero", fr: "Télécharger CSV quotidien", ru: "Скачать ежедневный CSV", tw: "下載每日 CSV", ko: "일일 CSV 다운로드", ar: "تحميل CSV اليومي" },
   csvExportMonthlyButton: { jp: "月次CSVを保存", en: "Download monthly CSV", de: "Monatliche CSV speichern", es: "Descargar CSV mensual", pt: "Baixar CSV mensal", it: "Scarica CSV mensile", fr: "Télécharger CSV mensuel", ru: "Скачать ежемесячный CSV", tw: "下載每月 CSV", ko: "월별 CSV 다운로드", ar: "تحميل CSV الشهري" },
+
+  // -------------------------
+  // Sync
+  // -------------------------
   syncSectionTitle: { jp: "LAN同期", en: "LAN sync", de: "LAN-Synchronisierung", es: "Sincronización LAN", pt: "Sincronização LAN", it: "Sincronizzazione LAN", fr: "Synchronisation LAN", ru: "Синхронизация LAN", tw: "LAN 同步", ko: "LAN 동기화", ar: "مزامنة الشبكة المحلية" },
   syncSectionSubtext: {
     jp: "Desktop 版と同じネットワークに接続中、自動で同期できます。",
@@ -346,6 +378,10 @@ export const TRANSLATIONS = {
   erStatusLoading: { jp: "為替レート取得中…", en: "Fetching exchange rates…", de: "Wechselkurse werden abgerufen…", es: "Obteniendo tipos de cambio…", pt: "Buscando taxas de câmbio…", it: "Recupero dei tassi di cambio…", fr: "Récupération des taux de change…", ru: "Получение курсов валют…", tw: "取得匯率中…", ko: "환율을 가져오는 중…", ar: "جاري استرداد أسعار الصرف…" },
   erStatusLive: { jp: "最終更新: {time}", en: "Last updated: {time}", de: "Zuletzt aktualisiert: {time}", es: "Última actualización: {time}", pt: "Última atualização: {time}", it: "Ultimo aggiornamento: {time}", fr: "Dernière mise à jour : {time}", ru: "Последнее обновление: {time}", tw: "最後更新：{time}", ko: "마지막 업데이트: {time}", ar: "آخر تحديث: {time}" },
   erStatusFallback: { jp: "フォールバックレート使用中（オフラインまたは取得失敗）", en: "Using fallback rates (offline or fetch failed)", de: "Fallback-Kurse in Verwendung (offline oder Abruf fehlgeschlagen)", es: "Usando tasas de respaldo (sin conexión o error de obtención)", pt: "Usando taxas de fallback (offline ou falha ao buscar)", it: "Utilizzo di tassi di fallback (offline o errore nel recupero)", fr: "Utilisation des taux de secours (hors ligne ou échec de récupération)", ru: "Используются запасные курсы (офлайн или ошибка получения)", tw: "使用備援匯率（離線或取得失敗）", ko: "대체 환율 사용 중(오프라인 또는 가져오기 실패)", ar: "استخدام أسعار بديلة (غير متصل أو فشل الاسترداد)" },
+
+  // -------------------------
+  // Analysis
+  // -------------------------
   categoryAnalysisTitle: { jp: "カテゴリ別分析", en: "Category analysis", de: "Kategorieanalyse", es: "Análisis por categoría", pt: "Análise por categoria", it: "Analisi per categoria", fr: "Analyse par catégorie", ru: "Анализ по категориям", tw: "分類分析", ko: "카테고리 분석", ar: "تحليل الفئات" },
   categoryAnalysisSubtext: {
     jp: "カテゴリ別の支出割合と推移を確認できます。また、カテゴリごとに月間目標を設定できます。実際の支出が目標を超えている場合、金額が赤く表示されます。",

@@ -5,6 +5,7 @@ import {
   formatNumericInput,
   sanitizeNumericInput
 } from "../../lib/currency.js";
+import { logError } from "../../lib/logger.js";
 
 // This section includes both the form and the list, as they are closely related and likely to be used together. The form state is lifted up to avoid unnecessary re-renders of the list when the form state changes.
 export default function DailySection({
@@ -25,6 +26,7 @@ export default function DailySection({
         a.localeCompare(b, undefined, { sensitivity: "base" })
       );
     } catch (e) {
+      logError("DailySection.sortedTitleSuggestions", e);
       return dailyTitleSuggestions.slice().sort();
     }
   }, [dailyTitleSuggestions]);
@@ -284,6 +286,7 @@ export function DailyListSection({
       });
       cancelInlineEdit();
     } catch (error) {
+      logError("DailyListSection.submitInlineEdit", error);
       setInlineError(error.message || t.errorDailyFailed);
     } finally {
       setIsSaving(false);
@@ -314,6 +317,7 @@ export function DailyListSection({
       try {
         await onDeleteDaily(id);
       } catch (error) {
+        logError("DailyListSection.requestDelete", error);
         setInlineError(error.message || t.errorDailyDeleteFailed);
       } finally {
         pendingDeleteTimersRef.current.delete(id);

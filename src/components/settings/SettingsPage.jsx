@@ -1,5 +1,6 @@
 import React from "react";
 import { formatMessage } from "../../i18n/translations.js";
+import { logError } from "../../lib/logger.js";
 
 export default function SettingsPage({
   locale,
@@ -74,111 +75,152 @@ export default function SettingsPage({
     { code: 'fr', name: 'Français (French)', flag: '🇫🇷' },
     { code: 'ru', name: 'Русский (Russian)', flag: '🇷🇺' },
     { code: 'tw', name: '中文 (Chinese)', flag: '🇹🇼' },
-    { code: 'ko', name: '한국어 (Korean)', flag: '🇰🇷' },
-    {}
+    { code: 'ko', name: '한국어 (Korean)', flag: '🇰🇷' }
   ];
 
-  return (
-    <section className="forms-grid settings-page">
-      <article className="card settings-card">
-        <h2>{t.settingsTitle}</h2>
-        <p className="subtext">{t.settingsSubtext}</p>
+  const safeLanguageOptions = Array.isArray(LanguageOptions) ? LanguageOptions.filter((l) => l && l.code) : [];
+  const safeCurrencyList = Array.isArray(CURRENCY_LIST) ? CURRENCY_LIST : [];
+  try {
+    return (
+      <section className="forms-grid settings-page">
+        <article className="card settings-card">
+          <h2>{t.settingsTitle}</h2>
+          <p className="subtext">{t.settingsSubtext}</p>
 
-        <label>
-          {t.settingsLanguageLabel}
-          <select
-            className="settings-select"
-            value={locale}
-            onChange={(e) => setLocale(e.target.value)}
-          >
-            {LanguageOptions.map((language) => (
-              <option key={language.code} value={language.code}>
-                {language.flag} {language.name}
-              </option>
-            ))}
-          </select>
-        </label>
+          <label>
+            {t.settingsLanguageLabel}
+            <select
+              className="settings-select"
+              value={locale}
+              onChange={(e) => {
+                try {
+                  setLocale(e.target.value);
+                } catch (err) {
+                  logError("SettingsPage.setLocale", err);
+                }
+              }}
+            >
+              {safeLanguageOptions.map((language) => (
+                <option key={language.code} value={language.code}>
+                  {language.flag} {language.name}
+                </option>
+              ))}
+            </select>
+          </label>
 
-        <label>
-          {t.settingsCurrencyLabel}
-          <select
-            className="settings-select"
-            value={selectedCurrency}
-            onChange={(e) => setSelectedCurrency(e.target.value)}
-          >
-            {CURRENCY_LIST.map((currency) => (
-              <option key={currency.code} value={currency.code}>
-                {currency.code}({currency.name})
-              </option>
-            ))}
-          </select>
-        </label>
+          <label>
+            {t.settingsCurrencyLabel}
+            <select
+              className="settings-select"
+              value={selectedCurrency}
+              onChange={(e) => {
+                try {
+                  setSelectedCurrency(e.target.value);
+                } catch (err) {
+                  logError("SettingsPage.setSelectedCurrency", err);
+                }
+              }}
+            >
+              {safeCurrencyList.map((currency) => (
+                <option key={currency.code} value={currency.code}>
+                  {currency.code}({currency.name})
+                </option>
+              ))}
+            </select>
+          </label>
 
-        <label>
-          {t.csvImportLabel}
-          <input
-            type="file"
-            accept=".csv,text/csv"
-            onChange={async (event) => {
-              const file = event.target.files?.[0];
-              event.target.value = "";
-              if (file) {
-                await onImportCsv(file);
-              }
-            }}
-          />
-        </label>
+          <label>
+            {t.csvImportLabel}
+            <input
+              type="file"
+              accept=".csv,text/csv"
+              onChange={async (event) => {
+                try {
+                  const file = event.target.files?.[0];
+                  event.target.value = "";
+                  if (file) {
+                    await onImportCsv(file);
+                  }
+                } catch (err) {
+                  logError("SettingsPage.onImportCsv", err);
+                }
+              }}
+            />
+          </label>
 
-        {canExportCsv ? (
-          <div className="settings-button-row">
-            <button type="button" onClick={() => onExportCsv("daily")}>
-              {t.csvExportDailyButton}
-            </button>
-            <button type="button" onClick={() => onExportCsv("monthly")}>
-              {t.csvExportMonthlyButton}
-            </button>
-          </div>
-        ) : null}
+          {canExportCsv ? (
+            <div className="settings-button-row">
+              <button type="button" onClick={async () => { try { await onExportCsv("daily"); } catch (err) { logError("SettingsPage.onExportCsv.daily", err); } }}>
+                {t.csvExportDailyButton}
+              </button>
+              <button type="button" onClick={async () => { try { await onExportCsv("monthly"); } catch (err) { logError("SettingsPage.onExportCsv.monthly", err); } }}>
+                {t.csvExportMonthlyButton}
+              </button>
+            </div>
+          ) : null}
 
-        <p className="subtext">{t.csvImportSubtext}</p>
+          <p className="subtext">{t.csvImportSubtext}</p>
 
-        <hr className="settings-divider" />
+          <hr className="settings-divider" />
 
-        <h3 className="settings-subtitle">{t.syncSectionTitle}</h3>
-        <p className="subtext">{t.syncSectionSubtext}</p>
+          <h3 className="settings-subtitle">{t.syncSectionTitle}</h3>
+          <p className="subtext">{t.syncSectionSubtext}</p>
 
-        {syncServerUrls.length > 0 ? (
-          <p className="subtext sync-server-hint">
-            {formatMessage(t.syncDesktopDetected, { url: syncServerUrls[0] })}
-          </p>
-        ) : null}
+          {syncServerUrls.length > 0 ? (
+            <p className="subtext sync-server-hint">
+              {formatMessage(t.syncDesktopDetected, { url: syncServerUrls[0] })}
+            </p>
+          ) : null}
 
-        <label>
-          {t.syncDesktopUrlLabel}
-          <input
-            type="text"
-            className="settings-input"
-            placeholder={t.syncDesktopUrlPlaceholder}
-            value={syncDesktopUrl}
-            onChange={(e) => setSyncDesktopUrl(e.target.value)}
-          />
-        </label>
+          <label>
+            {t.syncDesktopUrlLabel}
+            <input
+              type="text"
+              className="settings-input"
+              placeholder={t.syncDesktopUrlPlaceholder}
+              value={syncDesktopUrl}
+              onChange={(e) => {
+                try {
+                  setSyncDesktopUrl(e.target.value);
+                } catch (err) {
+                  logError("SettingsPage.setSyncDesktopUrl", err);
+                }
+              }}
+            />
+          </label>
 
-        <label className="sync-checkbox-row">
-          <input
-            type="checkbox"
-            checked={syncAutoEnabled}
-            onChange={(e) => setSyncAutoEnabled(e.target.checked)}
-          />
-          <span>{t.syncAutoEnabledLabel}</span>
-        </label>
+          <label className="sync-checkbox-row">
+            <input
+              type="checkbox"
+              checked={syncAutoEnabled}
+              onChange={(e) => {
+                try {
+                  setSyncAutoEnabled(e.target.checked);
+                } catch (err) {
+                  logError("SettingsPage.setSyncAutoEnabled", err);
+                }
+              }}
+            />
+            <span>{t.syncAutoEnabledLabel}</span>
+          </label>
 
-        <button type="button" onClick={onSyncNow} disabled={syncBusy}>
-          {syncBusy ? t.syncNowRunningButton : t.syncNowButton}
-        </button>
+          <button type="button" onClick={onSyncNow} disabled={syncBusy}>
+            {syncBusy ? t.syncNowRunningButton : t.syncNowButton}
+          </button>
 
-        {renderSyncStatus()}
-      </article>
-    </section>
-  );
+          {renderSyncStatus()}
+        </article>
+      </section>
+    );
+  } catch (err) {
+    logError("SettingsPage.render", err);
+    return (
+      <section className="forms-grid settings-page">
+        <article className="card settings-card">
+          <h2>{t.settingsTitle}</h2>
+          <p className="error">{t?.errorUnexpectedMessage || "表示中にエラーが発生しました"}</p>
+        </article>
+      </section>
+    );
+  }
 }

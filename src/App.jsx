@@ -20,6 +20,7 @@ import {
   buildSummaryRangePayload
 } from "./lib/chartFilterPayloads.js";
 import { formatMessage, getMessages, getCategoryName } from "./i18n/translations.js";
+import { logError } from "./lib/logger.js";
 
 function defaultRange(baseMonth) {
   return {
@@ -81,7 +82,6 @@ export default function App() {
   const [editingRecurringId, setEditingRecurringId] = useState(null);
   const [editingDailyId, setEditingDailyId] = useState(null);
   const t = useMemo(() => getMessages(locale), [locale]);
-
   useEffect(() => {
     const raw = (locale || "").toLowerCase();
     const base = raw.split('-')[0] || 'en';
@@ -101,46 +101,81 @@ export default function App() {
   }
 
   async function loadMonthData(month) {
-    const payload = buildEntryListPayload({ month, selectedDailyCategory, dateRange, locale });
-    const daily = await api.entry.list(payload);
-    setDailyRows(daily);
+    try {
+      const payload = buildEntryListPayload({ month, selectedDailyCategory, dateRange, locale });
+      const daily = await api.entry.list(payload);
+      setDailyRows(daily);
+    } catch (error) {
+      logError("loadMonthData", error);
+      setErrorText(error?.message || t.errorLoadFailed || "Failed to load month data");
+    }
   }
 
   async function loadChartMonthSummary(month) {
-    const summaryPayload = buildSummaryMonthPayload({ month, selectedDailyCategory, dateRange });
-    const summary = await api.summary.month(summaryPayload);
-    setMonthlySummary(summary);
+    try {
+      const summaryPayload = buildSummaryMonthPayload({ month, selectedDailyCategory, dateRange });
+      const summary = await api.summary.month(summaryPayload);
+      setMonthlySummary(summary);
+    } catch (error) {
+      logError("loadChartMonthSummary", error);
+      setErrorText(error?.message || t.errorLoadFailed || "Failed to load chart summary");
+    }
   }
 
   async function loadRangeData(fromMonth, toMonth) {
-    const payload = buildSummaryRangePayload({
-      fromMonth,
-      toMonth,
-      selectedDailyCategory,
-      dateRange
-    });
-    const rows = await api.summary.range(payload);
-    setMonthlyRows(rows);
+    try {
+      const payload = buildSummaryRangePayload({
+        fromMonth,
+        toMonth,
+        selectedDailyCategory,
+        dateRange
+      });
+      const rows = await api.summary.range(payload);
+      setMonthlyRows(rows);
+    } catch (error) {
+      logError("loadRangeData", error);
+      setErrorText(error?.message || t.errorLoadFailed || "Failed to load range data");
+    }
   }
 
   async function loadRecurring() {
-    const rows = await api.recurring.list();
-    setRecurringRows(rows);
+    try {
+      const rows = await api.recurring.list();
+      setRecurringRows(rows);
+    } catch (error) {
+      logError("loadRecurring", error);
+      setErrorText(error?.message || t.errorLoadFailed || "Failed to load recurring items");
+    }
   }
 
   async function loadCategories() {
-    const rows = await api.category.list();
-    setCategories(rows);
+    try {
+      const rows = await api.category.list();
+      setCategories(rows);
+    } catch (error) {
+      logError("loadCategories", error);
+      setErrorText(error?.message || t.errorLoadFailed || "Failed to load categories");
+    }
   }
 
   async function loadCurrentMonthSnapshot() {
-    const snapshot = await api.summary.month({ month: currentYYYYMM });
-    setCurrentMonthSnapshot(snapshot);
+    try {
+      const snapshot = await api.summary.month({ month: currentYYYYMM });
+      setCurrentMonthSnapshot(snapshot);
+    } catch (error) {
+      logError("loadCurrentMonthSnapshot", error);
+      setErrorText(error?.message || t.errorLoadFailed || "Failed to load snapshot");
+    }
   }
 
   async function loadHistory() {
-    const rows = await api.history.list({ limit: 200, locale });
-    setHistoryRows(rows);
+    try {
+      const rows = await api.history.list({ limit: 200, locale });
+      setHistoryRows(rows);
+    } catch (error) {
+      logError("loadHistory", error);
+      setErrorText(error?.message || t.errorLoadFailed || "Failed to load history");
+    }
   }
 
   async function onImportCsv(file) {
@@ -179,15 +214,21 @@ export default function App() {
   }
 
   async function refreshAll(month = selectedMonth, nextRange = range) {
-    await Promise.all([
-      loadRecurring(),
-      loadCategories(),
-      loadCurrentMonthSnapshot(),
-      loadHistory(),
-      loadMonthData(month),
-      loadChartMonthSummary(month),
-      loadRangeData(nextRange.fromMonth, nextRange.toMonth)
-    ]);
+    try {
+      await Promise.all([
+        loadRecurring(),
+        loadCategories(),
+        loadCurrentMonthSnapshot(),
+        loadHistory(),
+        loadMonthData(month),
+        loadChartMonthSummary(month),
+        loadRangeData(nextRange.fromMonth, nextRange.toMonth)
+      ]);
+    } catch (error) {
+      // If any part of refresh fails, log and surface a concise message.
+      logError("refreshAll", error);
+      setErrorText(error?.message || t.errorLoadFailed || "Failed to refresh data");
+    }
   }
 
   useEffect(() => {
@@ -243,11 +284,10 @@ export default function App() {
     let disposed = false;
     const currentDesktopUrl = syncDesktopUrl.trim();
 
-    api.sync.serverInfo({ desktopUrl: currentDesktopUrl })
-      .then((info) => {
-        if (disposed) {
-          return;
-        }
+    (async () => {
+      try {
+        const info = await api.sync.serverInfo({ desktopUrl: currentDesktopUrl });
+        if (disposed) return;
 
         if (!info) {
           setSyncServerInfo(null);
@@ -258,12 +298,13 @@ export default function App() {
         if (!currentDesktopUrl && Array.isArray(info.urls) && info.urls.length > 0) {
           setSyncDesktopUrl(info.urls[0]);
         }
-      })
-      .catch(() => {
+      } catch (error) {
         if (!disposed) {
           setSyncServerInfo(null);
+          logError("api.sync.serverInfo", error);
         }
-      });
+      }
+    })();
 
     return () => {
       disposed = true;
@@ -321,7 +362,20 @@ export default function App() {
         String(item.id || '').toLowerCase(),
         {
           icon: item.icon,
-          label: getCategoryName(item.id, locale)
+          label: (function resolveLabel(it) {
+            // Prefer explicit name fields on DB items (created categories)
+            const rawLocale = String(locale || '').toLowerCase();
+            const base = rawLocale.split('-')[0];
+            if (it && typeof it === 'object') {
+              // Prefer Japanese when locale explicitly Japanese; otherwise prefer English.
+              if ((base === 'ja' || rawLocale === 'ja' || rawLocale === 'jp') && it.nameJp) return it.nameJp;
+              if ((base === 'en' || rawLocale === 'en') && it.nameEn) return it.nameEn;
+              if (it.nameEn) return it.nameEn;
+              if (it.nameJp) return it.nameJp;
+            }
+            // built-in fallback to translations map
+            return getCategoryName(it && it.id ? String(it.id).toLowerCase() : it, locale);
+          })(item)
         }
       ])
     );
@@ -354,10 +408,18 @@ export default function App() {
       if (Number(item.isActive) !== 1) continue;
       const key = String(item.id || "").toLowerCase();
       if (!map.has(key)) {
+        const rawLocale = String(locale || '').toLowerCase();
+        const base = rawLocale.split('-')[0];
+        let label = null;
+        if (base === 'jp' || rawLocale === 'ja') {
+          label = item.nameJp || item.nameEn || getCategoryName(key, locale);
+        } else {
+          label = item.nameEn || item.nameJp || getCategoryName(key, locale);
+        }
         map.set(key, {
           id: key,
           icon: item.icon,
-          label: getCategoryName(key, locale)
+          label
         });
       }
     }

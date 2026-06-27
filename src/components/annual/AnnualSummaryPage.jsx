@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { api } from "../../lib/api.js";
 import { formatCurrency } from "../../lib/currency.js";
 import SavingsSimulationPanel from "./SavingsSimulationPanel.jsx";
+import { logError } from "../../lib/logger.js";
 
 function formatDelta(value, currency, rates) {
   const amount = Number(value || 0);
@@ -19,28 +20,40 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
     async function load() {
       const fromMonth = `${year}-01`;
       const toMonth = `${year}-12`;
-      const result = await api.summary.range({ fromMonth, toMonth });
-      setRows(Array.isArray(result) ? result : []);
+      try {
+        const result = await api.summary.range({ fromMonth, toMonth });
+        setRows(Array.isArray(result) ? result : []);
+      } catch (err) {
+        logError("AnnualSummaryPage.load", err);
+        setRows([]);
+      }
     }
     load();
   }, [year]);
+  const safeRows = Array.isArray(rows) ? rows : [];
 
-  const totalBalance = useMemo(() => rows.reduce((sum, row) => sum + Number(row.balance || 0), 0), [rows]);
+  const totalBalance = useMemo(() => safeRows.reduce((sum, row) => sum + Number(row.balance || 0), 0), [safeRows]);
 
   const rowsWithDiff = useMemo(() => {
-    return rows.map((row, index) => {
-      if (index === 0) {
-        return { ...row, diffFromPrevious: null };
-      }
-      const prev = rows[index - 1];
-      return {
-        ...row,
-        diffFromPrevious: Number(row.balance || 0) - Number(prev.balance || 0)
-      };
-    });
-  }, [rows]);
+    try {
+      return safeRows.map((row, index) => {
+        if (index === 0) {
+          return { ...row, diffFromPrevious: null };
+        }
+        const prev = safeRows[index - 1];
+        return {
+          ...row,
+          diffFromPrevious: Number(row.balance || 0) - Number(prev.balance || 0)
+        };
+      });
+    } catch (err) {
+      logError("AnnualSummaryPage.rowsWithDiff", err);
+      return [];
+    }
+  }, [safeRows]);
 
-  return (
+  try {
+    return (
     /* Renders the annual summary page, including a header with the year selector, total balance, and a button to toggle the savings simulation panel. Also displays a list of monthly summaries with income, fee, balance, and difference from the previous month. */
     <section className="chart-dashboard-page">
       <section className="card annual-header-card">
@@ -108,5 +121,13 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
         </section>
       )}
     </section>
-  );
+    );
+  } catch (err) {
+    logError("AnnualSummaryPage.render", err);
+    return (
+      <section className="chart-dashboard-page">
+        <p className="error">{t?.errorUnexpectedMessage || "表示中にエラーが発生しました"}</p>
+      </section>
+    );
+  }
 }
