@@ -34,12 +34,12 @@ body {
 }
 
 .page {
-  /* widen the overall layout to better fit long form rows */
-  max-width: 1800px; /* increased from 1400px to give tables more room */
+  /* slightly narrower layout to reduce sprawling frames */
+  max-width: 980px; /* tightened from 1200 to 980 */
   margin: 0 auto;
-  padding: 28px 20px 56px;
+  padding: 20px 16px 40px;
   display: grid;
-  gap: 16px;
+  gap: 12px;
   animation: rise 420ms ease-out;
 }
 
@@ -107,11 +107,157 @@ html[lang="ru"] .hero p {
 .card {
   backdrop-filter: blur(8px);
   border: 1px solid var(--line);
-  background: var(--card);
-  border-radius: 18px;
-  padding: 20px;
-  box-shadow: 0 14px 24px rgba(6, 36, 60, 0.08);
+  background: linear-gradient(180deg, rgba(24,34,48,0.88), rgba(18,26,40,0.92));
+  border-radius: 14px;
+  padding: 14px; /* reduced padding to compact content */
+  box-shadow: 0 10px 18px rgba(6, 36, 60, 0.07);
 }
+
+.danger-action {
+  background: linear-gradient(180deg, rgba(200,60,60,0.12), rgba(200,60,60,0.08));
+  border: 1px solid rgba(239,68,68,0.18);
+  color: #ffb4aa;
+}
+
+/* Primary / secondary button visual weights */
+.primary-button {
+  background: linear-gradient(180deg, #0f6eb0, #1362a0);
+  color: #fff;
+  border: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(13,72,128,0.18);
+}
+.secondary-button {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+/* Make the two chart panels feel separated */
+.chart-card {
+  background: linear-gradient(180deg, rgba(34,44,60,0.7), rgba(20,28,42,0.7));
+  border-radius: 12px 12px 12px 12px;
+}
+.annual-header-card {
+  margin-top: 8px;
+  border-radius: 12px 12px 16px 16px;
+  box-shadow: 0 18px 36px rgba(6,36,60,0.10);
+}
+
+/* Typography hierarchy tweaks */
+.card h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+.annual-list-head span {
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.daily-list-item strong {
+  font-weight: 600;
+}
+
+/* Small helper list tweaks */
+.list.small-list span {
+  color: #9fb0d0;
+}
+
+/* Balance input grid */
+.balance-grid {
+  display: grid;
+  /* use fixed column widths so controls stay close together */
+  grid-template-columns: 360px 140px 72px;
+  gap: 8px;
+  align-items: center;
+}
+.form-column {
+  display: flex;
+  flex-direction: column;
+}
+.form-label {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+.currency-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.currency-prefix {
+  color: var(--ink-soft);
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+.currency-input {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--input-bg);
+  color: var(--ink);
+  max-width: 100%;
+  font-size: 0.95rem;
+}
+
+/* Limit the visible width of the currency input to avoid very long horizontal stretches */
+.currency-input { max-width: 360px; }
+
+/* Ensure the action column's contents are left-aligned with inputs */
+.form-actions { justify-self: start; }
+
+/* Saved balances area: keep it visually compact inside the card */
+.saved-balances { max-width: 720px; }
+.saved-balances .list.small-list { margin-top: 8px; }
+.month-display {
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.03);
+  color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+/* Table style for saved monthly balances */
+.saved-balances-table {
+  width: 100%;
+  table-layout: auto; /* allow columns to size to content */
+}
+.saved-balances-table thead th {
+  color: var(--ink-soft);
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 6px 10px;
+}
+.saved-balances-table tbody tr {
+  border: 1px solid rgba(255,255,255,0.03);
+  border-radius: 10px;
+}
+.saved-balances-table td {
+  padding: 10px 12px;
+}
+.saved-balances-table td.action-cell {
+  white-space: nowrap; /* keep action buttons on one line */
+}
+.month-input {
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--input-bg);
+  color: var(--ink);
+  width: 120px;
+}
+.negative-note { color: var(--fee); margin-top: 6px; }
+.form-actions { display: flex; align-items: center; }
+.primary-button.compact { padding: 6px 8px; font-size: 0.92rem; }
 
 .toolbar {
   display: grid;
@@ -210,6 +356,65 @@ html[lang="ru"] .hero p {
 
 .chart-month-toolbar input[type="month"] {
   min-width: 120px;
+}
+
+/* Annual header controls: align balance and month selectors */
+.annual-header-card .annual-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-start; /* tighten spacing: keep controls together */
+  flex-wrap: wrap;
+}
+.annual-header-card .current-balance-display {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--ink);
+  min-width: 140px; /* reserve reasonable width but avoid stretching */
+  margin-right: 8px;
+}
+.annual-header-card .current-balance-display .current-balance-amount {
+  font-family: Outfit, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.annual-header-card .month-range-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-left: 0; /* ensure controls sit close to balance */
+}
+.annual-header-card .month-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+.annual-header-card .month-input {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--input-bg);
+  color: var(--ink);
+  width: 160px;
+}
+
+@media (max-width: 720px) {
+  .annual-header-card .annual-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .annual-header-card .month-range-controls {
+    justify-content: flex-start;
+  }
+}
+
+/* Make the chart block full-width and visually separated under controls */
+.annual-header-card .monthly-chart {
+  margin-top: 12px;
+  width: 100%;
 }
 .tab-button {
   flex: 1;

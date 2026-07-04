@@ -11,6 +11,9 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { Pie, Bar } from 'react-chartjs-2';
+// register Chart.js components for react-chartjs-2
+ChartJS.register(ArcElement, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Tooltip, Legend);
 import { formatCurrency } from "../../lib/currency.js";
 import { logError } from "../../lib/logger.js";
 

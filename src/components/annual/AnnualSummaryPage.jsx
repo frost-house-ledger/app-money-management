@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { api } from "../../lib/api.js";
 import { formatCurrency } from "../../lib/currency.js";
 import SavingsSimulationPanel from "./SavingsSimulationPanel.jsx";
@@ -17,6 +17,7 @@ import {
 } from "chart.js";
 
 import { Pie, Bar, Line } from "react-chartjs-2";
+import { buildEntryListPayload } from "../../lib/chartFilterPayloads.js";
 ChartJS.register(ArcElement, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Tooltip, Legend);
 
 
@@ -33,6 +34,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
   const [showSimulation, setShowSimulation] = useState(false);
 
   const [currentBalance, setCurrentBalance] = useState("");
+  const [currentBalanceRaw, setCurrentBalanceRaw] = useState("");
   const [balanceSeries, setBalanceSeries] = useState({ labels: [], data: [] });
   const [simulateMonths, setSimulateMonths] = useState(3);
   const [simulationSeries, setSimulationSeries] = useState({ labels: [], data: [] });
@@ -44,6 +46,51 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
   const [monthlyBalances, setMonthlyBalances] = useState([]);
   const [saveMonth, setSaveMonth] = useState(todayMonth);
   const [baselineKey, setBaselineKey] = useState("current");
+  const [showGridlines, setShowGridlines] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [futureMonthWarning, setFutureMonthWarning] = useState(false);
+  const futureWarningTimerRef = useRef(null);
+
+  // Ensure toMonth is never set beyond today's month — auto-correct if user picks a future month
+  useEffect(() => {
+    try {
+      if (toMonth > todayMonth) {
+        setToMonth(todayMonth);
+      }
+    } catch (e) {
+      /* no-op */
+    }
+  }, [toMonth, todayMonth]);
+
+  useEffect(() => {
+    return () => {
+      if (futureWarningTimerRef.current) {
+        clearTimeout(futureWarningTimerRef.current);
+        futureWarningTimerRef.current = null;
+      }
+    };
+  }, []);
+
+  function handleToMonthChange(e) {
+    try {
+      const v = e.target.value;
+      if (v > todayMonth) {
+        // keep existing auto-correct behaviour but show a short warning to the user
+        setToMonth(todayMonth);
+        setFutureMonthWarning(true);
+        if (futureWarningTimerRef.current) clearTimeout(futureWarningTimerRef.current);
+        futureWarningTimerRef.current = setTimeout(() => {
+          setFutureMonthWarning(false);
+          futureWarningTimerRef.current = null;
+        }, 3000);
+      } else {
+        setToMonth(v);
+      }
+    } catch (err) {
+      // fallback: apply value
+      setToMonth(e.target.value);
+    }
+  }
 
   useEffect(() => {
     async function load() {
@@ -87,6 +134,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
       const key = `analysis:currentBalance`;
       const saved = localStorage.getItem(key);
       if (saved !== null) setCurrentBalance(saved);
+      if (saved !== null) setCurrentBalanceRaw(formatCurrency(Number(saved), selectedCurrency, exchangeRates));
     } catch (e) {
       logError("AnnualSummaryPage.loadCurrentBalance", e);
     }
@@ -96,7 +144,9 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
     async function loadEntriesAndComputeSeries() {
       try {
         // fetch all entries and compute cumulative balance by date up to today
-        const all = await api.entry.list({});
+        // request entries for the current month to satisfy backend validation
+        const payload = buildEntryListPayload({ month: todayMonth, selectedDailyCategory: 'all', dateRange: {} });
+        const all = await api.entry.list(payload);
         const today = new Date().toISOString().slice(0, 10);
         const filtered = Array.isArray(all) ? all.filter((r) => (r.entryDate || "") <= today) : [];
         // aggregate by date
@@ -177,11 +227,15 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
 
   // Load saved monthly balances from localStorage
   useEffect(() => {
+
     try {
       const key = `analysis:monthlyBalances`;
       const raw = localStorage.getItem(key);
       const parsed = raw ? JSON.parse(raw) : [];
-      setMonthlyBalances(Array.isArray(parsed) ? parsed : []);
+      const arr = Array.isArray(parsed) ? parsed.slice() : [];
+      arr.sort((a, b) => String(a.month || "").localeCompare(String(b.month || "")));
+      setMonthlyBalances(arr);
+
     } catch (e) {
       logError("AnnualSummaryPage.loadMonthlyBalances", e);
       setMonthlyBalances([]);
@@ -194,6 +248,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
       const month = saveMonth || todayMonth;
       const bal = Number(currentBalance || 0);
       const next = monthlyBalances.filter((m) => m.month !== month).concat({ month, balance: bal });
+      next.sort((a, b) => String(a.month || "").localeCompare(String(b.month || "")));
       localStorage.setItem(key, JSON.stringify(next));
       setMonthlyBalances(next);
     } catch (e) {
@@ -205,11 +260,22 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
     try {
       const key = `analysis:monthlyBalances`;
       const next = monthlyBalances.filter((m) => m.month !== month);
+      next.sort((a, b) => String(a.month || "").localeCompare(String(b.month || "")));
       localStorage.setItem(key, JSON.stringify(next));
       setMonthlyBalances(next);
       if (baselineKey === month) setBaselineKey("current");
     } catch (e) {
       logError("AnnualSummaryPage.deleteMonthlyBalance", e);
+    }
+  }
+
+  function confirmDeleteMonthlyBalance(month) {
+    try {
+      const ok = window.confirm(`${month} の保存済み残高を削除しますか？`);
+      if (!ok) return;
+      deleteMonthlyBalance(month);
+    } catch (e) {
+      logError('AnnualSummaryPage.confirmDeleteMonthlyBalance', e);
     }
   }
 
@@ -221,36 +287,91 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
       {/* Actual balance input and balance timeline */}
       <section className="card chart-card">
         <h2>実際の残高</h2>
-        <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12 }}>
-          <input
-            type="number"
-            placeholder="現在の残高を入力"
-            value={currentBalance}
-            onChange={(e) => setCurrentBalance(e.target.value)}
-            style={{ padding: 8 }}
-          />
 
-          <label style={{ display: "flex", flexDirection: "column" }}>
-            保存先の月
-            <input type="month" value={saveMonth} onChange={(e) => setSaveMonth(e.target.value)} />
-          </label>
-          <button type="button" className="secondary-button" onClick={saveMonthlyBalance}>月次残高として保存</button>
+        <br />
+
+        <div className="balance-grid" style={{ marginBottom: 12 }}>
+          <div className="form-column">
+            <label className="form-label">金額</label>
+            <div className="currency-input-wrapper">
+              <input
+                className="currency-input"
+                type="text"
+                inputMode="numeric"
+                placeholder="現在の残高を入力"
+                value={currentBalanceRaw}
+                onFocus={() => {
+                  setCurrentBalanceRaw(currentBalance === "" ? "" : String(Number(currentBalance || 0)));
+                }}
+                onChange={(e) => {
+                  const v = String(e.target.value || "").replace(/[¥,\s]/g, "");
+                  if (/^-?\d*\.?\d*$/.test(v)) {
+                    setCurrentBalanceRaw(v);
+                    setCurrentBalance(v === "" ? "" : String(Number(v)));
+                  }
+                }}
+                onBlur={() => {
+                  try { localStorage.setItem('analysis:currentBalance', String(currentBalance || '')); } catch (e) {}
+                  setCurrentBalanceRaw(currentBalance === "" ? "" : formatCurrency(Number(currentBalance || 0), selectedCurrency, exchangeRates));
+                }}
+              />
+            </div>
+            {Number(currentBalance || 0) < 0 && <div className="negative-note">負の値が入力されています</div>}
+          </div>
+
+          <div className="form-column">
+            <label className="form-label">保存先の月</label>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <input className="month-input" type="month" value={saveMonth} onChange={(e) => setSaveMonth(e.target.value)} />
+            </div>
+          </div>
+
+          <div className="form-actions">
+            <button type="button" className="primary-button compact" onClick={saveMonthlyBalance} disabled={saving || currentBalance === "" || Number(currentBalance || 0) !== Number(currentBalance || 0) || Number(currentBalance || 0) < 0}>
+              保存
+            </button>
+          </div>
         </div>
 
-        <div style={{ marginTop: 8 }}>
+        <div style={{ marginTop: 8 }} className="saved-balances">
           <strong>保存した月次残高</strong>
           {monthlyBalances.length === 0 && <div className="subtext">保存されたデータはありません。</div>}
-          <ul className="list small-list">
-            {monthlyBalances.map((m) => (
-              <li key={m.month} style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-                <span>{m.month} — {formatCurrency(Number(m.balance || 0), selectedCurrency, exchangeRates)}</span>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button type="button" className="secondary-button" onClick={() => setBaselineKey(m.month)}>基準にする</button>
-                  <button type="button" className="secondary-button" onClick={() => deleteMonthlyBalance(m.month)}>削除</button>
-                </div>
-              </li>
-            ))}
-          </ul>
+          {monthlyBalances.length > 0 && (
+            <div style={{ marginTop: 8 }}>
+              <table className="app-table">
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left', padding: '8px 12px' }}>月</th>
+                    <th style={{ textAlign: 'left', padding: '8px 12px' }}>残高</th>
+                    <th style={{ textAlign: 'left', padding: '8px 12px' }}>操作</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {monthlyBalances.map((m) => (
+                    <tr key={m.month} style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))', borderRadius: 10 }}>
+                      <td style={{ padding: '12px', verticalAlign: 'middle' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontWeight: 700 }}>{m.month}</span>
+                        </div>
+                      </td>
+                      
+                      <td style={{ textAlign: 'left', padding: '12px', verticalAlign: 'middle' }}>
+                        <span style={{ color: '#9fb0d0', textAlign: 'left' }}>{formatCurrency(Number(m.balance || 0), selectedCurrency, exchangeRates)}</span>
+                      </td>
+
+                      <td className="action-cell" style={{ padding: '12px', verticalAlign: 'middle', textAlign: 'left' }}>
+                        <div style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
+                          <button type="button" className="secondary-button" onClick={() => setBaselineKey(m.month)}>基準にする</button>
+                          <button type="button" className="secondary-button danger-action" onClick={() => confirmDeleteMonthlyBalance(m.month)}>削除</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </section>
 
@@ -259,118 +380,165 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
         <p className="subtext">{t.balanceTrendSubtext}</p>
       
         {/* Current balance display + month-range controls + monthly chart (above simulation button) */}
-        <div style={{ marginTop: 12, marginBottom: 12 }}>
-          <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 8 }}>
-            <div>
-              <strong>現在の残高:</strong> {formatCurrency(Number(currentBalance || 0), selectedCurrency, exchangeRates)}
-            </div>
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <label style={{ display: "flex", flexDirection: "column" }}>
-                開始月
-                <input type="month" value={fromMonth} onChange={(e) => setFromMonth(e.target.value)} />
-              </label>
-              <label style={{ display: "flex", flexDirection: "column" }}>
-                終了月
-                <input
-                  type="month"
-                  value={toMonth}
-                  onChange={(e) => setToMonth(e.target.value > todayMonth ? todayMonth : e.target.value)}
-                />
-              </label>
-            </div>
+        <div className="annual-controls" style={{ marginTop: 12, marginBottom: 12 }}>
+          <div className="current-balance-display">
+            <strong>現在の残高:</strong>
+            <div className="current-balance-amount">{formatCurrency(Number(currentBalance || 0), selectedCurrency, exchangeRates)}</div>
           </div>
 
-          <div style={{ height: 220 }}>
-            {monthlySeries.labels && monthlySeries.labels.length > 0 ? (
-              <Bar
-                data={{
-                  labels: monthlySeries.labels,
-                  datasets: [
-                    {
-                      type: "bar",
-                      label: "月次増減",
-                      data: monthlySeries.netData,
-                      backgroundColor: barColors,
-                      yAxisID: "y",
-                    },
-                    {
-                      type: "line",
-                      label: baselineKey === "current" ? "残高(現在基準)" : `残高(基準: ${baselineKey})`,
-                      data: displayCumulative,
-                      borderColor: "rgb(37,99,235)",
-                      backgroundColor: "transparent",
-                      yAxisID: "y",
-                    },
-                  ],
-                }}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  interaction: { mode: "index", intersect: false },
-                  scales: {
-                    y: { beginAtZero: false },
-                  },
-                }}
+          <div className="month-range-controls">
+            <label className="month-label">
+              開始月
+              <input className="month-input" type="month" value={fromMonth} onChange={(e) => setFromMonth(e.target.value)} />
+            </label>
+
+            <label className="month-label">
+              終了月
+              <input
+                className="month-input"
+                type="month"
+                value={toMonth}
+                onChange={handleToMonthChange}
               />
-            ) : (
-              <div className="subtext">指定した範囲に表示できるデータがありません。</div>
-            )}
+            </label>
           </div>
+
+          {futureMonthWarning && (
+            <div className="subtext" style={{ color: 'var(--fee)', marginTop: 8 }}>
+              未来の月は指定できません。終了月を現在の月に設定しました。
+            </div>
+          )}
+        
+
+        </div>
+
+        <div className="monthly-chart" style={{ height: 220, marginTop: 12 }}>
+          {monthlySeries.labels && monthlySeries.labels.length > 0 ? (
+            <Bar
+              data={{
+                labels: monthlySeries.labels,
+                datasets: [
+                  {
+                    type: "bar",
+                    label: "月次増減",
+                    data: monthlySeries.netData,
+                    backgroundColor: barColors,
+                    yAxisID: "y",
+                  },
+                  {
+                    type: "line",
+                    label: baselineKey === "current" ? "残高(現在基準)" : `残高(基準: ${baselineKey})`,
+                    data: displayCumulative,
+                    borderColor: "rgba(37,99,235,1)",
+                    backgroundColor: "transparent",
+                    pointBackgroundColor: "rgba(37,99,235,1)",
+                    pointBorderColor: "#fff",
+                    tension: 0.15,
+                    yAxisID: "y",
+                  },
+                ],
+              }}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: "index", intersect: false },
+                plugins: {
+                  legend: { position: 'bottom', align: 'start', labels: { usePointStyle: true, boxWidth: 10, color: '#9fb0d0' } },
+                  tooltip: {
+                    callbacks: {
+                      title: (items) => (items && items[0] && items[0].label) || '',
+                      label: (ctx) => {
+                        const v = ctx.parsed && (ctx.parsed.y ?? ctx.parsed);
+                        return formatCurrency(Number(v || 0), selectedCurrency, exchangeRates);
+                      }
+                    }
+                  }
+                },
+                elements: { point: { radius: 2, hoverRadius: 8, hitRadius: 10 } },
+                scales: {
+                  x: { grid: { color: showGridlines ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0)' }, ticks: { color: '#9fb0d0' } },
+                  y: { beginAtZero: false, grid: { color: showGridlines ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0)' }, ticks: { color: '#9fb0d0' } },
+                },
+              }}
+            />
+          ) : (
+            <div className="subtext">指定した範囲に表示できるデータがありません。</div>
+          )}
+        </div>
+
+        <div style={{ marginTop: 8, display: 'flex', gap: 12, alignItems: 'center' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8 }} title={"ラインとバーのコントラストを高めて視認性を向上します。ツールチップで正確な金額を表示します。"}>
+              <input type="checkbox" checked={showGridlines} onChange={(e) => setShowGridlines(Boolean(e.target.checked))} />
+              グリッド線
+            </label>
+            <div style={{ color: '#9fb0d0' }}>（視認性向上）</div>
         </div>
 
       </section>
-        {/* Annual summary when simulation is not shown */}
-        {!showSimulation && (
-          <section className="card">
-            <div className="annual-list-head">
-              <span>{t.monthLabel}</span>
-              <span>{t.summaryIncome}</span>
-              <span>{t.summaryFee}</span>
-              <span>{t.summaryBalance}</span>
-              <span>{t.monthComparisonLabel}</span>
-            </div>
-            <ul className="list annual-list">
-              {rowsWithDiff.map((row) => (
-                <li key={row.month} className="daily-list-item">
-                  <strong>{row.month}</strong>
-                  <span>{formatCurrency(row.income, selectedCurrency, exchangeRates)}</span>
-                  <span>{formatCurrency(row.fee, selectedCurrency, exchangeRates)}</span>
-                  <span>{formatCurrency(row.balance, selectedCurrency, exchangeRates)}</span>
-                  <span
-                    className={
-                      row.diffFromPrevious == null
-                        ? "month-diff"
-                        : row.diffFromPrevious >= 0
-                          ? "month-diff positive"
-                          : "month-diff negative"
-                    }
-                  >
-                    {row.diffFromPrevious == null ? "-" : formatDelta(row.diffFromPrevious, selectedCurrency, exchangeRates)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
 
-        {/* Simulation button */}
-        <button
-          type="button"
-          className={`secondary-button savings-sim-toggle ${showSimulation ? "active" : ""}`}
-          onClick={() => setShowSimulation((v) => !v)}
-        >
-          {t.savingsSimButtonLabel}
-        </button>
+      {/* Annual summary when simulation is not shown */}
+      {!showSimulation && (
+        <section className="card">
+          <div className="annual-list-head">
+            <span>{t.monthLabel}</span>
+            <span>{t.summaryIncome}</span>
+            <span>{t.summaryFee}</span>
+            <span>{t.summaryBalance}</span>
+            <span>{t.monthComparisonLabel}</span>
+          </div>
+          <ul className="list annual-list">
+            {rowsWithDiff.map((row) => (
+              <li key={row.month} className="daily-list-item">
+                <strong>{row.month}</strong>
+                <span>{formatCurrency(row.income, selectedCurrency, exchangeRates)}</span>
+                <span>{formatCurrency(row.fee, selectedCurrency, exchangeRates)}</span>
+                <span>{formatCurrency(row.balance, selectedCurrency, exchangeRates)}</span>
+                <span
+                  className={
+                    row.diffFromPrevious == null
+                      ? "month-diff"
+                      : row.diffFromPrevious >= 0
+                        ? "month-diff positive"
+                        : "month-diff negative"
+                  }
+                >
+                  {row.diffFromPrevious == null ? "-" : formatDelta(row.diffFromPrevious, selectedCurrency, exchangeRates)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
-        {/* Simulation panel */}
-        {showSimulation && (
+      {/* Simulation button / panel toggle */}
+      {showSimulation ? (
+        <>
           <SavingsSimulationPanel
             annualRows={rows}
             selectedCurrency={selectedCurrency}
             exchangeRates={exchangeRates}
             t={t}
           />
-        )}
+
+          <button
+            type="button"
+            className={`secondary-button savings-sim-toggle inactive`}
+            onClick={() => setShowSimulation(false)}
+          >
+            シミュレーション解除
+          </button>
+        </>
+      ) : (
+        <>
+          <button
+            type="button"
+            className={`secondary-button savings-sim-toggle ${showSimulation ? "active" : ""}`}
+            onClick={() => setShowSimulation((v) => !v)}
+          >
+            {t.savingsSimButtonLabel}
+          </button>
+        </>
+      )}
     </section>
     );
   } catch (err) {
