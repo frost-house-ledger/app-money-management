@@ -196,6 +196,8 @@ export default function DailySection({
         />
       </label>
 
+      <br />
+
       <button type="submit">
         {editingDailyId ? t.updateDailyButton : t.saveDailyButton}
       </button>
@@ -293,6 +295,20 @@ export function DailyListSection({
     }
   }
 
+  function openFullPageEditor(initial) {
+    try {
+      const draft = { id: inlineEditId, ...initial };
+      try { sessionStorage.setItem('dailyEditDraft', JSON.stringify(draft)); } catch (e) { /* ignore */ }
+      const id = inlineEditId || '';
+      const url = `${window.location.pathname}#/daily/edit${id ? `?id=${encodeURIComponent(id)}` : ''}`;
+      // navigate in the same tab to keep the app DOM (and jeep-sqlite element) available
+      window.location.hash = `/daily/edit${id ? `?id=${encodeURIComponent(id)}` : ''}`;
+    } catch (error) {
+      logError('DailyListSection.openFullPageEditor', error);
+      setInlineError(t.errorDailyOpenEditor || 'Failed to open editor');
+    }
+  }
+
   function cancelPendingDelete(id) {
     const timerId = pendingDeleteTimersRef.current.get(id);
     if (timerId) {
@@ -350,142 +366,46 @@ export function DailyListSection({
     <article className="card">
       <h2>{dailyTitle}</h2>
       {inlineError && <p className="error">{inlineError}</p>}
-      <ul className="list daily-list">
-        {dailyRows.map((row) => {
-          const isPendingDelete = pendingDeleteIds.includes(row.id);
-          return (
-          <li
-            key={`daily-${row.id}`}
-            className={`daily-list-item ${inlineEditId === row.id ? "daily-list-item--editing" : ""} ${isPendingDelete ? "daily-list-item--pending-delete" : ""}`}
-          >
-            {inlineEditId === row.id ? (
-              <>
-                <label>
-                  <input
-                    type="date"
-                    value={inlineForm.entryDate}
-                    onChange={(e) => setInlineForm((current) => ({ ...current, entryDate: e.target.value }))}
-                  />
-                </label>
-                <label>
-                  <select
-                    value={inlineForm.type}
-                    onChange={(e) => {
-                      const nextType = e.target.value;
-                      setInlineForm((current) => ({
-                        ...current,
-                          type: nextType,
-                          categoryId: nextType === "fee" ? current.categoryId || dailyCategoryOptions[0]?.id || "food" : ""
-                      }));
-                    }}
-                  >
-                    <option value="fee">{t.typeFee}</option>
-                    <option value="income">{t.typeIncome}</option>
-                  </select>
-                </label>
-                <label>
-                  <select
-                    value={inlineForm.categoryId || ""}
-                    onChange={(e) => setInlineForm((current) => ({ ...current, categoryId: e.target.value }))}
-                    disabled={inlineForm.type !== "fee"}
-                  >
-                    {dailyCategoryOptions.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.icon || "🍽️"} {category.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  <input
-                    type="text"
-                    value={inlineForm.title}
-                    onChange={(e) => setInlineForm((current) => ({ ...current, title: e.target.value }))}
-                    placeholder={t.dailyTitlePlaceholder}
-                  />
-                </label>
-                <label>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={formatNumericInput(inlineForm.amount)}
-                    onChange={(e) =>
-                      setInlineForm((current) => ({ ...current, amount: sanitizeNumericInput(e.target.value) }))
-                    }
-                    placeholder={t.dailyAmountPlaceholder}
-                  />
-                </label>
-                <label>
-                  <input
-                    type="text"
-                    value={inlineForm.note}
-                    onChange={(e) => setInlineForm((current) => ({ ...current, note: e.target.value }))}
-                    placeholder={t.dailyNotePlaceholder}
-                  />
-                </label>
-                <span className="daily-row-actions">
-                  <button
-                    type="button"
-                    className="inline-action"
-                    onClick={submitInlineEdit}
-                    disabled={isSaving}
-                  >
-                    {t.updateDailyButton}
-                  </button>
-                  <button
-                    type="button"
-                    className="inline-action"
-                    onClick={cancelInlineEdit}
-                    disabled={isSaving}
-                  >
-                    {t.cancelEditButton}
-                  </button>
-                </span>
-              </>
-            ) : (
-              <>
-                <strong>{row.entryDate}</strong>
-                <span>{row.type}</span>
-                <span>
-                  {row.categoryDisplay ? `${row.categoryIcon || "🍽️"} ${row.categoryDisplay}` : "-"}
-                </span>
-                <span>{row.title}</span>
-                <span>{formatCurrency(row.amount, selectedCurrency, exchangeRates)}</span>
-                <span>{row.note || "-"}</span>
-                <span className="daily-row-actions">
-                  {isPendingDelete ? (
-                    <button
-                      type="button"
-                      className="inline-action"
-                      onClick={() => cancelPendingDelete(row.id)}
-                    >
-                      {t.restoreButton}
-                    </button>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        className="inline-action"
-                        onClick={() => startInlineEdit(row)}
-                      >
-                        {t.editDailyButton}
-                      </button>
-                      <button
-                        type="button"
-                        className="inline-action danger-action"
-                        onClick={() => requestDelete(row.id)}
-                      >
-                        {t.deleteButton}
-                      </button>
-                    </>
-                  )}
-                </span>
-              </>
-            )}
-          </li>
-          );
-        })}
-      </ul>
+      <table className="app-table daily-table">
+        <thead>
+          <tr>
+            <th>{t.actionsLabel || "Actions"}</th>
+            <th>{t.dateLabel}</th>
+            <th>{t.typeLabel}</th>
+            <th>{t.categoryLabel}</th>
+            <th>{t.titleLabel}</th>
+            <th style={{ textAlign: 'right' }}>{t.amountLabel}</th>
+            <th>{t.noteLabel}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {dailyRows.map((row) => {
+            const isPendingDelete = pendingDeleteIds.includes(row.id);
+            return (
+              <tr key={`daily-${row.id}`} className={`${inlineEditId === row.id ? 'daily-list-item--editing' : ''} ${isPendingDelete ? 'daily-list-item--pending-delete' : ''}`}>
+                <>
+                  <td style={{ whiteSpace: 'nowrap' }}>
+                    {isPendingDelete ? (
+                      <button type="button" className="inline-action" onClick={() => cancelPendingDelete(row.id)}>{t.restoreButton}</button>
+                    ) : (
+                      <>
+                        <button type="button" className="inline-action" onClick={() => openFullPageEditor(row)}>{t.editDailyButton}</button>
+                        <button type="button" className="inline-action danger-action" onClick={() => requestDelete(row.id)}>{t.deleteButton}</button>
+                      </>
+                    )}
+                  </td>
+                  <td><strong>{row.entryDate}</strong></td>
+                  <td>{row.type}</td>
+                  <td>{row.categoryDisplay ? `${row.categoryIcon || '🍽️'} ${row.categoryDisplay}` : '-'}</td>
+                  <td>{row.title}</td>
+                  <td style={{ textAlign: 'right' }}>{formatCurrency(row.amount, selectedCurrency, exchangeRates)}</td>
+                  <td>{row.note || '-'}</td>
+                </>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
       {(dailyRows.length > 0 || (filteredRecurring && filteredRecurring.length > 0)) && (
         <div className="daily-totals">
           {totalFee > 0 && (

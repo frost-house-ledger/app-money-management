@@ -34,12 +34,18 @@ body {
 }
 
 .page {
-  max-width: 1200px;
+  /* widen the overall layout to better fit long form rows */
+  max-width: 1800px; /* increased from 1400px to give tables more room */
   margin: 0 auto;
   padding: 28px 20px 56px;
   display: grid;
   gap: 16px;
   animation: rise 420ms ease-out;
+}
+
+/* Full-page editor wrapper: give inner editor more breathing room */
+.page.full-editor > div {
+  padding: 28px;
 }
 
 @keyframes rise {
@@ -103,7 +109,7 @@ html[lang="ru"] .hero p {
   border: 1px solid var(--line);
   background: var(--card);
   border-radius: 18px;
-  padding: 14px;
+  padding: 20px;
   box-shadow: 0 14px 24px rgba(6, 36, 60, 0.08);
 }
 
@@ -223,9 +229,10 @@ html[lang="ru"] .hero p {
 
 label {
   display: grid;
-  gap: 4px;
+  gap: 6px;
   color: var(--ink-soft);
   font-size: 0.92rem;
+  margin-bottom: 12px;
 }
 
 input,
@@ -299,7 +306,8 @@ button {
 .lists-grid {
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  /* increase minimum column width to give forms more horizontal room */
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
 }
 
 .subtext {
@@ -327,7 +335,67 @@ button {
 }
 
 .recurring-list-item {
-  grid-template-columns: 96px 96px 92px minmax(150px, 1fr) minmax(220px, 2fr) 130px minmax(150px, auto);
+  /* flexible layout: reserve fixed space for date/type columns, then use flexible columns
+     for title and amount; final column (actions) uses auto so buttons don't push layout */
+  grid-template-columns: 110px 110px 100px 100px minmax(140px, 1fr) 36px minmax(160px, 1.6fr) 120px auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.recurring-list-head {
+  display: grid;
+  gap: 8px;
+  align-items: center;
+  color: var(--ink-soft);
+  font-weight: 700;
+  margin-bottom: 8px;
+  grid-template-columns: 110px 110px 100px 100px minmax(140px, 1fr) 36px minmax(160px, 1.6fr) 120px auto;
+}
+
+.recurring-item-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start; /* left aligned per request */
+  padding-top: 8px;
+}
+
+.recurring-item-title {
+  grid-column: 1 / -1;
+  padding-top: 6px;
+  white-space: normal; /* allow wrapping so full width is usable */
+  overflow: visible;
+}
+
+.recurring-item-title span,
+.recurring-item-title input {
+  display: block;
+  width: 100%;
+}
+
+/* Allow grid children to shrink so inputs/selects don't overflow the row */
+.recurring-list-item > *,
+.recurring-list-item--editing > *,
+.recurring-list-head > * {
+  min-width: 0;
+}
+
+/* Truncate long text labels inside static rows but keep inputs full-width when editing */
+.recurring-list-item > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recurring-list-item--editing input,
+.recurring-list-item--editing select {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* If the whole list is wider than the container, allow horizontal scroll instead of overflowing layout */
+.recurring-list {
+  overflow-x: auto;
 }
 
 .daily-list-item {
@@ -335,7 +403,10 @@ button {
 }
 
 .recurring-list-item--editing {
-  grid-template-columns: 96px 96px 100px minmax(180px, 1.2fr) minmax(240px, 2fr) 140px minmax(170px, auto);
+  /* editing layout: keep same logical columns but allow inputs to shrink when needed */
+  grid-template-columns: 110px 110px 100px 100px minmax(120px, 1fr) 36px minmax(140px, 1.6fr) 120px auto;
+  align-items: center;
+  gap: 8px;
 }
 
 .daily-list-item--editing {
@@ -347,6 +418,11 @@ button {
 .daily-list-item--editing input,
 .daily-list-item--editing select {
   width: 100%;
+}
+
+/* place action buttons at end of their grid cell so they remain visible */
+.daily-row-actions {
+  justify-self: end;
 }
 
 .daily-list-item > * {
@@ -451,6 +527,69 @@ button {
 .app-table td:nth-child(2) { width: 18%; text-align: center; }
 .app-table td:nth-child(3) { width: 18%; text-align: center; }
 .app-table td:nth-child(4) { width: 30%; }
+
+/* Make recurring tables stretch edge-to-edge inside their card container. */
+.recurring-table {
+  /* card padding is 14px — expand table to cover that padding for a full-bleed look */
+  width: calc(100% + 28px);
+  margin: 0 -14px 8px;
+  /* Use fixed table layout to prevent columns from reflowing when inputs appear */
+  table-layout: fixed;
+}
+
+.recurring-table thead th,
+.recurring-table td {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* Prevent category column from collapsing: keep icon+label on one line and ellipsize if too long */
+.recurring-table th:nth-child(6),
+.recurring-table td:nth-child(6) {
+  width: 140px;
+  min-width: 120px;
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+
+/* Ensure title column gets flexible room while amount stays right-aligned */
+.recurring-table th:nth-child(7),
+.recurring-table td:nth-child(7) {
+  min-width: 180px;
+}
+
+.recurring-table td .category-cell {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* Fix column widths to avoid layout jumps when inputs render */
+.recurring-table th:nth-child(1), .recurring-table td:nth-child(1) { width: 12%; }
+.recurring-table th:nth-child(2), .recurring-table td:nth-child(2) { width: 12%; }
+.recurring-table th:nth-child(3), .recurring-table td:nth-child(3) { width: 12%; }
+.recurring-table th:nth-child(4), .recurring-table td:nth-child(4) { width: 8%; }
+.recurring-table th:nth-child(5), .recurring-table td:nth-child(5) { width: 8%; }
+.recurring-table th:nth-child(6), .recurring-table td:nth-child(6) { width: 12%; }
+.recurring-table th:nth-child(7), .recurring-table td:nth-child(7) { width: 30%; }
+.recurring-table th:nth-child(8), .recurring-table td:nth-child(8) { width: 8%; }
+
+/* Ensure inputs/selects inside table cells don't expand beyond cell */
+.recurring-table input,
+.recurring-table select,
+.recurring-table textarea {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Keep action buttons from wrapping and overflowing their cell */
+.recurring-table td:first-child .inline-action {
+  white-space: nowrap;
+}
 
 .category-target-input {
   width: 100%;
@@ -621,6 +760,22 @@ button {
 .inline-action {
   padding: 6px 10px;
   white-space: nowrap;
+}
+
+/* Prevent very long action labels (e.g. "編集をキャンセル") from overflowing */
+.recurring-table td:first-child .inline-action {
+  display: inline-block;
+  max-width: 110px; /* adjust as needed */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 6px 8px;
+  font-size: 0.9rem;
+}
+
+/* Keep some spacing between multiple action buttons */
+.recurring-table td:first-child .inline-action + .inline-action {
+  margin-left: 6px;
 }
 
 .category-manager-header {

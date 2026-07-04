@@ -6,14 +6,13 @@ import {
   CategoryScale,
   LinearScale,
   BarElement,
+  LineElement,
+  PointElement,
   Tooltip,
   Legend,
 } from "chart.js";
-import { Pie, Bar } from "react-chartjs-2";
 import { formatCurrency } from "../../lib/currency.js";
 import { logError } from "../../lib/logger.js";
-
-ChartJS.register(ArcElement, CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
 const COLORS = ["#f97f69", "#2fbc9d", "#4f86c6", "#f4b942", "#b892ff", "#6bc1a7", "#f28c8c"];
 

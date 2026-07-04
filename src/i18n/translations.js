@@ -110,8 +110,13 @@ export const TRANSLATIONS = {
   recurringEndMonthLabel: { jp: "終了月", en: "End month", de: "Endmonat", es: "Mes de finalización", pt: "Mês de término", it: "Mese di fine", fr: "Mois de fin", ru: "Месяц окончания", tw: "結束月份", ko: "종료 월", ar: "شهر الانتهاء" },
   recurringExpiredLabel: { jp: "終了月を超過した固定項目です", en: "Recurring item has passed its end month", de: "Fixposten hat den Endmonat ueberschritten", es: "El elemento recurrente ha pasado su mes de finalización", pt: "O item recorrente passou do mês de término", it: "La voce ricorrente ha superato il mese di fine", fr: "L'élément récurrent a dépassé son mois de fin", ru: "Повторяющийся элемент превысил месяц окончания", tw: "已超過結束月份的固定項目", ko: "종료 월을 초과한 반복 항목입니다", ar: "البند المتكرر تجاوز شهر الانتهاء" },
 
+  frequencyLabel: { jp: "周期", en: "Frequency", de: "Frequenz", es: "Frecuencia", pt: "Frequência", it: "Frequenza", fr: "Fréquence", ru: "Частота", tw: "週期", ko: "주기", ar: "التردد" },
+  frequencyMonthly: { jp: "月次", en: "Monthly", de: "Monatlich", es: "Mensual", pt: "Mensal", it: "Mensile", fr: "Mensuel", ru: "Ежемесячно", tw: "月次", ko: "월별", ar: "شهري" },
+  frequencyAnnual: { jp: "年次", en: "Annual", de: "Jaehrlich", es: "Anual", pt: "Anual", it: "Annuale", fr: "Annuel", ru: "Ежегодно", tw: "年次", ko: "연간", ar: "سنوي" },
+  actionsLabel: { jp: "操作", en: "Actions", de: "Aktionen", es: "Acciones", pt: "Ações", it: "Azioni", fr: "Actions", ru: "Действия", tw: "操作", ko: "동작", ar: "الإجراءات" },
+
   saveRecurringButton: { jp: "固定項目を保存", en: "Save recurring item", de: "Fixposten speichern", es: "Guardar ítem recurrente", pt: "Salvar item recorrente", it: "Salva voce ricorrente", fr: "Enregistrer l'élément récurrent", ru: "Сохранить повторяющийся элемент", tw: "儲存固定項目", ko: "반복 항목 저장", ar: "حفظ البند المتكرر" },
-  updateRecurringButton: { jp: "固定項目を更新", en: "Update recurring item", de: "Fixposten aktualisieren", es: "Actualizar ítem recurrente", pt: "Atualizar item recorrente", it: "Aggiorna voce ricorrente", fr: "Mettre à jour l'élément récurrent", ru: "Обновить повторяющийся элемент", tw: "更新固定項目", ko: "반복 항목 업데이트", ar: "تحديث البند المتكرر" },
+  updateRecurringButton: { jp: "更新", en: "Update", de: "Aktualisieren", es: "Actualizar ítem recurrente", pt: "Atualizar item recorrente", it: "Aggiorna voce ricorrente", fr: "Mettre à jour l'élément récurrent", ru: "Обновить повторяющийся элемент", tw: "更新固定項目", ko: "반복 항목 업데이트", ar: "تحديث البند المتكرر" },
   deleteRecurringButton: { jp: "削除", en: "Delete", de: "Loeschen", es: "Eliminar", pt: "Excluir", it: "Elimina", fr: "Supprimer", ru: "Удалить", tw: "刪除", ko: "삭제", ar: "حذف" },
 
   typeLabel: { jp: "種別", en: "Type", de: "Typ", es: "Tipo", pt: "Tipo", it: "Tipo", fr: "Type", ru: "Тип", tw: "類型", ko: "종류", ar: "النوع" },
@@ -121,7 +126,7 @@ export const TRANSLATIONS = {
   recurringTitlePlaceholder: { jp: "家賃 / 給与", en: "Rent / Salary", de: "Miete / Gehalt", es: "Alquiler / Salario", pt: "Aluguel / Salário", it: "Affitto / Stipendio", fr: "Loyer / Salaire", ru: "Аренда / Зарплата", tw: "房租 / 薪水", ko: "임대료 / 급여", ar: "إيجار / راتب" },
   amountLabel: { jp: "金額", en: "Amount", de: "Betrag", es: "Cantidad", pt: "Valor", it: "Importo", fr: "Montant", ru: "Сумма", tw: "金額", ko: "금액", ar: "المبلغ" },
 
-  cancelEditButton: { jp: "編集をキャンセル", en: "Cancel edit", de: "Bearbeitung abbrechen", es: "Cancelar edición", pt: "Cancelar edição", it: "Annulla modifica", fr: "Annuler la modification", ru: "Отменить редактирование", tw: "取消編輯", ko: "편집 취소", ar: "إلغاء التعديل" },
+  cancelEditButton: { jp: "キャンセル", en: "Cancel", de: "Abbrechen", es: "Cancelar", pt: "Cancelar", it: "Annulla modifica", fr: "Annuler la modification", ru: "Отменить редактирование", tw: "取消編輯", ko: "편집 취소", ar: "إلغاء التعديل" },
   editRecurringButton: { jp: "編集", en: "Edit", de: "Bearbeiten", es: "Editar", pt: "Editar", it: "Modifica", fr: "Éditer", ru: "Редактировать", tw: "編輯", ko: "편집", ar: "تعديل" },
 
   // -------------------------
@@ -399,19 +404,19 @@ export const TRANSLATIONS = {
   categoryRatioChartTitle: { jp: "カテゴリ割合", en: "Category ratio", de: "Kategorieanteil", es: "Proporción por categoría", pt: "Proporção por categoria", it: "Rapporto per categoria", fr: "Répartition par catégorie", ru: "Доля по категориям", tw: "分類比例", ko: "카테고리 비율", ar: "نسبة الفئة" },
   categoryTrendChartTitle: { jp: "カテゴリ推移", en: "Category trend", de: "Kategorietrend", es: "Tendencia por categoría", pt: "Tendência por categoria", it: "Trend per categoria", fr: "Tendance par catégorie", ru: "Тенденция по категориям", tw: "分類趨勢", ko: "카테고리 추세", ar: "اتجاه الفئة" },
   monthlyTargetLabel: { jp: "月間目標", en: "Monthly target", de: "Monatliches Ziel", es: "Objetivo mensual", pt: "Meta mensal", it: "Obiettivo mensile", fr: "Objectif mensuel", ru: "Ежемесячная цель", tw: "月目標", ko: "월간 목표", ar: "الهدف الشهري" },
-  annualSummaryTitle: { jp: "年間サマリー", en: "Annual summary", de: "Jahresuebersicht", es: "Resumen anual", pt: "Resumo anual", it: "Riepilogo annuale", fr: "Résumé annuel", ru: "Годовой отчет", tw: "年度摘要", ko: "연간 요약", ar: "الملخص السنوي" },
-  annualSummarySubtext: {
-    jp: "月ごとの収支を年間で確認できます。",
-    en: "Review month-by-month balances across the year.",
-    de: "Monatliche Salden ueber das Jahr hinweg anzeigen.",
-    es: "Revise los saldos mes a mes a lo largo del año.",
-    pt: "Revise os saldos mês a mês ao longo do ano.",
-    it: "Rivedi i saldi mese per mese durante l'anno.",
-    fr: "Passez en revue les soldes mois par mois sur l'année.",
-    ru: "Просмотрите помесячные остатки за год.",
-    tw: "查看整年逐月的收支餘額。",
-    ko: "연도별 월별 잔액을 검토하세요.",
-    ar: "راجع الأرصدة شهرًا بشهر عبر السنة."
+  balanceTrendTitle: { jp: "残高推移グラフ", en: "Balance trend graph", de: "Saldoentwicklung", es: "Gráfico de tendencia de saldo", pt: "Gráfico de tendência de saldo", it: "Grafico dell'andamento del saldo", fr: "Graphique de tendance du solde", ru: "График изменения баланса", tw: "餘額趨勢圖", ko: "잔액 추세 그래프", ar: "رسم بياني لاتجاه الرصيد" },
+  balanceTrendSubtext: {
+    jp: "月別残高を確認できます。",
+    en: "View monthly balances over the year.",
+    de: "Sehen Sie sich die monatlichen Salden im Jahresverlauf an.",
+    es: "Vea los saldos mensuales a lo largo del año.",
+    pt: "Veja os saldos mensais ao longo do ano.",
+    it: "Visualizza i saldi mensili nel corso dell'anno.",
+    fr: "Consultez les soldes mensuels sur l'année.",
+    ru: "Просмотрите ежемесячные остатки за год.",
+    tw: "檢視年度每月餘額。",
+    ko: "연간 월별 잔액을 확인하세요.",
+    ar: "عرض الأرصدة الشهرية على مدار العام."
   },
   yearLabel: { jp: "年", en: "Year", de: "Jahr", es: "Año", pt: "Ano", it: "Anno", fr: "Année", ru: "Год", tw: "年", ko: "년도", ar: "السنة" },
   annualTotalBalanceLabel: { jp: "年間収支", en: "Annual balance", de: "Jahressaldo", es: "Balance anual", pt: "Saldo anual", it: "Saldo annuo", fr: "Solde annuel", ru: "Годовой баланс", tw: "年度收支", ko: "연간 잔액", ar: "الرصيد السنوي" },

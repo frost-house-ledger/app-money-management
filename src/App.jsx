@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import ChartDashboardPage from "./components/chart/ChartDashboardPage.jsx";
 import MonthlyEntryPage from "./components/monthly/MonthlyEntryPage.jsx";
 import DailyEntryPage from "./components/daily/DailyEntryPage.jsx";
+import DailyFullEditor from "./components/daily/DailyFullEditor.jsx";
+import MonthlyFullEditor from "./components/monthly/MonthlyFullEditor.jsx";
 import HistoryPage from "./components/history/HistoryPage.jsx";
 import SettingsPage from "./components/settings/SettingsPage.jsx";
 import CategoryAnalysisPage from "./components/analysis/CategoryAnalysisPage.jsx";
@@ -63,6 +65,7 @@ export default function App() {
     categoryId: "food",
     title: "",
     amount: "",
+    note: "",
     startMonth: baseMonth,
     endMonth: "",
     isSalary: false
@@ -82,6 +85,8 @@ export default function App() {
   const [editingRecurringId, setEditingRecurringId] = useState(null);
   const [editingDailyId, setEditingDailyId] = useState(null);
   const t = useMemo(() => getMessages(locale), [locale]);
+  const [route, setRoute] = useState(null);
+  const [routeParams, setRouteParams] = useState({});
   useEffect(() => {
     const raw = (locale || "").toLowerCase();
     const base = raw.split('-')[0] || 'en';
@@ -233,6 +238,40 @@ export default function App() {
 
   useEffect(() => {
     refreshAll();
+  }, []);
+
+  // Simple hash-based routing support. Supports: #/daily/edit?id=<id>
+  useEffect(() => {
+    function parseHash() {
+      try {
+        const h = (window.location.hash || "").trim();
+        if (h.startsWith('#/daily/edit')) {
+          // extract query string
+          const parts = h.split('?');
+          const q = parts[1] || '';
+          const params = new URLSearchParams(q);
+          setRoute('daily-edit');
+          setRouteParams({ id: params.get('id') });
+          return;
+        }
+        if (h.startsWith('#/monthly/edit')) {
+          const parts = h.split('?');
+          const q = parts[1] || '';
+          const params = new URLSearchParams(q);
+          setRoute('monthly-edit');
+          setRouteParams({ id: params.get('id') });
+          return;
+        }
+        setRoute(null);
+        setRouteParams({});
+      } catch (e) {
+        setRoute(null);
+        setRouteParams({});
+      }
+    }
+    parseHash();
+    window.addEventListener('hashchange', parseHash);
+    return () => window.removeEventListener('hashchange', parseHash);
   }, []);
 
   useEffect(() => {
@@ -516,6 +555,7 @@ export default function App() {
         categoryId: "food",
         title: "",
         amount: "",
+        note: "",
         startMonth: baseMonth,
         endMonth: ""
       }));
@@ -534,6 +574,7 @@ export default function App() {
       categoryId: item.categoryId || "food",
       title: item.title,
       amount: formatBaseAmountForInput(item.amount, selectedCurrency, exchangeRates),
+      note: item.note || "",
       startMonth: item.startMonth,
       endMonth: item.endMonth || ""
       ,
@@ -548,6 +589,7 @@ export default function App() {
       categoryId: "food",
       title: "",
       amount: "",
+      note: "",
       startMonth: baseMonth,
       endMonth: ""
     });
@@ -682,6 +724,89 @@ export default function App() {
     } catch (error) {
       setErrorText(error.message || t.errorDailyDeleteFailed);
     }
+  }
+
+  // Prepare editor initial data and category options for the full-page editor route
+  const editorInitial = (() => {
+    try {
+      const draft = sessionStorage.getItem('dailyEditDraft');
+      if (draft) return JSON.parse(draft);
+    } catch (e) {
+      // ignore
+    }
+    const id = routeParams.id;
+    if (id) {
+      const found = dailyRows.find((r) => String(r.id) === String(id));
+      if (found) return found;
+      return { id };
+    }
+    return {};
+  })();
+
+  const editorInitialMonthly = (() => {
+    try {
+      const draft = sessionStorage.getItem('monthlyEditDraft');
+      if (draft) return JSON.parse(draft);
+    } catch (e) {
+      // ignore
+    }
+    const id = routeParams.id;
+    if (id) {
+      const found = recurringRows.find((r) => String(r.id) === String(id));
+      if (found) return found;
+      return { id };
+    }
+    return {};
+  })();
+
+  const editorCategoryOptions = (categories || [])
+    .filter((item) => Number(item.isActive) === 1)
+    .map((item) => ({ id: item.id, label: getCategoryName(item.id, locale), icon: item.icon }));
+
+  if (route === 'daily-edit') {
+    return (
+      <div className="page full-editor">
+        <DailyFullEditor
+          initial={editorInitial}
+          categoryOptions={editorCategoryOptions}
+          onSave={async (data) => {
+            try {
+              await onUpdateDailyInline(data);
+              try { sessionStorage.removeItem('dailyEditDraft'); } catch (e) {}
+              window.location.hash = '';
+              setRoute(null);
+            } catch (e) {
+              throw e;
+            }
+          }}
+          onCancel={() => { window.location.hash = ''; setRoute(null); }}
+          t={t}
+        />
+      </div>
+    );
+  }
+
+  if (route === 'monthly-edit') {
+    return (
+      <div className="page full-editor">
+        <MonthlyFullEditor
+          initial={editorInitialMonthly}
+          categoryOptions={editorCategoryOptions}
+          onSave={async (data) => {
+            try {
+              await onUpdateRecurringInline(data);
+              try { sessionStorage.removeItem('monthlyEditDraft'); } catch (e) {}
+              window.location.hash = '';
+              setRoute(null);
+            } catch (e) {
+              throw e;
+            }
+          }}
+          onCancel={() => { window.location.hash = ''; setRoute(null); }}
+          t={t}
+        />
+      </div>
+    );
   }
 
   return (
