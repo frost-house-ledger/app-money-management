@@ -279,291 +279,206 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
     }
   }
 
+  // Derived net-series for the monthly summary (labels, per-month net, cumulative net)
+  const rowsNetSeries = useMemo(() => {
+    try {
+      const labels = (rowsWithDiff || []).map((r) => r.month || "");
+      const net = (rowsWithDiff || []).map((r) => Number(r.income || 0) - Number(r.fee || 0));
+      const cumulative = [];
+      let running = 0;
+      for (const n of net) {
+        running += n;
+        cumulative.push(running);
+      }
+      return { labels, net, cumulative };
+    } catch (e) {
+      logError('AnnualSummaryPage.rowsNetSeries', e);
+      return { labels: [], net: [], cumulative: [] };
+    }
+  }, [rowsWithDiff]);
+
+  const cumulativeNetDisplay = Array.isArray(rowsNetSeries.cumulative) ? rowsNetSeries.cumulative : [];
+
   try {
     return (
     /* Renders the annual summary page, including a header with the year selector, total balance, and a button to toggle the savings simulation panel. Also displays a list of monthly summaries with income, fee, balance, and difference from the previous month. */
     <section className="chart-dashboard-page">
 
-      {/* Actual balance input and balance timeline */}
-      <section className="card chart-card">
-        <h2>実際の残高</h2>
-
-        <br />
-
-        <div className="balance-grid" style={{ marginBottom: 12 }}>
-          <div className="form-column">
-            <label className="form-label">金額</label>
-            <div className="currency-input-wrapper">
-              <input
-                className="currency-input"
-                type="text"
-                inputMode="numeric"
-                placeholder="現在の残高を入力"
-                value={currentBalanceRaw}
-                tabIndex={0}
-                onClick={(e) => {
-                  try {
-                    const val = currentBalance === "" ? "" : String(Number(currentBalance || 0));
-                    setCurrentBalanceRaw(val);
-                    if (e && e.currentTarget && typeof e.currentTarget.focus === 'function') e.currentTarget.focus();
-                  } catch (err) {}
-                }}
-                onFocus={() => {
-                  setCurrentBalanceRaw(currentBalance === "" ? "" : String(Number(currentBalance || 0)));
-                }}
-                onChange={(e) => {
-                  const v = String(e.target.value || "").replace(/[¥,\s]/g, "");
-                  if (/^-?\d*\.?\d*$/.test(v)) {
-                    setCurrentBalanceRaw(v);
-                    setCurrentBalance(v === "" ? "" : String(Number(v)));
-                  }
-                }}
-                onBlur={() => {
-                  try { localStorage.setItem('analysis:currentBalance', String(currentBalance || '')); } catch (e) {}
-                  setCurrentBalanceRaw(currentBalance === "" ? "" : formatCurrency(Number(currentBalance || 0), selectedCurrency, exchangeRates));
-                }}
-              />
-            </div>
-            {Number(currentBalance || 0) < 0 && <div className="negative-note">負の値が入力されています</div>}
-          </div>
-
-          <div className="form-column">
-            <label className="form-label">保存先の月</label>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <input className="month-input" type="month" value={saveMonth} onChange={(e) => setSaveMonth(e.target.value)} />
-            </div>
-          </div>
-
-          <div className="form-actions">
-            <button type="button" className="primary-button compact" onClick={saveMonthlyBalance} disabled={saving || currentBalance === "" || Number(currentBalance || 0) !== Number(currentBalance || 0) || Number(currentBalance || 0) < 0}>
-              保存
-            </button>
-          </div>
-        </div>
-
-        <div style={{ marginTop: 8 }} className="saved-balances">
-          <strong>保存した月次残高</strong>
-          {monthlyBalances.length === 0 && <div className="subtext">保存されたデータはありません。</div>}
-          {monthlyBalances.length > 0 && (
-            <div style={{ marginTop: 8 }}>
-              <table className="app-table">
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: 'left', padding: '8px 12px' }}>月</th>
-                    <th style={{ textAlign: 'left', padding: '8px 12px' }}>残高</th>
-                    <th style={{ textAlign: 'left', padding: '8px 12px' }}>操作</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {monthlyBalances.map((m) => (
-                    <tr key={m.month} style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))', borderRadius: 10 }}>
-                      <td style={{ padding: '12px', verticalAlign: 'middle' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span style={{ fontWeight: 700 }}>{m.month}</span>
-                        </div>
-                      </td>
-                      
-                      <td style={{ textAlign: 'left', padding: '12px', verticalAlign: 'middle' }}>
-                        <span style={{ color: '#9fb0d0', textAlign: 'left' }}>{formatCurrency(Number(m.balance || 0), selectedCurrency, exchangeRates)}</span>
-                      </td>
-
-                      <td className="action-cell" style={{ padding: '12px', verticalAlign: 'middle', textAlign: 'left' }}>
-                        <div style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
-                          <button
-                            type="button"
-                            className="secondary-button"
-                            onClick={() => {
-                              // populate the actual balance input with this saved monthly balance for quick editing
-                              try {
-                                setCurrentBalance(String(Number(m.balance || 0)));
-                                setCurrentBalanceRaw(String(Number(m.balance || 0)));
-                                // focus the input if available
-                                const el = document.querySelector('.currency-input');
-                                if (el && typeof el.focus === 'function') el.focus();
-                              } catch (err) {}
-                            }}
-                          >
-                            編集
-                          </button>
-                          <button type="button" className="secondary-button" onClick={() => setBaselineKey(m.month)}>基準にする</button>
-                          <button type="button" className="secondary-button danger-action" onClick={() => confirmDeleteMonthlyBalance(m.month)}>削除</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </section>
-
-      <section className="card annual-header-card">
-        <h2>{t.balanceTrendTitle}</h2>
-        <p className="subtext">{t.balanceTrendSubtext}</p>
-      
-        {/* Current balance display + month-range controls + monthly chart (above simulation button) */}
-        <div className="annual-controls" style={{ marginTop: 12, marginBottom: 12 }}>
-          <div className="current-balance-display">
-            <strong>現在の残高:</strong>
-            <div className="current-balance-amount">{formatCurrency(Number(currentBalance || 0), selectedCurrency, exchangeRates)}</div>
-          </div>
-
-          <div className="month-range-controls">
-            <label className="month-label">
-              開始月
-              <input className="month-input" type="month" value={fromMonth} onChange={(e) => setFromMonth(e.target.value)} />
-            </label>
-
-            <label className="month-label">
-              終了月
-              <input
-                className="month-input"
-                type="month"
-                value={toMonth}
-                onChange={handleToMonthChange}
-              />
-            </label>
-          </div>
-
-          {futureMonthWarning && (
-            <div className="subtext" style={{ color: 'var(--fee)', marginTop: 8 }}>
-              未来の月は指定できません。終了月を現在の月に設定しました。
-            </div>
-          )}
-        
-
-        </div>
-
-        <div className="monthly-chart" style={{ height: 220, marginTop: 12 }}>
-          {monthlySeries.labels && monthlySeries.labels.length > 0 ? (
-            <Bar
-              data={{
-                labels: monthlySeries.labels,
-                datasets: [
-                  {
-                    type: "bar",
-                    label: "月次増減",
-                    data: monthlySeries.netData,
-                    backgroundColor: barColors,
-                    yAxisID: "y",
-                  },
-                  {
-                    type: "line",
-                    label: baselineKey === "current" ? "残高(現在基準)" : `残高(基準: ${baselineKey})`,
-                    data: displayCumulative,
-                    borderColor: "rgba(37,99,235,1)",
-                    backgroundColor: "transparent",
-                    pointBackgroundColor: "rgba(37,99,235,1)",
-                    pointBorderColor: "#fff",
-                    tension: 0.15,
-                    yAxisID: "y",
-                  },
-                ],
-              }}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: { mode: "index", intersect: false },
-                plugins: {
-                  legend: { position: 'bottom', align: 'start', labels: { usePointStyle: true, boxWidth: 10, color: '#9fb0d0' } },
-                  tooltip: {
-                    callbacks: {
-                      title: (items) => (items && items[0] && items[0].label) || '',
-                      label: (ctx) => {
-                        const v = ctx.parsed && (ctx.parsed.y ?? ctx.parsed);
-                        return formatCurrency(Number(v || 0), selectedCurrency, exchangeRates);
-                      }
-                    }
-                  }
-                },
-                elements: { point: { radius: 2, hoverRadius: 8, hitRadius: 10 } },
-                scales: {
-                  x: { grid: { color: showGridlines ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0)' }, ticks: { color: '#9fb0d0' } },
-                  y: { beginAtZero: false, grid: { color: showGridlines ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0)' }, ticks: { color: '#9fb0d0' } },
-                },
-              }}
-            />
-          ) : (
-            <div className="subtext">指定した範囲に表示できるデータがありません。</div>
-          )}
-        </div>
-
-        <div style={{ marginTop: 8, display: 'flex', gap: 12, alignItems: 'center' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8 }} title={"ラインとバーのコントラストを高めて視認性を向上します。ツールチップで正確な金額を表示します。"}>
-              <input type="checkbox" checked={showGridlines} onChange={(e) => setShowGridlines(Boolean(e.target.checked))} />
-              グリッド線
-            </label>
-            <div style={{ color: '#9fb0d0' }}>（視認性向上）</div>
-        </div>
-
-      </section>
-
       {/* Annual summary when simulation is not shown */}
       {!showSimulation && (
-        <section className="card">
-          <div className="annual-list-head">
-            <span>{t.monthLabel}</span>
-            <span>{t.summaryIncome}</span>
-            <span>{t.summaryFee}</span>
-            <span>{t.summaryBalance}</span>
-            <span>{t.monthComparisonLabel}</span>
-          </div>
-          <ul className="list annual-list">
-            {rowsWithDiff.map((row) => (
-              <li key={row.month} className="daily-list-item">
-                <strong>{row.month}</strong>
-                <span>{formatCurrency(row.income, selectedCurrency, exchangeRates)}</span>
-                <span>{formatCurrency(row.fee, selectedCurrency, exchangeRates)}</span>
-                <span>{formatCurrency(row.balance, selectedCurrency, exchangeRates)}</span>
-                <span
-                  className={
-                    row.diffFromPrevious == null
-                      ? "month-diff"
-                      : row.diffFromPrevious >= 0
-                        ? "month-diff positive"
-                        : "month-diff negative"
-                  }
-                >
-                  {row.diffFromPrevious == null ? "-" : formatDelta(row.diffFromPrevious, selectedCurrency, exchangeRates)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+        <section className="chart-dashboard-page">
 
-      {/* Simulation button / panel toggle */}
-      {showSimulation ? (
-        <>
-          <SavingsSimulationPanel
-            annualRows={rows}
-            selectedCurrency={selectedCurrency}
-            exchangeRates={exchangeRates}
-            t={t}
-          />
+          {/* Annual summary when simulation is not shown */}
+            <h3>{t.monthlySummaryTitle || "月次サマリ"}</h3>
 
-          <button
-            type="button"
-            className={`secondary-button savings-sim-toggle inactive`}
-            onClick={() => setShowSimulation(false)}
-          >
-            シミュレーション解除
-          </button>
-        </>
-      ) : (
-        <>
-          <button
-            type="button"
-            className={`secondary-button savings-sim-toggle ${showSimulation ? "active" : ""}`}
-            onClick={() => setShowSimulation((v) => !v)}
-          >
-            {t.savingsSimButtonLabel}
-          </button>
-        </>
-      )}
-    </section>
+            <div style={{ height: 220, marginTop: 12 }}>
+              {rowsWithDiff && rowsWithDiff.length > 0 ? (
+                <Bar
+                  data={{
+                    labels: rowsWithDiff.map((r) => r.month),
+                    datasets: [
+                      {
+                        type: "bar",
+                        label: t.summaryIncome,
+                        data: rowsWithDiff.map((r) => Number(r.income || 0)),
+                        backgroundColor: "rgba(34,197,94,0.6)",
+                        yAxisID: "y",
+                      },
+                      {
+                        type: "bar",
+                        label: t.summaryFee,
+                        data: rowsWithDiff.map((r) => Number(r.fee || 0)),
+                        backgroundColor: "rgba(239,68,68,0.6)",
+                        yAxisID: "y",
+                      },
+                    ],
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: "index", intersect: false },
+                    plugins: {
+                      legend: { position: 'bottom', labels: { color: '#9fb0d0' } },
+                      tooltip: {
+                        callbacks: {
+                          label: (ctx) => {
+                            const v = ctx.parsed && (ctx.parsed.y ?? ctx.parsed);
+                            return formatCurrency(Number(v || 0), selectedCurrency, exchangeRates);
+                          }
+                        }
+                      }
+                    },
+                    scales: {
+                      x: { grid: { color: showGridlines ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0)' }, ticks: { color: '#9fb0d0' } },
+                      y: { grid: { color: showGridlines ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0)' }, ticks: { color: '#9fb0d0' } },
+                    },
+                  }}
+                />
+              ) : (
+                <div className="subtext">表示できるデータがありません。</div>
+              )}
+            </div>
+
+            <br />
+
+            {/* Net-only chart (収支) */}
+            <div style={{ height: 140, marginTop: 8 }}>
+              {rowsNetSeries.labels && rowsNetSeries.labels.length > 0 ? (
+                <Line
+                  data={{
+                    labels: rowsNetSeries.labels,
+                    datasets: [
+                      // {
+                      //   label: t.summaryBalance || "残高",
+                      //   data: rowsWithDiff.map((r) => Number(r.balance || 0)),
+                      //   borderColor: "rgba(37,99,235,1)",
+                      //   backgroundColor: "transparent",
+                      //   pointBackgroundColor: "rgba(37,99,235,1)",
+                      //   pointBorderColor: "#fff",
+                      //   tension: 0.15,
+                      //   yAxisID: "y",
+                      // },
+                      {
+                        label: t.netLabel || "収支",
+                        data: cumulativeNetDisplay,
+                        borderColor: "rgba(37,99,235,1)",
+                        backgroundColor: "rgba(37,99,235,0.08)",
+                        pointBackgroundColor: "rgba(37,99,235,1)",
+                        pointBorderColor: "#fff",
+                        tension: 0.2,
+                        fill: true,
+                      },
+                    ],
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: "index", intersect: false },
+                    plugins: {
+                      legend: { position: 'bottom', labels: { color: '#9fb0d0' } },
+                      tooltip: {
+                        callbacks: {
+                          label: (ctx) => {
+                            const v = ctx.parsed && (ctx.parsed.y ?? ctx.parsed);
+                            return formatCurrency(Number(v || 0), selectedCurrency, exchangeRates);
+                          }
+                        }
+                      }
+                    },
+                    scales: {
+                      x: { grid: { color: showGridlines ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0)' }, ticks: { color: '#9fb0d0' } },
+                      y: { grid: { color: showGridlines ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0)' }, ticks: { color: '#9fb0d0' } },
+                    },
+                  }}
+                />
+              ) : (
+                <div className="subtext">表示できるデータがありません。</div>
+              )}
+            </div>
+
+            <br />
+
+            <div className="annual-list-head">
+              <span>{t.monthLabel}</span>
+              <span>{t.summaryIncome}</span>
+              <span>{t.summaryFee}</span>
+              <span>{t.summaryBalance}</span>
+              <span>{t.monthComparisonLabel}</span>
+            </div>
+            <ul className="list annual-list">
+              {rowsWithDiff.map((row) => (
+                <li key={row.month} className="daily-list-item">
+                  <strong>{row.month}</strong>
+                  <span>{formatCurrency(row.income, selectedCurrency, exchangeRates)}</span>
+                  <span>{formatCurrency(row.fee, selectedCurrency, exchangeRates)}</span>
+                  <span>{formatCurrency(row.balance, selectedCurrency, exchangeRates)}</span>
+                  <span
+                    className={
+                      row.diffFromPrevious == null
+                        ? "month-diff"
+                        : row.diffFromPrevious >= 0
+                          ? "month-diff positive"
+                          : "month-diff negative"
+                    }
+                  >
+                    {row.diffFromPrevious == null ? "-" : formatDelta(row.diffFromPrevious, selectedCurrency, exchangeRates)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            </section>
+          )}
+
+          {/* Simulation button / panel toggle */}
+          {showSimulation ? (
+            <>
+              <SavingsSimulationPanel
+                annualRows={rows}
+                selectedCurrency={selectedCurrency}
+                exchangeRates={exchangeRates}
+                t={t}
+              />
+
+              <button
+                type="button"
+                className={`secondary-button savings-sim-toggle inactive`}
+                onClick={() => setShowSimulation(false)}
+              >
+                シミュレーション解除
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                className={`secondary-button savings-sim-toggle ${showSimulation ? "active" : ""}`}
+                onClick={() => setShowSimulation((v) => !v)}
+              >
+                {t.savingsSimButtonLabel}
+              </button>
+            </>
+          )}
+      </section>
     );
   } catch (err) {
     logError("AnnualSummaryPage.render", err);
