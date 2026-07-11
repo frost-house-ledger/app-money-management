@@ -209,6 +209,9 @@ html[lang="ru"] .hero p {
 /* Limit the visible width of the currency input to avoid very long horizontal stretches */
 .currency-input { max-width: 360px; }
 
+/* Ensure input accepts pointer events (avoid accidental overlay issues) */
+.currency-input { pointer-events: auto; }
+
 /* Ensure the action column's contents are left-aligned with inputs */
 .form-actions { justify-self: start; }
 

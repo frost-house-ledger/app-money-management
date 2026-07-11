@@ -300,6 +300,14 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
                 inputMode="numeric"
                 placeholder="現在の残高を入力"
                 value={currentBalanceRaw}
+                tabIndex={0}
+                onClick={(e) => {
+                  try {
+                    const val = currentBalance === "" ? "" : String(Number(currentBalance || 0));
+                    setCurrentBalanceRaw(val);
+                    if (e && e.currentTarget && typeof e.currentTarget.focus === 'function') e.currentTarget.focus();
+                  } catch (err) {}
+                }}
                 onFocus={() => {
                   setCurrentBalanceRaw(currentBalance === "" ? "" : String(Number(currentBalance || 0)));
                 }}
@@ -362,6 +370,22 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
 
                       <td className="action-cell" style={{ padding: '12px', verticalAlign: 'middle', textAlign: 'left' }}>
                         <div style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
+                          <button
+                            type="button"
+                            className="secondary-button"
+                            onClick={() => {
+                              // populate the actual balance input with this saved monthly balance for quick editing
+                              try {
+                                setCurrentBalance(String(Number(m.balance || 0)));
+                                setCurrentBalanceRaw(String(Number(m.balance || 0)));
+                                // focus the input if available
+                                const el = document.querySelector('.currency-input');
+                                if (el && typeof el.focus === 'function') el.focus();
+                              } catch (err) {}
+                            }}
+                          >
+                            編集
+                          </button>
                           <button type="button" className="secondary-button" onClick={() => setBaselineKey(m.month)}>基準にする</button>
                           <button type="button" className="secondary-button danger-action" onClick={() => confirmDeleteMonthlyBalance(m.month)}>削除</button>
                         </div>

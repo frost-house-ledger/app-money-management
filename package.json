@@ -59,6 +59,7 @@
   "build": {
     "appId": "com.frost.houseledger",
     "productName": "HouseLedger",
+    "icon": "build/icons/icon",
     "files": [
       "Desktop/electron/**/*",
       "dist/**/*",
