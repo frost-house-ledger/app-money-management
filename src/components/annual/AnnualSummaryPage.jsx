@@ -299,6 +299,30 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
 
   const cumulativeNetDisplay = Array.isArray(rowsNetSeries.cumulative) ? rowsNetSeries.cumulative : [];
 
+  // If user provided a currentBalance in UI, treat it as the value for the first month (January)
+  const cumulativeNetWithBaseline = (() => {
+    try {
+      const base = Number(currentBalance || 0);
+      const cum = Array.isArray(rowsNetSeries.cumulative) ? rowsNetSeries.cumulative.slice() : [];
+      const labels = Array.isArray(rowsNetSeries.labels) ? rowsNetSeries.labels : [];
+      if (labels.length === 0) return [];
+      // Build series where index 0 = base (January), index i>0 = base + cumulative[i-1]
+      return labels.map((_, i) => (i === 0 ? base : base + (cum[i - 1] || 0)));
+    } catch (e) {
+      return Array.isArray(rowsNetSeries.cumulative) ? rowsNetSeries.cumulative : [];
+    }
+  })();
+
+  function saveCurrentBalance() {
+    try {
+      const key = `analysis:currentBalance`;
+      localStorage.setItem(key, String(currentBalance || ""));
+      setCurrentBalanceRaw(formatCurrency(Number(currentBalance || 0), selectedCurrency, exchangeRates));
+    } catch (e) {
+      logError('AnnualSummaryPage.saveCurrentBalance', e);
+    }
+  }
+
   try {
     return (
     /* Renders the annual summary page, including a header with the year selector, total balance, and a button to toggle the savings simulation panel. Also displays a list of monthly summaries with income, fee, balance, and difference from the previous month. */
@@ -338,7 +362,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
                     maintainAspectRatio: false,
                     interaction: { mode: "index", intersect: false },
                     plugins: {
-                      legend: { position: 'bottom', labels: { color: '#9fb0d0' } },
+                      legend: { position: 'top', align: 'end', labels: { color: '#9fb0d0' } },
                       tooltip: {
                         callbacks: {
                           label: (ctx) => {
@@ -355,38 +379,55 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
                   }}
                 />
               ) : (
-                <div className="subtext">表示できるデータがありません。</div>
+                <div className="subtext">No data available to display.</div>
               )}
             </div>
 
             <br />
 
             {/* Net-only chart (収支) */}
-            <div style={{ height: 140, marginTop: 8 }}>
+            <div style={{ marginTop: 8 }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+                <label style={{ color: '#9fb0d0' }}>{t.currentBalanceLabel || `${year}年1月の残高`}</label>
+                <input
+                  type="number"
+                  value={currentBalance}
+                  onChange={(e) => setCurrentBalance(e.target.value)}
+                  placeholder="0"
+                  style={{ padding: '6px 8px', borderRadius: 4, border: '1px solid #ccc' }}
+                />
+                <button type="button" className="secondary-button" onClick={saveCurrentBalance}>
+                  {t.saveLabel || '保存'}
+                </button>
+                <div style={{ color: '#9fb0d0', marginLeft: 'auto' }}>
+                  {currentBalanceRaw}
+                </div>
+              </div>
+              <div style={{ height: 140 }}>
               {rowsNetSeries.labels && rowsNetSeries.labels.length > 0 ? (
-                <Line
+                <Bar
                   data={{
                     labels: rowsNetSeries.labels,
                     datasets: [
-                      // {
-                      //   label: t.summaryBalance || "残高",
-                      //   data: rowsWithDiff.map((r) => Number(r.balance || 0)),
-                      //   borderColor: "rgba(37,99,235,1)",
-                      //   backgroundColor: "transparent",
-                      //   pointBackgroundColor: "rgba(37,99,235,1)",
-                      //   pointBorderColor: "#fff",
-                      //   tension: 0.15,
-                      //   yAxisID: "y",
-                      // },
                       {
+                        type: 'bar',
+                        label: t.balanceOverlayLabel || "残高(JPY)",
+                        data: cumulativeNetWithBaseline,
+                        backgroundColor: (cumulativeNetWithBaseline || []).map((n) => (n >= 0 ? 'rgba(34,197,94,0.28)' : 'rgba(239,68,68,0.28)')),
+                        yAxisID: 'y',
+                        order: 2,
+                      },
+                      {
+                        type: 'line',
                         label: t.netLabel || "収支",
-                        data: cumulativeNetDisplay,
+                        data: cumulativeNetWithBaseline,
                         borderColor: "rgba(37,99,235,1)",
                         backgroundColor: "rgba(37,99,235,0.08)",
                         pointBackgroundColor: "rgba(37,99,235,1)",
                         pointBorderColor: "#fff",
                         tension: 0.2,
                         fill: true,
+                        order: 1,
                       },
                     ],
                   }}
@@ -395,7 +436,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
                     maintainAspectRatio: false,
                     interaction: { mode: "index", intersect: false },
                     plugins: {
-                      legend: { position: 'bottom', labels: { color: '#9fb0d0' } },
+                      legend: { position: 'top', align: 'end', labels: { color: '#9fb0d0' } },
                       tooltip: {
                         callbacks: {
                           label: (ctx) => {
@@ -412,8 +453,9 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
                   }}
                 />
               ) : (
-                <div className="subtext">表示できるデータがありません。</div>
+                <div className="subtext">No data available to display.</div>
               )}
+            </div>
             </div>
 
             <br />
@@ -464,7 +506,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
                 className={`secondary-button savings-sim-toggle inactive`}
                 onClick={() => setShowSimulation(false)}
               >
-                シミュレーション解除
+                Cancel Simulation
               </button>
             </>
           ) : (
@@ -484,7 +526,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
     logError("AnnualSummaryPage.render", err);
     return (
       <section className="chart-dashboard-page">
-        <p className="error">{t?.errorUnexpectedMessage || "表示中にエラーが発生しました"}</p>
+        <p className="error">{t?.errorUnexpectedMessage || "An unexpected error occurred while displaying the annual summary page."}</p>
       </section>
     );
   }

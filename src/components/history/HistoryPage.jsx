@@ -117,7 +117,7 @@ export default function HistoryPage({ historyRows, selectedCurrency, exchangeRat
       <section className="lists-grid">
         <article className="card">
           <h2>{t.historyTitle}</h2>
-          <p className="error">{t?.errorUnexpectedMessage || "表示中にエラーが発生しました"}</p>
+          <p className="error">{t?.errorUnexpectedMessage || "An unexpected error occurred while displaying"}</p>
         </article>
       </section>
     );

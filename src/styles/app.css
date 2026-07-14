@@ -741,8 +741,8 @@ button {
   /* card padding is 14px — expand table to cover that padding for a full-bleed look */
   width: calc(100% + 28px);
   margin: 0 -14px 8px;
-  /* Use fixed table layout to prevent columns from reflowing when inputs appear */
-  table-layout: fixed;
+  /* Allow automatic table layout so columns can flex based on content (amounts will grow as needed) */
+  table-layout: auto;
 }
 
 .recurring-table thead th,
@@ -775,15 +775,38 @@ button {
   align-items: center;
 }
 
-/* Fix column widths to avoid layout jumps when inputs render */
-.recurring-table th:nth-child(1), .recurring-table td:nth-child(1) { width: 12%; }
-.recurring-table th:nth-child(2), .recurring-table td:nth-child(2) { width: 12%; }
-.recurring-table th:nth-child(3), .recurring-table td:nth-child(3) { width: 12%; }
-.recurring-table th:nth-child(4), .recurring-table td:nth-child(4) { width: 8%; }
-.recurring-table th:nth-child(5), .recurring-table td:nth-child(5) { width: 8%; }
-.recurring-table th:nth-child(6), .recurring-table td:nth-child(6) { width: 12%; }
-.recurring-table th:nth-child(7), .recurring-table td:nth-child(7) { width: 30%; }
-.recurring-table th:nth-child(8), .recurring-table td:nth-child(8) { width: 8%; }
+/* Prefer flexible columns: let the amount/title expand naturally.
+   Keep some sensible min-widths to avoid extreme collapses. */
+.recurring-table th, .recurring-table td {
+  vertical-align: middle;
+}
+/* Make the action (buttons) column narrow so other columns get more room */
+.recurring-table th:nth-child(1), .recurring-table td:nth-child(1) {
+  width: 72px;
+  min-width: 64px;
+  max-width: 96px;
+}
+/* Allow start/end month columns to grow/shrink automatically */
+.recurring-table th:nth-child(2), .recurring-table td:nth-child(2),
+.recurring-table th:nth-child(3), .recurring-table td:nth-child(3) {
+  width: auto;
+  min-width: 84px;
+  text-align: center;
+  white-space: nowrap; /* keep YYYY-MM on one line */
+  word-break: normal;
+}
+/* Category (6) and amount (7) keep sensible minimums; amount stays on one line */
+.recurring-table th:nth-child(6), .recurring-table td:nth-child(6) {
+  min-width: 120px;
+}
+.recurring-table th:nth-child(7), .recurring-table td:nth-child(7) {
+  min-width: 100px;
+  white-space: nowrap; /* keep amounts on one line so width reflects value */
+  text-align: right;
+}
+.recurring-table th:nth-child(8), .recurring-table td:nth-child(8) {
+  min-width: 140px; /* title column gets room */
+}
 
 /* Ensure inputs/selects inside table cells don't expand beyond cell */
 .recurring-table input,
@@ -797,6 +820,10 @@ button {
 /* Keep action buttons from wrapping and overflowing their cell */
 .recurring-table td:first-child .inline-action {
   white-space: nowrap;
+  display: inline-block;
+  max-width: 84px; /* tighter button column */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .category-target-input {

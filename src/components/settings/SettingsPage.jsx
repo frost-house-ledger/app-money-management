@@ -28,7 +28,7 @@ export default function SettingsPage({
     }
     if (state === "live") {
       const time = updatedAt
-        ? new Date(updatedAt).toLocaleTimeString(locale === "de" ? "de-DE" : locale === "en" ? "en-US" : "ja-JP", { hour: "2-digit", minute: "2-digit" })
+        ? new Date(updatedAt).toLocaleTimeString(locale === "de" ? "de-DE" : locale === "en" ? "en-UK" : "ja-JP", { hour: "2-digit", minute: "2-digit" })
         : "";
       return <span className="er-status er-status--live">{formatMessage(t.erStatusLive, { time })}</span>;
     }
@@ -218,7 +218,7 @@ export default function SettingsPage({
       <section className="forms-grid settings-page">
         <article className="card settings-card">
           <h2>{t.settingsTitle}</h2>
-          <p className="error">{t?.errorUnexpectedMessage || "表示中にエラーが発生しました"}</p>
+          <p className="error">{t?.errorUnexpectedMessage || "An unexpected error occurred while displaying the settings page."}</p>
         </article>
       </section>
     );

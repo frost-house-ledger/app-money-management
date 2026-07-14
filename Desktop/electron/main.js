@@ -64,7 +64,7 @@ async function createMainWindow(ledger) {
     height: 820,
     minWidth: 980,
     minHeight: 680,
-    title: "家計簿アプリ",
+    title: "HouseLedgerApp",
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
       contextIsolation: true,

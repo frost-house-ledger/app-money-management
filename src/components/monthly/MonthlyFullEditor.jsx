@@ -59,7 +59,7 @@ export default function MonthlyFullEditor({ initial = {}, categoryOptions = [], 
       }
     } catch (err) {
       logError('MonthlyFullEditor.save', err);
-      setError(err.message || t.errorRecurringFailed || '保存に失敗しました');
+      setError(err.message || t.errorRecurringFailed || 'Failed to save');
     } finally {
       setSaving(false);
     }
@@ -96,8 +96,8 @@ export default function MonthlyFullEditor({ initial = {}, categoryOptions = [], 
       <label>
         {t.frequencyLabel}
         <select value={form.frequency} onChange={(e) => setField('frequency', e.target.value)}>
-          <option value="monthly">{t.frequencyMonthly || '月次'}</option>
-          <option value="annual">{t.frequencyAnnual || '年次'}</option>
+          <option value="monthly">{t.frequencyMonthly || 'Monthly'}</option>
+          <option value="annual">{t.frequencyAnnual || 'Annual'}</option>
         </select>
       </label>
 
@@ -126,8 +126,8 @@ export default function MonthlyFullEditor({ initial = {}, categoryOptions = [], 
       </label>
 
       <div style={{ marginTop: 12 }}>
-        <button type="button" onClick={save} disabled={saving} style={{ marginRight: 8 }}>{t.updateRecurringButton || '保存'}</button>
-        <button type="button" onClick={cancel} disabled={saving}>{t.cancelEditButton || 'キャンセル'}</button>
+        <button type="button" onClick={save} disabled={saving} style={{ marginRight: 8 }}>{t.updateRecurringButton || 'Update'}</button>
+        <button type="button" onClick={cancel} disabled={saving}>{t.cancelEditButton || 'Cancel'}</button>
       </div>
     </div>
   );

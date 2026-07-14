@@ -290,7 +290,7 @@ export default function SavingsSimulationPanel({ annualRows, selectedCurrency, e
     logError("SavingsSimulationPanel.render", err);
     return (
       <section className="card savings-sim-panel">
-        <p className="error">{t?.errorUnexpectedMessage || "表示中にエラーが発生しました"}</p>
+        <p className="error">{t?.errorUnexpectedMessage || "An unexpected error occurred while displaying the savings simulation panel."}</p>
       </section>
     );
   }

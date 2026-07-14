@@ -24,7 +24,7 @@ export default function RecurringSection({
 
       return (
         <form className="card" onSubmit={onSubmit}>
-          <h2>{t.recurringFormTitle || "固定費／給料"}</h2>
+          <h2>{t.recurringFormTitle || "Fixed Costs / Salary"}</h2>
           <p className="subtext">{t.recurringFormSubtext}</p>
 
           <label>
@@ -46,13 +46,13 @@ export default function RecurringSection({
           </label>
 
           <label>
-            {t.frequencyLabel || "周期"}
+            {t.frequencyLabel || "Frequency"}
             <select
               value={rf.frequency || "monthly"}
               onChange={(e) => setRecurringForm((curr) => ({ ...curr, frequency: e.target.value }))}
             >
-              <option value="monthly">{t.frequencyMonthly || "月次"}</option>
-              <option value="annual">{t.frequencyAnnual || "年次"}</option>
+              <option value="monthly">{t.frequencyMonthly || "Monthly"}</option>
+              <option value="annual">{t.frequencyAnnual || "Annual"}</option>
             </select>
           </label>
 
@@ -65,7 +65,7 @@ export default function RecurringSection({
             >
               {safeDailyCategoryOptions.map((category) => (
                 <option key={category.id} value={category.id}>
-                  {category.icon || "🏷️"} {category.label}
+                  {category.icon || "🍽️"} {category.label}
                 </option>
               ))}
             </select>
@@ -140,7 +140,7 @@ export default function RecurringSection({
       logError("RecurringSection.render", err);
       return (
         <form className="card">
-          <p className="error">{t?.errorUnexpectedMessage || "表示中にエラーが発生しました"}</p>
+          <p className="error">{t?.errorUnexpectedMessage || "An unexpected error occurred while displaying"}</p>
         </form>
       );
     }
@@ -175,6 +175,7 @@ export default function RecurringSection({
     const currentMonth = React.useMemo(() => thisMonth(), []);
     const safeFilteredRecurring = Array.isArray(filteredRecurring) ? filteredRecurring : [];
     const safeDailyCategoryOptions = Array.isArray(dailyCategoryOptions) ? dailyCategoryOptions : [];
+    const visibleRecurring = safeFilteredRecurring;
 
     function isExpiredRecurring(row) {
       return Boolean(row.endMonth) && row.endMonth < currentMonth;
@@ -244,22 +245,23 @@ export default function RecurringSection({
           <h2>{recurringTitle}</h2>
           {inlineError && <p className="error">{inlineError}</p>}
 
+          {/* a table for monthly and annual expense, income */}
           <table className="app-table recurring-table">
             <thead>
               <tr>
                 <th>{t.actionsLabel || "Actions"}</th>
-                <th>{t.recurringStartMonthLabel}</th>
-                <th>{t.recurringEndMonthLabel}</th>
-                <th>{t.typeLabel}</th>
-                <th>{t.frequencyLabel}</th>
-                <th>{t.categoryLabel}</th>
-                <th>{t.titleLabel}</th>
-                <th>{t.noteLabel}</th>
-                <th style={{ textAlign: "right" }}>{t.amountLabel}</th>
+                <th>{t.recurringStartMonthLabel || "Start"}</th>
+                <th>{t.recurringEndMonthLabel || "End"}</th>
+                <th>{t.typeLabel || "Type"}</th>
+                <th>{t.frequencyLabel || "Frequency"}</th>
+                <th>{t.categoryLabel || "Category"}</th>
+                <th>{t.amountLabel || "Amount"}</th>
+                <th>{t.titleLabel || "Title"}</th>
+                <th>{t.noteLabel || "Note"}</th>
               </tr>
             </thead>
             <tbody>
-              {safeFilteredRecurring.map((row) => {
+              {visibleRecurring.map((row) => {
                 const isPendingDelete = pendingDeleteIds.includes(row.id);
                 const isExpired = isExpiredRecurring(row);
                 return (
@@ -289,8 +291,8 @@ export default function RecurringSection({
                         </td>
                         <td>
                           <select value={inlineForm.frequency || 'monthly'} onChange={(e) => setInlineForm((c) => ({ ...c, frequency: e.target.value }))}>
-                            <option value="monthly">{t.frequencyMonthly || '月次'}</option>
-                            <option value="annual">{t.frequencyAnnual || '年次'}</option>
+                            <option value="monthly">{t.frequencyMonthly || 'Monthly'}</option>
+                            <option value="annual">{t.frequencyAnnual || 'Annual'}</option>
                           </select>
                         </td>
                         <td>
@@ -307,11 +309,26 @@ export default function RecurringSection({
                         <td>{row.startMonth}</td>
                         <td>{row.endMonth || '-'}</td>
                         <td>{row.type}</td>
-                        <td>{row.frequency === 'annual' ? (t.frequencyAnnual || '年次') : row.frequency === 'monthly' ? (t.frequencyMonthly || '月次') : '-'}</td>
-                        <td>{row.type === 'fee' ? `${row.categoryIcon || '🏷️'} ${row.categoryDisplay || '-'}` : '-'}</td>
+                        
+                        {/* expense or income */}
+                        <td>
+                          {(function() {
+                            try {
+                              const f = String(row.frequency || '').trim().toLowerCase();
+                              if (!f) return '-';
+                              if (f === 'annual' || f === 'yearly') return t.frequencyAnnual || 'Annual';
+                              if (f === 'monthly' || f === 'month') return t.frequencyMonthly || 'Monthly';
+                              return row.frequency;
+                            } catch (e) {
+                              return row.frequency || '-';
+                            }
+                          })()}
+                        </td>
+
+                        <td>{row.type === 'fee' ? `${row.categoryIcon || '🍽️'} ${row.categoryDisplay || '-'}` : '-'}</td>
+                        <td>{row.amount == null ? '-' : formatCurrency(row.amount, selectedCurrency, exchangeRates)}</td>
                         <td>{row.title}{row.type === 'income' && row.isSalary ? <span style={{ marginLeft: 6 }}>💼</span> : null}</td>
                         <td>{row.note ? (row.note.length > 40 ? row.note.slice(0,40) + '…' : row.note) : '-'}</td>
-                        <td style={{ textAlign: 'right' }}>{formatCurrency(row.amount, selectedCurrency, exchangeRates)}</td>
                       </>
                     )}
                   </tr>
@@ -325,7 +342,7 @@ export default function RecurringSection({
       logError("RecurringListSection.render", err);
       return (
         <article className="card">
-          <p className="error">{t?.errorUnexpectedMessage || "表示中にエラーが発生しました"}</p>
+          <p className="error">{t?.errorUnexpectedMessage || "An unexpected error occurred while displaying"}</p>
         </article>
       );
     }

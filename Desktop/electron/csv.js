@@ -48,7 +48,7 @@ export function parseCsvText(csvText) {
   }
 
   if (inQuotes) {
-    throw new Error("CSV の引用符が閉じていません。");
+    throw new Error("CSV quotes are not closed.");
   }
 
   currentRow.push(currentCell);

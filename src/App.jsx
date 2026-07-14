@@ -465,7 +465,7 @@ export default function App() {
     return Array.from(map.values());
   }, [categories, locale]);
 
-  const localeTag = locale === "de" ? "de-DE" : locale === "en" ? "en-US" : "ja-JP";
+  const localeTag = locale === "de" ? "de-DE" : locale === "en" ? "en-UK" : "ja-JP";
   const todayLabel = new Date().toLocaleDateString(localeTag, {
     year: "numeric",
     month: "2-digit",

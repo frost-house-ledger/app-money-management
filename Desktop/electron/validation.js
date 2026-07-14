@@ -1,24 +1,24 @@
 export function validateType(type) {
   if (type !== "fee" && type !== "income") {
-    throw new Error("type は fee または income を指定してください。");
+    throw new Error("type must be 'fee' or 'income'.");
   }
 }
 
 export function validateMonth(month) {
   if (!/^\d{4}-\d{2}$/.test(month)) {
-    throw new Error("month は YYYY-MM 形式で指定してください。");
+    throw new Error("month must be in YYYY-MM format.");
   }
 }
 
 export function validateDate(entryDate) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(entryDate)) {
-    throw new Error("entryDate は YYYY-MM-DD 形式で指定してください。");
+    throw new Error("entryDate must be in YYYY-MM-DD format.");
   }
 }
 
 export function ensureAmount(amount) {
   if (typeof amount !== "number" || Number.isNaN(amount) || amount < 0) {
-    throw new Error("amount には 0 以上の数値を指定してください。");
+    throw new Error("amount must be a number greater than or equal to 0.");
   }
 }
 
@@ -33,7 +33,7 @@ export function validateDateRange(fromDate, toDate) {
     return;
   }
   if (fromDate > toDate) {
-    throw new Error("fromDate は toDate 以下にしてください。");
+    throw new Error("fromDate must be less than or equal to toDate.");
   }
 }
 

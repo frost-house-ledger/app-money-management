@@ -57,7 +57,7 @@ export default function ChartDashboardPage({
     logError("ChartDashboardPage.render", err);
     return (
       <section className="chart-dashboard-page">
-        <p className="error">{t?.errorUnexpectedMessage || "予期しないエラーが発生しました。"}</p>
+        <p className="error">{t?.errorUnexpectedMessage || "An unexpected error occurred while displaying the chart dashboard page."}</p>
       </section>
     );
   }

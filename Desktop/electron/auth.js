@@ -2,13 +2,13 @@ export function createAuthGuard(options = {}) {
   const expectedToken = options.expectedToken ?? process.env.LEDGER_API_KEY;
 
   function ensureAuthorized(token) {
-    // 認証キー未設定時は従来どおり認証をスキップする。
+    // If the authentication key is not set, skip authentication as before.
     if (!expectedToken) {
       return;
     }
 
     if (!token || token !== expectedToken) {
-      throw new Error("認証に失敗しました。");
+      throw new Error("Authentication failed: invalid or missing token.");
     }
   }
 

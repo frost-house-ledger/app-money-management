@@ -1,17 +1,20 @@
 # Error Handling & Code Quality Guidelines
 
+## General Principles
+- Prioritize safety and explicit error handling.
+- No silent failures.
+- All comments and error messages in British English to release internationally.
+- Provide next steps for improving user convenience.
+- Update all affected files and test changes thoroughly.
+
+
 ## Cost Optimization
 - Use minimal resources; avoid heavy or background tasks.
 - Reduce network/API calls and data transfers.
 - Use safe, validated caching.
 - Never output greetings or file‑modification notices.
+- When failing 2 times, log and exit gracefully with a user-friendly short message.
 
-## General Principles
-- Prioritize safety and explicit error handling.
-- No silent failures.
-- All comments in English.
-- Provide next steps for improving user convenience.
-- Update all affected files and test changes thoroughly.
 
 ## Error Handling
 - Wrap async, file, network, and UI init in try/catch.
@@ -20,9 +23,11 @@
   - Log detailed error info.
 - Never expose internal error details to users.
 
+
 ## Documentation
 - Use JSDoc for all functions: purpose, params, returns, side effects.
 - Add inline comments for non-obvious logic and edge cases.
+
 
 ## UI Fallback
 - Minimal fallback UI with error + retry.

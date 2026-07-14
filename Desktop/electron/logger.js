@@ -34,7 +34,7 @@ export function createAppLogger(dataDir) {
         return;
       }
     } catch {
-      // MongoDB unavailable時はローカルログにフォールバックする。
+      // Fall back to local logging if MongoDB is unavailable.
     }
 
     fs.appendFileSync(logPath, `${JSON.stringify(record)}\n`, "utf8");

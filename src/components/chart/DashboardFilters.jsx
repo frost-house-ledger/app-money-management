@@ -58,7 +58,7 @@ export default function DashboardFilters({
     logError("DashboardFilters.render", err);
     return (
       <section className="toolbar card">
-        <p className="error">{t?.errorUnexpectedMessage || "エラーが発生しました"}</p>
+        <p className="error">{t?.errorUnexpectedMessage || "An unexpected error occurred while displaying the dashboard filters."}</p>
       </section>
     );
   }

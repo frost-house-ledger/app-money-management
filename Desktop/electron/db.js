@@ -129,7 +129,7 @@ export function createLedgerStore(dataDir) {
     validateMonth(fromMonth);
     validateMonth(toMonth);
     if (compareMonths(fromMonth, toMonth) > 0) {
-      throw new Error("fromMonth は toMonth 以下にしてください。");
+      throw new Error("fromMonth must be less than or equal to toMonth.");
     }
 
     const rows = [];
@@ -184,7 +184,7 @@ export function createLedgerStore(dataDir) {
 
     const title = String(input.title || "").trim();
     if (!title) {
-      throw new Error("title を入力してください。");
+      throw new Error("Please enter a title.");
     }
 
     const categoryMap = categoryStore.getCategoryMap();
@@ -239,7 +239,7 @@ export function createLedgerStore(dataDir) {
     authGuard.ensureAuthorized(input?.authToken);
     const records = parseCsvText(input.csvText);
     if (records.length === 0) {
-      throw new Error("CSV に取り込む行がありません。");
+      throw new Error("There are no rows to import from the CSV.");
     }
 
     const normalizedRows = records.map((record, index) => {
@@ -255,7 +255,7 @@ export function createLedgerStore(dataDir) {
       const amount = Number(String(priceText).replace(/,/g, ""));
 
       if (!date || !type || !title || !Number.isFinite(amount)) {
-        throw new Error(`CSV の ${rowNumber} 行目に不正な値があります。`);
+        throw new Error(`Invalid value in row ${rowNumber} of the CSV.`);
       }
 
       validateDate(date);
@@ -300,7 +300,7 @@ export function createLedgerStore(dataDir) {
     authGuard.ensureAuthorized(input?.authToken);
     const id = Number(input.id);
     if (!Number.isInteger(id) || id <= 0) {
-      throw new Error("有効な id を指定してください。");
+      throw new Error("Please specify a valid id.");
     }
     const entry = getDailyByIdStmt.get({ id });
     if (entry) {
@@ -338,7 +338,7 @@ export function createLedgerStore(dataDir) {
     authGuard.ensureAuthorized(input?.authToken);
     const id = Number(input.id);
     if (!Number.isInteger(id) || id <= 0) {
-      throw new Error("有効な id を指定してください。");
+      throw new Error("Please specify a valid id.");
     }
     validateType(input.type);
     validateDate(input.entryDate);
@@ -346,7 +346,7 @@ export function createLedgerStore(dataDir) {
 
     const title = String(input.title || "").trim();
     if (!title) {
-      throw new Error("title を入力してください。");
+      throw new Error("Please enter a title.");
     }
 
     const categoryMap = categoryStore.getCategoryMap();
@@ -531,7 +531,7 @@ export function createLedgerStore(dataDir) {
     validateMonth(input.fromMonth);
     validateMonth(input.toMonth);
     if (compareMonths(input.fromMonth, input.toMonth) > 0) {
-      throw new Error("fromMonth は toMonth 以下にしてください。");
+      throw new Error("fromMonth must be less than or equal to toMonth.");
     }
 
     const from = monthStart(input.fromMonth);
@@ -636,7 +636,7 @@ export function createLedgerStore(dataDir) {
 
   function importSyncData(payload) {
     if (!payload || typeof payload !== "object") {
-      throw new Error("同期データが不正です。");
+      throw new Error("Invalid sync data.");
     }
 
     const categories = Array.isArray(payload.categories) ? payload.categories : [];

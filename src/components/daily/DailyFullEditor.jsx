@@ -71,7 +71,7 @@ export default function DailyFullEditor({ initial = {}, categoryOptions = [], on
       }
     } catch (err) {
       logError('DailyFullEditor.save', err);
-      setError(err.message || t.errorDailyFailed || '保存に失敗しました');
+      setError(err.message || t.errorDailyFailed || 'Failed to save');
     } finally {
       setSaving(false);
     }
@@ -124,8 +124,8 @@ export default function DailyFullEditor({ initial = {}, categoryOptions = [], on
       </label>
 
       <div style={{ marginTop: 12 }}>
-        <button type="button" onClick={save} disabled={saving} style={{ marginRight: 8 }}>{t.updateDailyButton || '保存'}</button>
-        <button type="button" onClick={cancel} disabled={saving}>{t.cancelEditButton || 'キャンセル'}</button>
+        <button type="button" onClick={save} disabled={saving} style={{ marginRight: 8 }}>{t.updateDailyButton || 'Update'}</button>
+        <button type="button" onClick={cancel} disabled={saving}>{t.cancelEditButton || 'Cancel'}</button>
       </div>
     </div>
   );

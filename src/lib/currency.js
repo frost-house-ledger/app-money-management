@@ -328,7 +328,6 @@ export function formatByName(name, value, rates = null) {
 
 // Convenient ISO-code named exports
 export const formatJPY = (v, rates = null) => formatCurrency(v, "JPY", rates);
-export const formatUSD = (v, rates = null) => formatCurrency(v, "USD", rates);
 export const formatEUR = (v, rates = null) => formatCurrency(v, "EUR", rates);
 export const formatGBP = (v, rates = null) => formatCurrency(v, "GBP", rates);
 export const formatAUD = (v, rates = null) => formatCurrency(v, "AUD", rates);
@@ -337,3 +336,4 @@ export const formatCNY = (v, rates = null) => formatCurrency(v, "CNY", rates);
 export const formatKRW = (v, rates = null) => formatCurrency(v, "KRW", rates);
 export const formatSGD = (v, rates = null) => formatCurrency(v, "SGD", rates);
 export const formatCAD = (v, rates = null) => formatCurrency(v, "CAD", rates);
+export const formatUSD = (v, rates = null) => formatCurrency(v, "USD", rates);

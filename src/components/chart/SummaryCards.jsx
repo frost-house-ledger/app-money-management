@@ -27,7 +27,7 @@ export default function SummaryCards({ monthlySummary, selectedCurrency, exchang
     logError("SummaryCards.render", err);
     return (
       <section className="summary-grid">
-        <p className="error">{t?.errorUnexpectedMessage || "表示中にエラーが発生しました"}</p>
+        <p className="error">{t?.errorUnexpectedMessage || "An unexpected error occurred while displaying the summary cards."}</p>
       </section>
     );
   }
