@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import ChartDashboardPage from "./components/chart/ChartDashboardPage.jsx";
+
 import MonthlyEntryPage from "./components/monthly/MonthlyEntryPage.jsx";
 import DailyEntryPage from "./components/daily/DailyEntryPage.jsx";
 import DailyFullEditor from "./components/daily/DailyFullEditor.jsx";
@@ -7,7 +7,7 @@ import MonthlyFullEditor from "./components/monthly/MonthlyFullEditor.jsx";
 import HistoryPage from "./components/history/HistoryPage.jsx";
 import SettingsPage from "./components/settings/SettingsPage.jsx";
 import CategoryAnalysisPage from "./components/analysis/CategoryAnalysisPage.jsx";
-import AnnualSummaryPage from "./components/annual/AnnualSummaryPage.jsx";
+import StatisticsSummaryPage from "./components/statistics/StatisticsSummaryPage.jsx";
 import { api } from "./lib/api.js";
 import { addMonths, thisMonth, todayISO } from "./lib/date.js";
 import {
@@ -872,7 +872,7 @@ export default function App() {
           className={`tab-button ${activePage === "chart" ? "active" : ""}`}
           onClick={() => setActivePage("chart")}
         >
-          {t.chartPageTab}
+          {t.statisticsPageTab}
         </button>
 
         <button
@@ -881,13 +881,6 @@ export default function App() {
           onClick={() => setActivePage("analysis")}
         >
           {t.analysisPageTab}
-        </button>
-        <button
-          type="button"
-          className={`tab-button ${activePage === "annual" ? "active" : ""}`}
-          onClick={() => setActivePage("annual")}
-        >
-          {t.annualPageTab}
         </button>
 
         <button
@@ -910,15 +903,8 @@ export default function App() {
       {errorText && <p className="error">{errorText}</p>}
 
       {activePage === "chart" ? (
-        <ChartDashboardPage
+        <StatisticsSummaryPage
           selectedCurrency={selectedCurrency}
-          range={range}
-          setRange={setRange}
-          selectedDailyCategory={selectedDailyCategory}
-          setSelectedDailyCategory={setSelectedDailyCategory}
-          dailyCategoryOptions={dailyCategoryOptions}
-          monthlySummary={monthlySummary}
-          monthlyRows={monthlyRows}
           exchangeRates={exchangeRates}
           t={t}
         />
@@ -991,12 +977,6 @@ export default function App() {
           range={range}
           selectedCurrency={selectedCurrency}
           locale={locale}
-          exchangeRates={exchangeRates}
-          t={t}
-        />
-      ) : activePage === "annual" ? (
-        <AnnualSummaryPage
-          selectedCurrency={selectedCurrency}
           exchangeRates={exchangeRates}
           t={t}
         />

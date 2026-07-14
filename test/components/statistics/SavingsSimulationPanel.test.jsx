@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react';
-import SavingsSimulationPanel from '../../../src/components/annual/SavingsSimulationPanel.jsx';
+import SavingsSimulationPanel from '../../../src/components/statistics/SavingsSimulationPanel.jsx';
 
 const mockT = {};
 

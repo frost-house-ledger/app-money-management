@@ -14,11 +14,14 @@ import {
   PointElement,
   Tooltip,
   Legend,
+  Filler,
+  BarController,
+  LineController,
 } from "chart.js";
 
 import { Pie, Bar, Line } from "react-chartjs-2";
 import { buildEntryListPayload } from "../../lib/chartFilterPayloads.js";
-ChartJS.register(ArcElement, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Tooltip, Legend);
+ChartJS.register(ArcElement, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Tooltip, Legend, Filler, BarController, LineController);
 
 
 function formatDelta(value, currency, rates) {
@@ -27,7 +30,7 @@ function formatDelta(value, currency, rates) {
   return `${sign}${formatCurrency(Math.abs(amount), currency, rates)}`;
 }
 
-export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }) {
+export default function StatisticsSummaryPage({ selectedCurrency, exchangeRates, t }) {
   const thisYear = new Date().getFullYear();
   const [year, setYear] = useState(String(thisYear));
   const [rows, setRows] = useState([]);
@@ -100,7 +103,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
         const result = await api.summary.range({ fromMonth, toMonth });
         setRows(Array.isArray(result) ? result : []);
       } catch (err) {
-        logError("AnnualSummaryPage.load", err);
+        logError("StatisticsSummaryPage.load", err);
         setRows([]);
       }
     }
@@ -123,7 +126,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
         };
       });
     } catch (err) {
-      logError("AnnualSummaryPage.rowsWithDiff", err);
+      logError("StatisticsSummaryPage.rowsWithDiff", err);
       return [];
     }
   }, [safeRows]);
@@ -136,7 +139,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
       if (saved !== null) setCurrentBalance(saved);
       if (saved !== null) setCurrentBalanceRaw(formatCurrency(Number(saved), selectedCurrency, exchangeRates));
     } catch (e) {
-      logError("AnnualSummaryPage.loadCurrentBalance", e);
+      logError("StatisticsSummaryPage.loadCurrentBalance", e);
     }
   }, []);
 
@@ -168,7 +171,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
         }
         setBalanceSeries({ labels, data });
       } catch (e) {
-        logError("AnnualSummaryPage.balanceSeries", e);
+        logError("StatisticsSummaryPage.balanceSeries", e);
         setBalanceSeries({ labels: [], data: [] });
       }
     }
@@ -196,7 +199,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
         }
         setMonthlySeries({ labels, netData, cumulativeData: cumulative });
       } catch (e) {
-        logError("AnnualSummaryPage.monthlySeries", e);
+        logError("StatisticsSummaryPage.monthlySeries", e);
         setMonthlySeries({ labels: [], netData: [], cumulativeData: [] });
       }
     }
@@ -237,7 +240,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
       setMonthlyBalances(arr);
 
     } catch (e) {
-      logError("AnnualSummaryPage.loadMonthlyBalances", e);
+      logError("StatisticsSummaryPage.loadMonthlyBalances", e);
       setMonthlyBalances([]);
     }
   }, []);
@@ -252,7 +255,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
       localStorage.setItem(key, JSON.stringify(next));
       setMonthlyBalances(next);
     } catch (e) {
-      logError("AnnualSummaryPage.saveMonthlyBalance", e);
+      logError("StatisticsSummaryPage.saveMonthlyBalance", e);
     }
   }
 
@@ -265,7 +268,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
       setMonthlyBalances(next);
       if (baselineKey === month) setBaselineKey("current");
     } catch (e) {
-      logError("AnnualSummaryPage.deleteMonthlyBalance", e);
+      logError("StatisticsSummaryPage.deleteMonthlyBalance", e);
     }
   }
 
@@ -275,7 +278,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
       if (!ok) return;
       deleteMonthlyBalance(month);
     } catch (e) {
-      logError('AnnualSummaryPage.confirmDeleteMonthlyBalance', e);
+      logError('StatisticsSummaryPage.confirmDeleteMonthlyBalance', e);
     }
   }
 
@@ -292,7 +295,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
       }
       return { labels, net, cumulative };
     } catch (e) {
-      logError('AnnualSummaryPage.rowsNetSeries', e);
+      logError('StatisticsSummaryPage.rowsNetSeries', e);
       return { labels: [], net: [], cumulative: [] };
     }
   }, [rowsWithDiff]);
@@ -319,7 +322,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
       localStorage.setItem(key, String(currentBalance || ""));
       setCurrentBalanceRaw(formatCurrency(Number(currentBalance || 0), selectedCurrency, exchangeRates));
     } catch (e) {
-      logError('AnnualSummaryPage.saveCurrentBalance', e);
+      logError('StatisticsSummaryPage.saveCurrentBalance', e);
     }
   }
 
@@ -328,12 +331,12 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
     /* Renders the annual summary page, including a header with the year selector, total balance, and a button to toggle the savings simulation panel. Also displays a list of monthly summaries with income, fee, balance, and difference from the previous month. */
     <section className="chart-dashboard-page">
 
-      {/* Annual summary when simulation is not shown */}
+      {/* Statistics summary when simulation is not shown */}
       {!showSimulation && (
         <section className="chart-dashboard-page">
 
-          {/* Annual summary when simulation is not shown */}
-            <h3>{t.monthlySummaryTitle || "Monthly summary"}</h3>
+          {/* Statistics summary when simulation is not shown */}
+            <h3>{t.monthlySummaryTitle || "Summary"}</h3>
 
             <div style={{ height: 300, marginTop: 12 }}>
               {rowsWithDiff && rowsWithDiff.length > 0 ? (
@@ -387,22 +390,34 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
 
             {/* Net-only chart (balance) */}
             <div style={{ marginTop: 8 }}>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
-                <label style={{ color: '#9fb0d0' }}>{t.currentBalanceLabel || `Current balance as of January ${year}`}</label>
-                <input
-                  type="number"
-                  value={currentBalance}
-                  onChange={(e) => setCurrentBalance(e.target.value)}
-                  placeholder="0"
-                  style={{ padding: '6px 8px', borderRadius: 4, border: '1px solid #ccc' }}
-                />
-                <button type="button" className="secondary-button" onClick={saveCurrentBalance}>
-                  {t.saveLabel || 'Save'}
-                </button>
-                <div style={{ color: '#9fb0d0', marginLeft: 'auto' }}>
-                  {currentBalanceRaw}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 12 }}>
+                <label style={{ color: '#9fb0d0', fontSize: '0.95rem', fontWeight: 500 }}>
+                  Opening balance — January {year}
+                </label>
+                
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <label style={{ color: '#9fb0d0', minWidth: '80px' }}>Amount:</label>
+                  <input
+                    type="number"
+                    value={currentBalance}
+                    onChange={(e) => setCurrentBalance(e.target.value)}
+                    placeholder="0"
+                    style={{ padding: '6px 8px', borderRadius: 4, border: '1px solid #ccc' }}
+                  />
                 </div>
+
+                <button type="button" className="secondary-button" onClick={saveCurrentBalance} style={{ alignSelf: 'flex-start' }}>
+                  {t.saveLabel || 'Save balance'}
+                </button>
+
+                {currentBalanceRaw && (
+                <div style={{ color: '#9fb0d0', fontSize: '0.9rem' }}>
+                  Saved value: {currentBalanceRaw}
+                </div>
+                )}
               </div>
+
+              <br />
 
               <div style={{ height: 300}}>
               {rowsNetSeries.labels && rowsNetSeries.labels.length > 0 ? (
@@ -524,7 +539,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
       </section>
     );
   } catch (err) {
-    logError("AnnualSummaryPage.render", err);
+    logError("StatisticsSummaryPage.render", err);
     return (
       <section className="chart-dashboard-page">
         <p className="error">{t?.errorUnexpectedMessage || "An unexpected error occurred while displaying the annual summary page."}</p>
