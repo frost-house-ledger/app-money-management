@@ -2,7 +2,7 @@
 **/release/
 **/dist/
 
-# ビルド成果物
+# Build artifacts
 *.exe
 *.dmg
 *.AppImage
@@ -21,20 +21,20 @@ android/local.properties
 android/build/
 android/app/build/
 
-# SQLite データベース（ユーザーデータ）
+# SQLite database files
 *.db
 *.sqlite
 *.sqlite3
 
-# 環境変数・シークレット
+# Environment variables and secrets
 .env
 .env.local
 .env.*.local
 
-# ログ
+# logs
 *.log
 logs/
 
-# OS 生成ファイル
+# OS generated files
 .DS_Store
 Thumbs.db

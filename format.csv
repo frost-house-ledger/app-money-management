@@ -1,2 +1,18 @@
 date,type,category,title,description,price
 2026-05-08,expense,food,"MacDonalds","Filet-O-Fish",1000
+2026-05-08,expense,food,"Starbucks","Coffee",500
+2026-05-09,expense,transport,"Taxi","Airport to hotel",3500
+2026-05-09,expense,entertainment,"Movie","Cinema ticket",1800
+2026-05-10,expense,utilities,"Electric Bill","May payment",12000
+2026-05-10,expense,health,"Pharmacy","Medicine",2500
+2026-05-11,expense,shopping,"Amazon","Keyboard",3200
+2026-05-11,expense,food,"Restaurant","Dinner with friends",8500
+2026-05-12,income,salary,"Monthly Salary","May salary",350000
+2026-05-12,expense,transport,"Gas","Fuel for car",5000
+2026-05-13,expense,entertainment,"Game","Steam game",2000
+2026-05-13,expense,food,"Convenience Store","Snacks and drinks",800
+2026-05-14,expense,health,"Gym","Monthly membership",10000
+2026-05-14,expense,shopping,"Bookstore","Technical books",4500
+2026-05-15,expense,utilities,"Internet Bill","Monthly fee",5500
+2026-05-15,expense,transport,"Train Pass","Monthly commute",8000
+2026-05-08,expense,food,"MacDonalds","Filet-O-Fish",1000
