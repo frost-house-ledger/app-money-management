@@ -336,7 +336,7 @@ export default function StatisticsSummaryPage({ selectedCurrency, exchangeRates,
         <section className="chart-dashboard-page">
 
           {/* Statistics summary when simulation is not shown */}
-            <h3>{t.monthlySummaryTitle || "Summary"}</h3>
+            <h3>{t.monthlySummaryGraphTitle || "Summary"}</h3>
 
             <div style={{ height: 300, marginTop: 12 }}>
               {rowsWithDiff && rowsWithDiff.length > 0 ? (
@@ -418,6 +418,8 @@ export default function StatisticsSummaryPage({ selectedCurrency, exchangeRates,
               </div>
 
               <br />
+
+              <h3>{t.balanceGraphTitle || "Balance"}</h3>
 
               <div style={{ height: 300}}>
               {rowsNetSeries.labels && rowsNetSeries.labels.length > 0 ? (

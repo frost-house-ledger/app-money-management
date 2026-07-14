@@ -26,13 +26,13 @@ export const TRANSLATIONS = {
   // Page Tabs
   // -------------------------
   mainPageTab: { jp: "メイン", en: "Main", de: "Hauptseite", es: "Principal", pt: "Principal", it: "Principale", fr: "Accueil", ru: "Главная", tw: "主頁", ko: "メイン", ar: "الرئيسية" },
-  dailyPageTab: { jp: "日次入力", en: "Daily Input", de: "Taegliche Eingabe", es: "Entrada diaria", pt: "Entrada diária", it: "Inserimento giornaliero", fr: "Saisie quotidienne", ru: "Ежедневный ввод", tw: "每日輸入", ko: "일일 입력", ar: "الإدخال اليومي" },
-  monthlyPageTab: { jp: "月次入力", en: "Monthly Input", de: "Monatliche Eingabe", es: "Entrada mensual", pt: "Entrada mensal", it: "Inserimento mensile", fr: "Saisie mensuelle", ru: "Ежемесячный ввод", tw: "月度輸入", ko: "월별 입력", ar: "الإدخال الشهري" },
+  dailyPageTab: { jp: "日次", en: "Daily Input", de: "Taegliche Eingabe", es: "Entrada diaria", pt: "Entrada diária", it: "Inserimento giornaliero", fr: "Saisie quotidienne", ru: "Ежедневный ввод", tw: "每日輸入", ko: "일일 입력", ar: "الإدخال اليومي" },
+  monthlyPageTab: { jp: "月次", en: "Monthly Input", de: "Monatliche Eingabe", es: "Entrada mensual", pt: "Entrada mensal", it: "Inserimento mensile", fr: "Saisie mensuelle", ru: "Ежемесячный ввод", tw: "月度輸入", ko: "월별 입력", ar: "الإدخال الشهري" },
   statisticsPageTab: { jp: "統計", en: "Statistics", de: "Statistik", es: "Estadísticas", pt: "Estatísticas", it: "Statistiche", fr: "Statistiques", ru: "Статистика", tw: "統計", ko: "통계", ar: "الإحصائيات" },
   historyPageTab: { jp: "履歴", en: "History", de: "Verlauf", es: "Historial", pt: "Histórico", it: "Cronologia", fr: "Historique", ru: "История", tw: "歷史", ko: "히스토리", ar: "السجل" },
   settingsPageTab: { jp: "設定", en: "Settings", de: "Einstellungen", es: "Ajustes", pt: "Configurações", it: "Impostazioni", fr: "Paramètres", ru: "Настройки", tw: "設定", ko: "설정", ar: "الإعدادات" },
   analysisPageTab: { jp: "分析", en: "Analysis", de: "Analyse", es: "Análisis", pt: "Análise", it: "Analisi", fr: "Analyse", ru: "Анализ", tw: "分析", ko: "분석", ar: "التحليل" },
-  annualPageTab: { jp: "年間", en: "Annual", de: "Jaehrlich", es: "Anual", pt: "Anual", it: "Annuale", fr: "Annuel", ru: "Годовой", tw: "年度", ko: "연간", ar: "سنوي" },
+
   // label for a quick language switch control (shows the language to switch to)
   switchLanguage: { jp: "English", en: "日本語", de: "日本語", es: "日本語", pt: "日本語", it: "日本語", fr: "日本語", ru: "日本語", tw: "日本語", ko: "日本語", ar: "日本語" },
   monthLabel: { jp: "表示月", en: "Month", de: "Monat", es: "Mes", pt: "Mês", it: "Mese", fr: "Mois", ru: "Месяц", tw: "月份", ko: "월", ar: "الشهر" },
