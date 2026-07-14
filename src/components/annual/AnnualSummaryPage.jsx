@@ -333,9 +333,9 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
         <section className="chart-dashboard-page">
 
           {/* Annual summary when simulation is not shown */}
-            <h3>{t.monthlySummaryTitle || "月次サマリ"}</h3>
+            <h3>{t.monthlySummaryTitle || "Monthly summary"}</h3>
 
-            <div style={{ height: 220, marginTop: 12 }}>
+            <div style={{ height: 300, marginTop: 12 }}>
               {rowsWithDiff && rowsWithDiff.length > 0 ? (
                 <Bar
                   data={{
@@ -385,10 +385,10 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
 
             <br />
 
-            {/* Net-only chart (収支) */}
+            {/* Net-only chart (balance) */}
             <div style={{ marginTop: 8 }}>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
-                <label style={{ color: '#9fb0d0' }}>{t.currentBalanceLabel || `${year}年1月の残高`}</label>
+                <label style={{ color: '#9fb0d0' }}>{t.currentBalanceLabel || `Current balance as of January ${year}`}</label>
                 <input
                   type="number"
                   value={currentBalance}
@@ -397,13 +397,14 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
                   style={{ padding: '6px 8px', borderRadius: 4, border: '1px solid #ccc' }}
                 />
                 <button type="button" className="secondary-button" onClick={saveCurrentBalance}>
-                  {t.saveLabel || '保存'}
+                  {t.saveLabel || 'Save'}
                 </button>
                 <div style={{ color: '#9fb0d0', marginLeft: 'auto' }}>
                   {currentBalanceRaw}
                 </div>
               </div>
-              <div style={{ height: 140 }}>
+
+              <div style={{ height: 300}}>
               {rowsNetSeries.labels && rowsNetSeries.labels.length > 0 ? (
                 <Bar
                   data={{
@@ -411,7 +412,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
                     datasets: [
                       {
                         type: 'bar',
-                        label: t.balanceOverlayLabel || "残高(JPY)",
+                        label: t.balanceOverlayLabel || `Balance (${selectedCurrency})`,
                         data: cumulativeNetWithBaseline,
                         backgroundColor: (cumulativeNetWithBaseline || []).map((n) => (n >= 0 ? 'rgba(34,197,94,0.28)' : 'rgba(239,68,68,0.28)')),
                         yAxisID: 'y',
@@ -419,7 +420,7 @@ export default function AnnualSummaryPage({ selectedCurrency, exchangeRates, t }
                       },
                       {
                         type: 'line',
-                        label: t.netLabel || "収支",
+                        label: t.netLabel || `Net (${selectedCurrency})`,
                         data: cumulativeNetWithBaseline,
                         borderColor: "rgba(37,99,235,1)",
                         backgroundColor: "rgba(37,99,235,0.08)",

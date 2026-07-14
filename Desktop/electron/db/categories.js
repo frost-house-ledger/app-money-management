@@ -68,10 +68,23 @@ export function createCategoryStore({
     ensureJsonFile(categoriesJsonPath, { items: DEFAULT_CATEGORIES.map((item) => ({ ...item, isActive: 1 })) });
     const raw = JSON.parse(fs.readFileSync(categoriesJsonPath, "utf8"));
     const items = Array.isArray(raw.items) ? raw.items : [];
-    return items
+    const normalized = items
       .map((item, index) => normalizeCategoryRecord(item, (index + 1) * 10))
       .filter((item) => item.id && item.nameJp && item.nameEn && item.nameDe)
       .sort((a, b) => a.sortOrder - b.sortOrder);
+    
+    // Deduplicate by case-insensitive ID (keep first occurrence)
+    const seenIds = new Set();
+    const deduped = [];
+    for (const item of normalized) {
+      const lowerCaseId = String(item.id).toLowerCase();
+      if (!seenIds.has(lowerCaseId)) {
+        seenIds.add(lowerCaseId);
+        deduped.push(item);
+      }
+    }
+    
+    return deduped;
   }
 
   function writeCategoriesFile(items) {

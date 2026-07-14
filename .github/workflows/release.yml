@@ -24,8 +24,25 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Run tests
+        run: npm test
+
+      - name: Cache electron-builder
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/electron
+            ~/.cache/electron-builder
+          key: ${{ runner.os }}-electron-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-electron-
+
+
+      - name: Build React (vite)
+        run: npm run react:build
+
       - name: Build Windows installer (x64 + ia32)
-        run: npm run react:build && npx electron-builder --publish never --win nsis --x64 --ia32
+        run: npx electron-builder --publish never --win nsis --x64 --ia32
 
       - name: Upload installers to GitHub Release
         env:
@@ -33,11 +50,63 @@ jobs:
         shell: pwsh
         run: |
           $tag = "${{ github.ref_name }}"
-          $x64  = Get-Item "release\MoneyManagement-*-x64.exe"  | Select-Object -First 1
-          $ia32 = Get-Item "release\MoneyManagement-*-ia32.exe" | Select-Object -First 1
 
-          gh release create $tag `
-            --title "MoneyManagement $tag" `
-            --generate-notes `
-            $x64.FullName `
-            $ia32.FullName
+          # ===============================================
+          # Standardized output names for artifacts (ensure electron-builder uses these names)
+
+          $x64Pattern  = "release\\HouseLedger-$tag-x64.exe"
+          $ia32Pattern = "release\\HouseLedger-$tag-ia32.exe"
+
+          Write-Host "Searching for artifacts using patterns:" $x64Pattern $ia32Pattern
+
+          function Find-Installer($pattern, $fallback) {
+            $file = Get-Item $pattern -ErrorAction SilentlyContinue
+            if (-not $file) { $file = Get-Item $fallback -ErrorAction SilentlyContinue | Select-Object -First 1 }
+            if (-not $file) { throw "Installer not found: $pattern (fallback: $fallback)" }
+            return $file
+          }
+
+          $x64  = Find-Installer $x64Pattern  "release\\HouseLedger-*-x64.exe"
+          $ia32 = Find-Installer $ia32Pattern "release\\HouseLedger-*-ia32.exe"
+
+
+          # ===============================================
+          # Copy artifact copies with deterministic names to Actions artifacts (for CI consumers)
+          mkdir -Force artifacts
+          Copy-Item $x64.FullName -Destination "artifacts\\HouseLedger-$($tag)-x64.exe" -Force
+          Copy-Item $ia32.FullName -Destination "artifacts\\HouseLedger-$($tag)-ia32.exe" -Force
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: installers
+          path: artifacts/*.exe
+
+      # Now create or replace the GitHub Release (after artifacts uploaded)
+      - name: Create GitHub Release
+        id: create_release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          gh release delete $tag -y || true
+          gh release create $tag --title "HouseLedger $tag" --generate-notes $PWD\artifacts\HouseLedger-$($tag)-x64.exe $PWD\artifacts\HouseLedger-$($tag)-ia32.exe
+
+      # Rollback step: if anything after this fails, delete the created release and fail early
+      - name: Rollback on failure
+        if: failure() && steps.create_release.outcome == 'success'
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          Write-Host "Release failed — attempting rollback for $tag"
+          gh release delete $tag -y || Write-Host "Rollback: release $tag not present or already deleted"
+          # optionally remove uploaded artifacts directory
+          Remove-Item -Recurse -Force artifacts -ErrorAction SilentlyContinue || Write-Host "No artifacts to remove"
+
+      # Debug helpers (commented): uncomment for troubleshooting within CI run
+      #- name: Debug - list release dir
+      #  shell: pwsh
+      #  run: |
+      #    Write-Host "Contents of release dir:"; Get-ChildItem -Path release -File -Recurse | Format-Table
+      #    Write-Host "Contents of artifacts dir:"; Get-ChildItem -Path artifacts -File -Recurse | Format-Table
