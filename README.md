@@ -1,116 +1,115 @@
 # HouseLedger
 
-ローカルファーストのパーソナルファイナンスアプリ — データはお使いの端末にのみ保存されます。
+Please refer to the [README_JP.md](README_JP.md) for the Japanese version.
 
-HouseLedger は Electron と React で作られた、軽量でプライバシー重視の家計管理アプリです。オフラインで動作し、デスクトップおよび Capacitor 経由の Android での日常利用を想定しています。
+<br />
 
-## デモ
+Local-first personal finance — your data stays on your machine.
 
-[デモ動画](demo/video/HouseLedger-demo.mp4)
+HouseLedger is a focused, privacy-first finance app built with Electron and React.
+It’s lightweight, works offline, and is designed for daily use on desktop and Android (via Capacitor).
 
-## 作った理由
+## Demo
 
-- **シンプルかつ集中**: 日々の家計管理に必要なコア機能に絞り、余計な機能は持たせない設計です。
-- **プライバシー重視**: データはデフォルトで端末内に保存され、クラウドアカウントは不要です。
-- **高速**: ローカルストレージにより高速に動作し、オフラインでも利用できます。
+[Demo video](demo/video/HouseLedger-demo.mp4)
 
+## Why I created this app
 
-## 機能（概要）
-
-- **コア** — 日次エントリ、月次の固定項目、編集可能な履歴（差分表示）
-- **分析** — 月次グラフ、カテゴリ別内訳、年次サマリー
-- **同期** — Desktop と Android 間のオプション LAN 同期（クラウド不要）
-- **マルチ通貨** — 為替レートに基づく複数通貨表示
-- **多言語対応** — UI の多言語化とロケールに依存した書式設定
+- **Simple and focused**: core features for daily money tracking without bloat.
+- **Privacy-first**: data is stored locally by default; no cloud account is required.
+- **Fast**: local storage keeps the app responsive and usable offline.
 
 
-## 技術スタック
+## Features (one-line summary)
 
-| コンポーネント | 用途 |
+- **Core** — Daily entries, recurring items, and editable history with diffs.
+- **Analysis** — Monthly charts, category breakdowns, and annual summaries.
+- **Sync** — Optional LAN sync between Desktop and Android (no cloud required).
+- **Multi-currency** — Display amounts in multiple currencies with exchange-rate support.
+- **Localization** — Multi-language UI and locale-aware formatting.
+
+
+## Tech stack
+
+| Component | Purpose |
 |---|---|
-| Electron + React | デスクトップ UI とアプリフレームワーク |
-| Vite | 開発サーバーとビルドツール |
-| SQLite | ローカルのリレーショナルストレージ（台帳・アプリデータ） |
-| Capacitor | Android 向けの WebView ラッパー |
-| Node.js | ビルドスクリプトとローカル LAN 同期サーバ |
+| Electron + React | Desktop UI and application framework |
+| Vite | Development server and build tooling |
+| SQLite | Local relational storage for ledger and app data |
+| Capacitor | Android WebView wrapper for mobile distribution |
+| Node.js | Build scripts and the local LAN sync server |
 
-## セキュリティとプライバシー（詳細）
+## Security & Privacy (specifics)
 
-- 保存場所: データは Electron の user data ディレクトリに保存されます。一般的なパス:
-	- Windows: `%APPDATA%/HouseLedger` または `%LOCALAPPDATA%/HouseLedger`
+- Storage location: data is saved in the Electron user data directory (`app.getPath('userData')`). Typical paths:
+	- Windows: `%APPDATA%/HouseLedger` or `%LOCALAPPDATA%/HouseLedger`
 	- macOS: `~/Library/Application Support/HouseLedger`
 	- Linux: `~/.config/HouseLedger`
-- 送信されないもの: 台帳、トランザクション、カテゴリ、個人メモなどはデフォルトで外部に送信されません。
-- LAN 同期の挙動: LAN 同期を有効にすると、同一ネットワーク上のデバイス間で直接データが送受信されます（第三者サーバーは介在しません）。
-- テレメトリ: HouseLedger はデフォルトで使用状況やアカウント識別子の送信を行いません。
-- 推奨: OS のディスク暗号化を有効にし、バックアップは安全に保管してください。将来的に暗号化バックアップを予定しています。
+- What is never sent: your ledger, transactions, categories, and personal notes are not uploaded anywhere by default.
+- LAN sync behavior: when LAN sync is enabled, data is transferred directly between devices on the same local network — nothing is forwarded to third-party servers.
+- Telemetry: HouseLedger does not send usage analytics or account identifiers by default.
+- Recommendations: enable OS-level disk encryption and use secure backups for extra protection. Encrypted backup/export is planned.
 
-## LAN 同期（仕組み）
+## LAN Sync (how it works)
 
-Desktop アプリは起動中に簡易な同期サーバーを立ち上げます。Android クライアントは同一 LAN 上から直接そのサーバーに接続してデータをやり取りします。
+HouseLedger runs a small sync server on the Desktop app while it’s open. Android clients can connect directly to the Desktop server on the local network to exchange data.
 
-簡易図（ASCII）:
+Simple diagram (ASCII):
 
 ```
 Android Device  <--HTTP-->  Desktop (HouseLedger sync server)
-						 (Wi‑Fi/LAN)             (port 30303)
+			 (Wi‑Fi/LAN)             (port 30303)
 ```
 
-使い方:
-1. Desktop アプリを起動（同期サーバーがポート `30303` で待ち受けます）
-2. Android で: 設定 → LAN sync → `http://<DESKTOP-IP>:30303` を入力
-3. 「Sync now」をタップ（または自動同期を有効にする）
+How to use:
+1. Start the Desktop app (it opens the sync server on port `30303`).
+2. In the Android app: Settings → LAN sync → enter `http://<DESKTOP-IP>:30303`.
+3. Tap **Sync now** (or enable auto-sync).
 
-注意:
-- 同期は同一ネットワーク内でのみ動作します。
-- Desktop を終了すると同期サーバーは停止します。
-- データは直接デバイス間でやり取りされ、外部サーバーへは送られません。
+Notes:
+- Sync only works within the same local network.
+- The Desktop sync server runs only while the Desktop app is open.
+- Data is transferred directly between devices; nothing is uploaded to third-party servers.
 
-## インストール（OS別・簡易）
+## Installation (quick per-OS)
 
-- Windows: Releases からインストーラー（`HouseLedger-Setup-*.exe`）をダウンロードして実行
-- macOS: 提供されている `.dmg` を使用するか、`npm run build:mac` でビルド
-- Linux: AppImage を使うか、ソースからビルド。開発向け:
+- Windows: download the installer (`HouseLedger-Setup-*.exe`) from Releases and run it.
+- macOS: use the provided `.dmg` or build with `npm run build:mac` when available.
+- Linux: use AppImage or build from source. For development and generic builds:
 
 ```bash
 npm install
 npm run build
 ```
 
-開発（ローカル実行）:
+Development (run locally):
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Android での利用（Capacitor）
+## Use on Android (Capacitor)
 
-1. Android Studio（SDK / Platform Tools 含む）をインストール
-2. 依存関係をインストール: `npm install`
-3. Web アセットを同期して Android Studio を開く: `npm run android:studio`
+1. Install Android Studio (with SDK/Platform Tools).
+2. Install dependencies: `npm install`.
+3. Sync web assets and open Android Studio: `npm run android:studio`.
 
-出力（デバッグ APK）: `android/app/build/outputs/apk/debug/houseledger-debug.apk`
+Output (debug APK): `android/app/build/outputs/apk/debug/houseledger-debug.apk`
 
-## データ保存
+## Data storage
 
-アプリの全データはユーザーの app data フォルダにローカル保存されます。
+All app data is stored locally in the user's app data folder.
 
-| ファイル | 内容 |
+| File | Contents |
 |---|---|
-| `ledger.sqlite` | 日次エントリと入力履歴 |
-| `recurring-items.json` | 月次の固定項目 |
+| `ledger.sqlite` | Daily entries and input history |
+| `recurring-items.json` | Monthly recurring entries |
 
-## ロードマップ
+## Roadmap
 
-- 暗号化されたバックアップとオプトインのエンドツーエンド暗号化同期
-- 為替レートのライブ管理（自動更新と手動オーバーライド）
-- Android UI の改善とオフライン耐性強化
-- より多くのロケールと言語の翻訳品質向上
-- CSV 入出力の改善（マッピング、カテゴリ自動マッチング）
-
-
-## 改良案
-
-- 年間タブに実際の今の金額を入力、それをベースに実際の収支データから、グラフでどのくらいプラスか、マイナスかを時系列で表示する機能(今の日付までの収支をグラフ化)
- - シミュレーション機能は年間タブのまま。表示中の実際残高を基点に将来 N ヶ月分の収支予測を行い、グラフでシミュレーション結果を表示します。
+- Encrypted backups and optional end-to-end encrypted sync (opt-in)
+- Live exchange-rate management with auto refresh and manual override
+- Improved Android UI and offline resilience
+- More locales and translation polish
+- CSV import/export improvements (mapping, category matching)
