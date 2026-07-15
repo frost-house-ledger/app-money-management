@@ -6,7 +6,7 @@
   "main": "Desktop/electron/main.js",
   "type": "module",
   "engines": {
-    "node": ">=24"
+    "node": ">=22"
   },
   "scripts": {
     "postinstall": "electron-builder install-app-deps",
@@ -61,6 +61,7 @@
     "react-i18next": "^17.0.9"
   },
   "devDependencies": {
+    "@babel/core": "7.29.7",
     "@babel/preset-env": "^8.0.2",
     "@babel/preset-react": "^8.0.1",
     "@capacitor/cli": "^8.3.3",
@@ -78,6 +79,9 @@
     "typescript": "^6.0.3",
     "vite": "^6.4.2",
     "wait-on": "^9.0.4"
+  },
+  "overrides": {
+    "@babel/core": "7.29.7"
   },
   "build": {
     "appId": "com.frost.houseledger",
