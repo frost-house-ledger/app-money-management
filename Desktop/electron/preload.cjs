@@ -46,3 +46,7 @@ contextBridge.exposeInMainWorld("ledgerApi", {
 contextBridge.exposeInMainWorld("exchangeRatesApi", {
   fetch: () => ipcRenderer.invoke("exchange-rates:fetch")
 });
+
+contextBridge.exposeInMainWorld("shellApi", {
+  openExternal: (url) => ipcRenderer.invoke("shell:openExternal", url)
+});

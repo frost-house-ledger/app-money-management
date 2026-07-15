@@ -2,7 +2,7 @@ import path from "node:path";
 import os from "node:os";
 import http from "node:http";
 import { fileURLToPath } from "node:url";
-import { app, BrowserWindow, ipcMain, net } from "electron";
+import { app, BrowserWindow, ipcMain, net, shell } from "electron";
 import { logError } from "./logger.js";
 import { createLedgerStore } from "./db.js";
 
@@ -148,6 +148,13 @@ async function createMainWindow(ledger) {
   });
 
   ipcMain.handle("exchange-rates:fetch", () => fetchExchangeRates());
+
+  ipcMain.handle("shell:openExternal", (_event, url) => {
+    if (typeof url === "string" && (url.startsWith("http://") || url.startsWith("https://"))) {
+      return shell.openExternal(url);
+    }
+    throw new Error("Invalid URL");
+  });
 
   ipcMain.handle("sync:serverInfo", () => {
     return {

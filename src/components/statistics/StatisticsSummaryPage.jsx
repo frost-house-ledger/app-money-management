@@ -274,7 +274,7 @@ export default function StatisticsSummaryPage({ selectedCurrency, exchangeRates,
 
   function confirmDeleteMonthlyBalance(month) {
     try {
-      const ok = window.confirm(`${month} の保存済み残高を削除しますか？`);
+      const ok = window.confirm(`Do you want to delete the saved balance for ${month}?`);
       if (!ok) return;
       deleteMonthlyBalance(month);
     } catch (e) {

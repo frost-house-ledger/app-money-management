@@ -210,6 +210,17 @@ export default function SettingsPage({
 
           {renderSyncStatus()}
         </article>
+        
+        <br />
+
+        If you find this app useful, please consider supporting its development. 
+        <p>Your support helps maintain and improve the app.</p>
+          <p>Support: <a
+            href="https://github.com/sponsors/KFrost-Sponsor"
+            onClick={(e) => { e.preventDefault(); openExternalUrl('https://github.com/sponsors/KFrost-Sponsor'); }}
+            rel="noopener noreferrer"
+            style={{ color: 'inherit', textDecoration: 'underline', cursor: 'pointer' }}
+          >GitHub Sponsors</a></p>
       </section>
     );
   } catch (err) {
@@ -222,5 +233,23 @@ export default function SettingsPage({
         </article>
       </section>
     );
+  }
+}
+
+function openExternalUrl(url) {
+  try {
+    // If running inside Electron, use IPC to open in system default browser
+    if (typeof window !== 'undefined' && window.shellApi?.openExternal) {
+      window.shellApi.openExternal(url);
+      return;
+    }
+  } catch (e) {
+    // ignore
+  }
+  try {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  } catch (e) {
+    // last resort: set location
+    window.location.href = url;
   }
 }
