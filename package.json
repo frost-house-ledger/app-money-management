@@ -5,6 +5,9 @@
   "author": "Frost",
   "main": "Desktop/electron/main.js",
   "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "postinstall": "electron-builder install-app-deps",
     "electron:rebuild": "electron-rebuild -f -w better-sqlite3",
