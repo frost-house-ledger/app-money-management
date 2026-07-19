@@ -64,7 +64,7 @@
     "@babel/core": "7.29.7",
     "@babel/preset-env": "^8.0.2",
     "@babel/preset-react": "^8.0.1",
-    "@capacitor/cli": "^8.3.3",
+    "@capacitor/cli": "^8.4.2",
     "@electron/rebuild": "^4.2.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
