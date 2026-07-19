@@ -40,6 +40,12 @@ jobs:
                 const title = pr.data.title;
                 core.info(`Processing PR #${prNumber}: ${title}`);
 
+                // Check for merge conflicts
+                if (pr.data.mergeable === false) {
+                  core.warning(`PR #${prNumber}: Has merge conflicts — skipping.`);
+                  return;
+                }
+
                 // Extract version numbers from PR title (supports various formats: "from X to Y", "from X.Y to A.B", "from X.Y.Z to A.B.C")
                 const versionMatch = title.match(/from\s+([\d.]+)\s+to\s+([\d.]+)/);
                 
@@ -51,8 +57,6 @@ jobs:
                 const oldVersionStr = versionMatch[1];
                 const newVersionStr = versionMatch[2];
                 
-                core.info(`PR #${prNumber}: Version update (${oldVersionStr} → ${newVersionStr})`);
-
                 core.info(`PR #${prNumber}: Version update (${oldVersionStr} → ${newVersionStr})`);
 
                 // Merge the PR (no version filtering - merge all updates)
@@ -78,7 +82,11 @@ jobs:
                   core.warning(`PR #${prNumber}: Failed to delete branch '${headRef}': ${error.message}`);
                 }
               } catch (error) {
-                core.warning(`Failed to process PR #${prNumber}: ${error.message}`);
+                if (error.message.includes('Merge conflict')) {
+                  core.warning(`PR #${prNumber}: Merge conflict detected — skipping.`);
+                } else {
+                  core.warning(`Failed to process PR #${prNumber}: ${error.message}`);
+                }
               }
             }
 
