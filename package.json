@@ -49,39 +49,39 @@
   "license": "ISC",
   "dependencies": {
     "@capacitor-community/sqlite": "^8.1.0",
-    "@capacitor/android": "^8.3.3",
+    "@capacitor/android": "^8.4.2",
     "@capacitor/core": "^8.3.3",
-    "better-sqlite3": "^12.9.0",
+    "better-sqlite3": "^12.11.1",
     "chart.js": "^4.5.1",
     "i18next": "^26.3.6",
     "mongodb": "^6.21.0",
-    "react": "^18.3.1",
+    "react": "^19.2.7",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^18.3.1",
     "react-i18next": "^17.0.9"
   },
   "devDependencies": {
-    "@babel/core": "7.29.7",
+    "@babel/core": "8.0.1",
     "@babel/preset-env": "^8.0.2",
     "@babel/preset-react": "^8.0.1",
-    "@capacitor/cli": "^8.3.3",
-    "@electron/rebuild": "^4.0.4",
+    "@capacitor/cli": "^8.4.2",
+    "@electron/rebuild": "^4.2.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@vitejs/plugin-react": "^4.3.4",
     "babel-jest": "^30.4.1",
     "concurrently": "^9.2.1",
-    "electron": "^39.2.7",
+    "electron": "^43.1.1",
     "electron-builder": "^26.8.1",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
     "typescript": "^6.0.3",
-    "vite": "^6.4.2",
-    "wait-on": "^9.0.4"
+    "vite": "^8.1.5",
+    "wait-on": "^9.0.10"
   },
   "overrides": {
-    "@babel/core": "7.29.7"
+    "@babel/core": "8.0.1"
   },
   "build": {
     "appId": "com.frost.houseledger",
