@@ -32,7 +32,7 @@ export function createLedgerStore(dataDir) {
   const {
     insertDailyStmt,
     insertInputLogStmt,
-    rebindDailyEntriesToFoodStmt,
+    rebindDailyEntriesToOtherStmt,
     migrateDailyCategoryIdByIdStmt,
     listDailyStmt,
     sumDailyByTypeStmt,
@@ -54,7 +54,7 @@ export function createLedgerStore(dataDir) {
     categoriesJsonPath,
     authGuard,
     normalizeCategoryId,
-    rebindDailyEntriesToFoodStmt,
+    rebindDailyEntriesToOtherStmt,
     migrateDailyCategoryIdByIdStmt
   });
 
@@ -189,7 +189,6 @@ export function createLedgerStore(dataDir) {
 
     const categoryMap = categoryStore.getCategoryMap();
     const categoryId = input.type === "fee" ? String(input.categoryId || "food") : null;
-    const currentCategory = categoryId ? categoryMap.get(categoryId) : null;
 
     const row = insertDailyStmt.run({
       syncId: input.syncId || createSyncId(),
@@ -198,7 +197,6 @@ export function createLedgerStore(dataDir) {
       amount: input.amount,
       entryDate: input.entryDate,
       categoryId,
-      category: input.type === "fee" ? pickCategoryName(currentCategory, "en") : null,
       note: input.note ? String(input.note) : null,
       createdAt: input.createdAt ? String(input.createdAt) : new Date().toISOString(),
       updatedAt: input.updatedAt ? String(input.updatedAt) : new Date().toISOString()
@@ -213,7 +211,6 @@ export function createLedgerStore(dataDir) {
         amount: input.amount,
         targetDate: input.entryDate,
         categoryId,
-        category: input.type === "fee" ? pickCategoryName(currentCategory, "en") || "Food" : null,
         note: input.note ? String(input.note) : null,
         payload: logPayload || input
       });
@@ -361,7 +358,6 @@ export function createLedgerStore(dataDir) {
       amount: input.amount,
       entryDate: input.entryDate,
       categoryId: input.type === "fee" ? String(input.categoryId || "food") : null,
-      category: input.type === "fee" ? pickCategoryName(currentCategory, "en") : null,
       note: input.note ? String(input.note) : null,
       updatedAt: new Date().toISOString()
     });
@@ -374,7 +370,6 @@ export function createLedgerStore(dataDir) {
       amount: input.amount,
       targetDate: input.entryDate,
       categoryId: input.type === "fee" ? String(input.categoryId || "food") : null,
-      category: input.type === "fee" ? pickCategoryName(currentCategory, "en") : null,
       note: input.note,
       payload: {
         before: {
@@ -383,7 +378,6 @@ export function createLedgerStore(dataDir) {
           entryDate: oldEntry?.entryDate,
           type: oldEntry?.type,
           categoryId: oldEntry?.categoryId,
-          category: pickCategoryName(oldCategoryObj, "en") || oldEntry?.category,
           categoryIcon: oldCategoryObj?.icon || "🍽️",
           note: oldEntry?.note
         },
@@ -393,7 +387,6 @@ export function createLedgerStore(dataDir) {
           entryDate: input.entryDate,
           type: input.type,
           categoryId: input.type === "fee" ? String(input.categoryId || "food") : null,
-          category: input.type === "fee" ? pickCategoryName(currentCategory, "en") : null,
           categoryIcon: input.type === "fee" ? (currentCategory?.icon || "🍽️") : null,
           note: input.note || null
         }

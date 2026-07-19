@@ -1,6 +1,8 @@
 import React from "react";
 import { formatMessage } from "../../i18n/translations.js";
 import { logError } from "../../lib/logger.js";
+import languagesData from "../../../json/languages.json";
+import LanguageVisibilityModal from "./LanguageVisibilityModal.jsx";
 
 export default function SettingsPage({
   locale,
@@ -21,6 +23,36 @@ export default function SettingsPage({
   canExportCsv,
   t
 }) {
+  const [showLanguageVisibilityModal, setShowLanguageVisibilityModal] = React.useState(false);
+  const [languageRefreshKey, setLanguageRefreshKey] = React.useState(0);
+
+  const handleCloseLanguageModal = () => {
+    setShowLanguageVisibilityModal(false);
+    // Trigger UI refresh to show updated language list
+    setLanguageRefreshKey((prev) => prev + 1);
+  };
+
+  // Load language visibility preferences
+  const getVisibleLanguages = () => {
+    const allLanguages = Array.isArray(languagesData?.items) ? languagesData.items : [];
+    const userPrefs = (() => {
+      try {
+        const stored = localStorage.getItem("languageVisibility");
+        return stored ? JSON.parse(stored) : {};
+      } catch (e) {
+        return {};
+      }
+    })();
+
+    return allLanguages.filter((lang) => {
+      const userHidden = userPrefs[lang.code]?.hidden;
+      if (userHidden !== undefined) {
+        return !userHidden;
+      }
+      return !lang.hidden;
+    });
+  };
+  
   function renderErStatus() {
     const { state, updatedAt } = exchangeRateStatus || { state: "loading", updatedAt: null };
     if (state === "loading") {
@@ -65,20 +97,7 @@ export default function SettingsPage({
     { code: 'USD', name: 'United States Dollar' }
   ];
 
-  const LanguageOptions = [
-    { code: 'ja', name: '日本語 (Japanese)', flag: '🇯🇵' },
-    { code: 'en', name: 'English', flag: '🇬🇧' },
-    { code: 'de', name: 'Deutsch (German)', flag: '🇩🇪' },
-    { code: 'es', name: 'Español (Spanish)', flag: '🇪🇸' },
-    { code: 'pt', name: 'Português (Portuguese)', flag: '🇵🇹' },
-    { code: 'it', name: 'Italiano (Italian)', flag: '🇮🇹' },
-    { code: 'fr', name: 'Français (French)', flag: '🇫🇷' },
-    { code: 'ru', name: 'Русский (Russian)', flag: '🇷🇺' },
-    { code: 'tw', name: '中文 (Chinese)', flag: '🇹🇼' },
-    { code: 'ko', name: '한국어 (Korean)', flag: '🇰🇷' }
-  ];
-
-  const safeLanguageOptions = Array.isArray(LanguageOptions) ? LanguageOptions.filter((l) => l && l.code) : [];
+  const safeLanguageOptions = getVisibleLanguages();
   const safeCurrencyList = Array.isArray(CURRENCY_LIST) ? CURRENCY_LIST : [];
   try {
     return (
@@ -107,6 +126,14 @@ export default function SettingsPage({
               ))}
             </select>
           </label>
+
+          <button
+            type="button"
+            onClick={() => setShowLanguageVisibilityModal(true)}
+            className="settings-button"
+          >
+            {t.settingsLanguageManageButton}
+          </button>
 
           <label>
             {t.settingsCurrencyLabel}
@@ -210,6 +237,14 @@ export default function SettingsPage({
 
           {renderSyncStatus()}
         </article>
+
+        {showLanguageVisibilityModal && (
+          <LanguageVisibilityModal
+            onClose={handleCloseLanguageModal}
+            locale={locale}
+            t={t}
+          />
+        )}
         
         <br />
 

@@ -1,9 +1,9 @@
-import dailyCategoryDefinitions from "./dailyCategories.json";
+import categoriesData from "../../json/categories.json";
 import { getCategoryName } from "../i18n/translations.js";
 
-export const DAILY_CATEGORY_DEFINITIONS = dailyCategoryDefinitions;
+export const DAILY_CATEGORY_DEFINITIONS = categoriesData.items || [];
 
-// Keep dailyCategories.json minimal: use id as canonical key
+// Keep categories data minimal: use id as canonical key
 export const DAILY_FEE_CATEGORIES = DAILY_CATEGORY_DEFINITIONS.map((item) => item.id);
 
 export const DAILY_CATEGORY_ICONS = Object.fromEntries(

@@ -1,6 +1,16 @@
 import fs from "node:fs";
 import { DEFAULT_CATEGORIES } from "./constants.js";
 
+// Generate field name from language code (e.g., "ru" -> "nameRu", "jp" -> "nameJp")
+function getNameFieldForLanguage(langCode) {
+  if (!langCode) return "nameEn";
+  const code = String(langCode).toLowerCase();
+  if (code === "jp" || code === "ja") return "nameJp";
+  if (code === "en") return "nameEn";
+  // For other languages, capitalize first letter: ru -> nameRu, de -> nameDe, etc.
+  return "name" + code.charAt(0).toUpperCase() + code.slice(1);
+}
+
 function ensureJsonFile(filePath, fallback) {
   if (!fs.existsSync(filePath)) {
     fs.writeFileSync(filePath, JSON.stringify(fallback, null, 2), "utf8");
@@ -8,23 +18,37 @@ function ensureJsonFile(filePath, fallback) {
 }
 
 function normalizeCategoryRecord(item, fallbackSortOrder = 0) {
-  return {
+  // Collect all name* fields dynamically
+  const normalized = {
     id: String(item.id || "").trim(),
     nameJp: String(item.nameJp || "").trim(),
     nameEn: String(item.nameEn || "").trim(),
-    nameDe: String(item.nameDe || "").trim(),
     icon: String(item.icon || "\uD83C\uDFF7\uFE0F").trim() || "\uD83C\uDFF7\uFE0F",
     sortOrder: Number.isFinite(Number(item.sortOrder)) ? Number(item.sortOrder) : fallbackSortOrder,
     isActive: Number(item.isActive) === 0 ? 0 : 1,
     updatedAt: item.updatedAt ? String(item.updatedAt) : "1970-01-01T00:00:00.000Z"
   };
+  
+  // Copy all other name* fields from input
+  for (const [key, value] of Object.entries(item || {})) {
+    if (key.startsWith("name") && key !== "nameJp" && key !== "nameEn") {
+      normalized[key] = String(value || "").trim();
+    }
+  }
+  
+  return normalized;
 }
 
 export function pickCategoryName(category, locale = "jp") {
   const code = String(locale || "").toLowerCase().split("-")[0];
+  const nameFieldForLang = getNameFieldForLanguage(code);
 
   function pickFromEntry(entry) {
     if (!entry) return "";
+    // Try the exact language field first (e.g., ru -> nameRu, de -> nameDe)
+    if (entry[nameFieldForLang]) {
+      return entry[nameFieldForLang];
+    }
     // Show Japanese when locale is Japanese; otherwise prefer English.
     if (code === "en") return entry.nameEn || entry.nameJp || entry.id;
     if (code === "ja" || code === "jp") return entry.nameJp || entry.nameEn || entry.id;
@@ -46,14 +70,7 @@ export function pickCategoryName(category, locale = "jp") {
   }
 
   // fallback: category object with name fields
-  return pickFromEntry({
-    id: (typeof category === "string" ? category : category.id) || "",
-    nameJp: category?.nameJp || category?.name || "",
-    nameEn: category?.nameEn || category?.name || "",
-    nameDe: category?.nameDe || "",
-    nameFr: category?.nameFr || "",
-    nameEs: category?.nameEs || ""
-  });
+  return pickFromEntry(category);
 }
 
 export function createCategoryStore({
@@ -70,7 +87,7 @@ export function createCategoryStore({
     const items = Array.isArray(raw.items) ? raw.items : [];
     const normalized = items
       .map((item, index) => normalizeCategoryRecord(item, (index + 1) * 10))
-      .filter((item) => item.id && item.nameJp && item.nameEn && item.nameDe)
+      .filter((item) => item.id && item.nameJp && item.nameEn)
       .sort((a, b) => a.sortOrder - b.sortOrder);
     
     // Deduplicate by case-insensitive ID (keep first occurrence)
@@ -151,32 +168,33 @@ export function createCategoryStore({
 
   function migrateLegacyDailyCategories() {
     const categoryRows = readCategoriesFile();
-    const legacyNameMap = new Map();
-    categoryRows.forEach((item) => {
-      legacyNameMap.set(item.nameEn, item.id);
-      legacyNameMap.set(item.nameJp, item.id);
-      legacyNameMap.set(item.nameDe, item.id);
-    });
 
     const tx = db.transaction(() => {
-      categoryRows.forEach((item) => {
-        migrateDailyCategoryIdByIdStmt.run({ categoryId: item.id, legacyName: item.nameEn });
-      });
+      // Only migrate if category column still exists (backward compatibility)
+      const dailyColumns = db.prepare("PRAGMA table_info(daily_entries)").all();
+      if (dailyColumns.some((column) => column.name === "category")) {
+        const legacyNameMap = new Map();
+        categoryRows.forEach((item) => {
+          legacyNameMap.set(item.nameEn, item.id);
+          legacyNameMap.set(item.nameJp, item.id);
+          legacyNameMap.set(item.nameDe, item.id);
+        });
 
-      const legacyNames = db
-        .prepare("SELECT DISTINCT category FROM daily_entries WHERE category_id IS NULL AND category IS NOT NULL")
-        .all();
+        const legacyNames = db
+          .prepare("SELECT DISTINCT category FROM daily_entries WHERE category_id IS NULL AND category IS NOT NULL")
+          .all();
 
-      legacyNames.forEach((row) => {
-        const name = String(row.category || "").trim();
-        if (!name) {
-          return;
-        }
-        const categoryId = legacyNameMap.get(name);
-        if (categoryId) {
-          migrateDailyCategoryIdByIdStmt.run({ categoryId, legacyName: name });
-        }
-      });
+        legacyNames.forEach((row) => {
+          const name = String(row.category || "").trim();
+          if (!name) {
+            return;
+          }
+          const categoryId = legacyNameMap.get(name);
+          if (categoryId) {
+            migrateDailyCategoryIdByIdStmt.run({ categoryId });
+          }
+        });
+      }
 
       db.exec("UPDATE daily_entries SET category_id = 'other' WHERE category_id IS NULL AND type = 'fee'");
     });
@@ -195,12 +213,9 @@ export function createCategoryStore({
 
   function addCategory(input) {
     authGuard.ensureAuthorized(input?.authToken);
-    const id = normalizeCategoryId(input.id || input.nameEn || input.nameJp || input.nameDe || input.name);
+    const id = normalizeCategoryId(input.id || input.nameEn || input.nameJp || input.nameRu || input.nameDe || input.name);
     const fallbackId = id || `category-${Date.now()}`;
 
-    const nameJp = String(input.nameJp || input.name || "").trim() || fallbackId;
-    const nameEn = String(input.nameEn || input.name || "").trim() || fallbackId;
-    const nameDe = String(input.nameDe || input.name || "").trim() || fallbackId;
     const icon = String(input.icon || "").trim() || "\uD83C\uDFF7\uFE0F";
     const rows = readCategoriesFile();
     const maxOrder = rows.reduce((max, item) => Math.max(max, Number(item.sortOrder) || 0), 0);
@@ -210,7 +225,15 @@ export function createCategoryStore({
       throw new Error("同じカテゴリIDが既に存在します。");
     }
 
-    const created = { id: fallbackId, nameJp, nameEn, nameDe, icon, sortOrder, isActive: 1, updatedAt: new Date().toISOString() };
+    const created = { id: fallbackId, icon, sortOrder, isActive: 1, updatedAt: new Date().toISOString() };
+    
+    // Copy all name* fields from input
+    for (const [key, value] of Object.entries(input || {})) {
+      if (key.startsWith("name") && value) {
+        created[key] = String(value).trim();
+      }
+    }
+    
     writeCategoriesFile([...rows, created].sort((a, b) => a.sortOrder - b.sortOrder));
     return created;
   }
@@ -237,7 +260,6 @@ export function createCategoryStore({
       id,
       nameJp: rawName,
       nameEn: rawName,
-      nameDe: rawName,
       icon: "🍽️",
       sortOrder: maxOrder + 10,
       isActive: 1,
@@ -261,23 +283,24 @@ export function createCategoryStore({
       throw new Error("カテゴリが見つかりません。");
     }
 
-    const nameJp = String(input.nameJp ?? current.nameJp).trim() || current.nameJp;
-    const nameEn = String(input.nameEn ?? current.nameEn).trim() || current.nameEn;
-    const nameDe = String(input.nameDe ?? current.nameDe).trim() || current.nameDe;
     const icon = String(input.icon ?? (current.icon || "\uD83C\uDFF7\uFE0F")).trim() || "\uD83C\uDFF7\uFE0F";
 
     const updated = rows.map((item) => {
       if (item.id !== id) {
         return item;
       }
-      return {
-        ...item,
-        nameJp,
-        nameEn,
-        nameDe,
-        icon,
-        updatedAt: new Date().toISOString()
-      };
+      
+      // Preserve existing values and update with input
+      const result = { ...item, icon, updatedAt: new Date().toISOString() };
+      
+      // Update name* fields from input
+      for (const [key, value] of Object.entries(input || {})) {
+        if (key.startsWith("name") && value) {
+          result[key] = String(value).trim();
+        }
+      }
+      
+      return result;
     });
     writeCategoriesFile(updated);
     return updated.find((item) => item.id === id);

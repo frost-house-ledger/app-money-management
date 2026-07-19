@@ -1,0 +1,41 @@
+{
+  "items": [
+
+    { "code": "jp", "name": "日本語 (Japanese)", "flag": "🇯🇵", "nameJa": "日本語", "nameEn": "Japanese", "region": "Asia", "hidden": false },
+    { "code": "tw", "name": "中文 (Chinese - TW)", "flag": "🇹🇼", "nameJa": "中国語（繁体）", "nameEn": "Chinese (Traditional)", "region": "Asia", "hidden": false },
+    { "code": "ko", "name": "한국어 (Korean)", "flag": "🇰🇷", "nameJa": "韓国語", "nameEn": "Korean", "region": "Asia", "hidden": false },
+    { "code": "zh", "name": "中文 (Chinese - CN)", "flag": "🇨🇳", "nameJa": "中国語", "nameEn": "Chinese", "region": "Asia", "hidden": false },
+    { "code": "vi", "name": "Tiếng Việt (Vietnamese)", "flag": "🇻🇳", "nameJa": "ベトナム語", "nameEn": "Vietnamese", "region": "Asia", "hidden": true },
+    { "code": "id", "name": "Bahasa Indonesia (Indonesian)", "flag": "🇮🇩", "nameJa": "インドネシア語", "nameEn": "Indonesian", "region": "Asia", "hidden": true },
+    { "code": "hi", "name": "हिन्दी (Hindi)", "flag": "🇮🇳", "nameJa": "ヒンディー語", "nameEn": "Hindi", "region": "Asia", "hidden": true },
+    { "code": "bn", "name": "বাংলা (Bengali)", "flag": "🇧🇩", "nameJa": "ベンガル語", "nameEn": "Bengali", "region": "Asia", "hidden": true },
+
+    { "code": "en", "name": "English", "flag": "🇬🇧", "nameJa": "英語", "nameEn": "English", "region": "Global", "hidden": false },
+    { "code": "de", "name": "Deutsch (German)", "flag": "🇩🇪", "nameJa": "ドイツ語", "nameEn": "German", "region": "Europe", "hidden": false },
+    { "code": "es", "name": "Español (Spanish)", "flag": "🇪🇸", "nameJa": "スペイン語", "nameEn": "Spanish", "region": "Europe", "hidden": false },
+    { "code": "pt", "name": "Português (Portuguese)", "flag": "🇵🇹", "nameJa": "ポルトガル語", "nameEn": "Portuguese", "region": "Europe", "hidden": false },
+    { "code": "it", "name": "Italiano (Italian)", "flag": "🇮🇹", "nameJa": "イタリア語", "nameEn": "Italian", "region": "Europe", "hidden": false },
+    { "code": "fr", "name": "Français (French)", "flag": "🇫🇷", "nameJa": "フランス語", "nameEn": "French", "region": "Europe", "hidden": false },
+    { "code": "pl", "name": "Polski (Polish)", "flag": "🇵🇱", "nameJa": "ポーランド語", "nameEn": "Polish", "region": "Europe", "hidden": true },
+    { "code": "nl", "name": "Nederlands (Dutch)", "flag": "🇳🇱", "nameJa": "オランダ語", "nameEn": "Dutch", "region": "Europe", "hidden": true },
+    { "code": "ro", "name": "Română (Romanian)", "flag": "🇷🇴", "nameJa": "ルーマニア語", "nameEn": "Romanian", "region": "Europe", "hidden": true },
+    { "code": "cs", "name": "Čeština (Czech)", "flag": "🇨🇿", "nameJa": "チェコ語", "nameEn": "Czech", "region": "Europe", "hidden": true },
+    { "code": "sl", "name": "Slovenčina (Slovak)", "flag": "🇸🇰", "nameJa": "スロバキア語", "nameEn": "Slovak", "region": "Europe", "hidden": true },
+    { "code": "hu", "name": "Magyar (Hungarian)", "flag": "🇭🇺", "nameJa": "ハンガリー語", "nameEn": "Hungarian", "region": "Europe", "hidden": true },
+    { "code": "da", "name": "Dansk (Danish)", "flag": "🇩🇰", "nameJa": "デンマーク語", "nameEn": "Danish", "region": "Europe", "hidden": true },
+    { "code": "no", "name": "Norsk (Norwegian)", "flag": "🇳🇴", "nameJa": "ノルウェー語", "nameEn": "Norwegian", "region": "Europe", "hidden": true },
+    { "code": "sv", "name": "Svenska (Swedish)", "flag": "🇸🇪", "nameJa": "スウェーデン語", "nameEn": "Swedish", "region": "Europe", "hidden": true },
+    { "code": "fi", "name": "Suomi (Finnish)", "flag": "🇫🇮", "nameJa": "フィンランド語", "nameEn": "Finnish", "region": "Europe", "hidden": true },
+    { "code": "el", "name": "Ελληνικά (Greek)", "flag": "🇬🇷", "nameJa": "ギリシャ語", "nameEn": "Greek", "region": "Europe", "hidden": true },
+
+    { "code": "tr", "name": "Türkçe (Turkish)", "flag": "🇹🇷", "nameJa": "トルコ語", "nameEn": "Turkish", "region": "Europe/Asia", "hidden": true },
+    { "code": "uk", "name": "Українська (Ukrainian)", "flag": "🇺🇦", "nameJa": "ウクライナ語", "nameEn": "Ukrainian", "region": "Europe", "hidden": true },
+    { "code": "bg", "name": "Български (Bulgarian)", "flag": "🇧🇬", "nameJa": "ブルガリア語", "nameEn": "Bulgarian", "region": "Europe", "hidden": true },
+    { "code": "ru", "name": "Русский (Russian)", "flag": "🇷🇺", "nameJa": "ロシア語", "nameEn": "Russian", "region": "Europe/Asia", "hidden": true },
+
+    { "code": "ar", "name": "العربية (Arabic)", "flag": "🇸🇦", "nameJa": "アラビア語", "nameEn": "Arabic", "region": "Middle East", "hidden": true },
+    { "code": "he", "name": "עברית (Hebrew)", "flag": "🇮🇱", "nameJa": "ヘブライ語", "nameEn": "Hebrew", "region": "Middle East", "hidden": true }
+  ]
+}
+
+

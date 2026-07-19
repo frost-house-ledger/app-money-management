@@ -8,7 +8,6 @@ export function ensureLedgerSchema(db) {
       amount REAL NOT NULL CHECK(amount >= 0),
       entry_date TEXT NOT NULL,
       category_id TEXT,
-      category TEXT,
       note TEXT,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -23,7 +22,6 @@ export function ensureLedgerSchema(db) {
       amount REAL NOT NULL,
       target_date TEXT NOT NULL,
       category_id TEXT,
-      category TEXT,
       note TEXT,
       payload_json TEXT,
       logged_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -39,9 +37,6 @@ export function ensureLedgerSchema(db) {
   `);
 
   const dailyColumns = db.prepare("PRAGMA table_info(daily_entries)").all();
-  if (!dailyColumns.some((column) => column.name === "category")) {
-    db.exec("ALTER TABLE daily_entries ADD COLUMN category TEXT");
-  }
   if (!dailyColumns.some((column) => column.name === "category_id")) {
     db.exec("ALTER TABLE daily_entries ADD COLUMN category_id TEXT");
   }
@@ -54,6 +49,15 @@ export function ensureLedgerSchema(db) {
   }
   db.exec("UPDATE daily_entries SET updated_at = COALESCE(updated_at, created_at, CURRENT_TIMESTAMP) WHERE updated_at IS NULL OR updated_at = ''");
 
+  // Migration: remove category column if it exists (SQLite 3.35.0+)
+  if (dailyColumns.some((column) => column.name === "category")) {
+    try {
+      db.exec("ALTER TABLE daily_entries DROP COLUMN IF EXISTS category");
+    } catch (e) {
+      // Silently ignore if DROP COLUMN not supported
+    }
+  }
+
   const inputLogColumns = db.prepare("PRAGMA table_info(input_logs)").all();
   if (!inputLogColumns.some((column) => column.name === "category_id")) {
     db.exec("ALTER TABLE input_logs ADD COLUMN category_id TEXT");
@@ -61,22 +65,31 @@ export function ensureLedgerSchema(db) {
   if (!inputLogColumns.some((column) => column.name === "action")) {
     db.exec("ALTER TABLE input_logs ADD COLUMN action TEXT NOT NULL DEFAULT 'add'");
   }
+
+  // Migration: remove category column from input_logs if it exists
+  if (inputLogColumns.some((column) => column.name === "category")) {
+    try {
+      db.exec("ALTER TABLE input_logs DROP COLUMN IF EXISTS category");
+    } catch (e) {
+      // Silently ignore if DROP COLUMN not supported
+    }
+  }
 }
 
 export function createLedgerStatements(db) {
   const insertDailyStmt = db.prepare(`
-    INSERT INTO daily_entries(sync_id, type, title, amount, entry_date, category_id, category, note, created_at, updated_at)
-    VALUES (@syncId, @type, @title, @amount, @entryDate, @categoryId, @category, @note, @createdAt, @updatedAt)
+    INSERT INTO daily_entries(sync_id, type, title, amount, entry_date, category_id, note, created_at, updated_at)
+    VALUES (@syncId, @type, @title, @amount, @entryDate, @categoryId, @note, @createdAt, @updatedAt)
   `);
 
   const insertInputLogStmt = db.prepare(`
-    INSERT INTO input_logs(source, action, type, title, amount, target_date, category_id, category, note, payload_json)
-    VALUES (@source, @action, @type, @title, @amount, @targetDate, @categoryId, @category, @note, @payloadJson)
+    INSERT INTO input_logs(source, action, type, title, amount, target_date, category_id, note, payload_json)
+    VALUES (@source, @action, @type, @title, @amount, @targetDate, @categoryId, @note, @payloadJson)
   `);
 
   const rebindDailyEntriesToOtherStmt = db.prepare(`
     UPDATE daily_entries
-    SET category_id = 'other', category = 'Other'
+    SET category_id = 'other'
     WHERE category_id = @id
   `);
 
@@ -84,7 +97,6 @@ export function createLedgerStatements(db) {
     UPDATE daily_entries
     SET category_id = @categoryId
     WHERE category_id IS NULL
-      AND category = @legacyName
   `);
 
   const listDailyStmt = db.prepare(`
@@ -95,7 +107,6 @@ export function createLedgerStatements(db) {
            d.amount,
            d.entry_date AS entryDate,
            d.category_id AS categoryId,
-           d.category AS categoryLegacy,
            d.note,
           d.created_at AS createdAt,
           d.updated_at AS updatedAt
@@ -128,7 +139,6 @@ export function createLedgerStatements(db) {
            amount,
            target_date AS targetDate,
            category_id AS categoryId,
-           category,
            note,
            payload_json AS payloadJson,
            logged_at AS loggedAt
@@ -180,7 +190,7 @@ export function createLedgerStatements(db) {
 
   const getDailyByIdStmt = db.prepare(`
     SELECT id, type, title, amount, entry_date AS entryDate,
-          category_id AS categoryId, category, note, sync_id AS syncId,
+          category_id AS categoryId, note, sync_id AS syncId,
           created_at AS createdAt, updated_at AS updatedAt
     FROM daily_entries WHERE id = @id
   `);
@@ -192,7 +202,6 @@ export function createLedgerStatements(db) {
         amount = @amount,
         entry_date = @entryDate,
         category_id = @categoryId,
-        category = @category,
         note = @note,
         updated_at = @updatedAt
     WHERE id = @id

@@ -1,13 +1,52 @@
 import React from "react";
 import { logError } from "../../lib/logger.js";
+import languagesData from "../../../json/languages.json";
+
+// Build LANGUAGE_INFO from languages.json
+const LANGUAGE_INFO = {};
+if (Array.isArray(languagesData?.items)) {
+  languagesData.items.forEach(item => {
+    LANGUAGE_INFO[item.code] = {
+      code: item.code,
+      nameJa: item.nameJa,
+      nameEn: item.nameEn
+    };
+  });
+}
+
+// Generate field name from language code (e.g., "ru" -> "nameRu", "jp" -> "nameJp")
+function getNameFieldForLanguage(langCode) {
+  if (!langCode) return "nameEn";
+  const code = String(langCode).toLowerCase();
+  if (code === "jp") return "nameJp";
+  if (code === "en") return "nameEn";
+  // For other languages, capitalize first letter: ru -> nameRu, de -> nameDe, etc.
+  return "name" + code.charAt(0).toUpperCase() + code.slice(1);
+}
+
+function getLanguageCode(locale) {
+  const raw = String(locale || "").toLowerCase();
+  const info = LANGUAGE_INFO[raw];
+  return info ? info.code : "en";
+}
+
+function getLanguageDisplayName(langCode, displayLocale = "jp") {
+  const info = Object.values(LANGUAGE_INFO).find((i) => i.code === langCode);
+  if (!info) return langCode;
+  const isJp = String(displayLocale || "").toLowerCase().startsWith("jp");
+  return isJp ? info.nameJa : info.nameEn;
+}
 
 function displayName(category, locale) {
-  // Prefer English names for management UI; show Japanese only when locale is Japanese
-  const raw = String(locale || '').toLowerCase();
-  if (raw === 'jp' || raw === 'ja') {
-    return category.nameJp || category.nameEn || category.nameDe || category.id;
+  // Get name in the appropriate language field
+  const langCode = getLanguageCode(locale);
+  const nameField = getNameFieldForLanguage(langCode);
+  // Try to get name from language-specific field first, then fallback to other language fields
+  if (category[nameField]) {
+    return category[nameField];
   }
-  return category.nameEn || category.nameJp || category.nameDe || category.id;
+  // Fallback: try other common fields
+  return category.nameJp || category.nameEn || category.id;
 }
 
 export default function CategoryManagerSection({
@@ -19,26 +58,48 @@ export default function CategoryManagerSection({
   onReorderCategories,
   t
 }) {
-  const [newCategoryNameJp, setNewCategoryNameJp] = React.useState("");
-  const [newCategoryNameEn, setNewCategoryNameEn] = React.useState("");
+  const safeLocale = locale || "jp";
+  const primaryLangCode = getLanguageCode(safeLocale);
+  
+  // Dynamic state for new category based on current locale - ONLY primary language
+  const [newCategoryName, setNewCategoryName] = React.useState("");
   const [newCategoryIcon, setNewCategoryIcon] = React.useState("");
+  
+  // Dynamic state for editing - ONLY primary language
   const [editingId, setEditingId] = React.useState("");
-  const [editingJp, setEditingJp] = React.useState("");
-  const [editingEn, setEditingEn] = React.useState("");
+  const [editingName, setEditingName] = React.useState("");
   const [editingIcon, setEditingIcon] = React.useState("");
   const [listOpen, setListOpen] = React.useState(false);
+  
   const safeCategories = Array.isArray(categories) ? categories : [];
-  const safeLocale = locale || "jp";
+
+  // Reset form when locale changes
+  React.useEffect(() => {
+    setNewCategoryName("");
+    if (editingId) {
+      // Reset editing form to show name in new language
+      const current = safeCategories.find((c) => c.id === editingId);
+      if (current) {
+        // Get name from language-specific field
+        const nameFieldForLang = getNameFieldForLanguage(primaryLangCode);
+        setEditingName(current[nameFieldForLang] || "");
+      }
+    }
+  }, [primaryLangCode, safeCategories, editingId]);
 
   async function submitNewCategory() {
     try {
-      await onCreateCategory({
-        nameJp: newCategoryNameJp,
-        nameEn: newCategoryNameEn,
-        icon: newCategoryIcon
-      });
-      setNewCategoryNameJp("");
-      setNewCategoryNameEn("");
+      if (!newCategoryName.trim()) {
+        return;
+      }
+      const nameFieldForLang = getNameFieldForLanguage(primaryLangCode);
+      const payload = {
+        icon: newCategoryIcon,
+        [nameFieldForLang]: newCategoryName
+      };
+      
+      await onCreateCategory(payload);
+      setNewCategoryName("");
       setNewCategoryIcon("");
     } catch (err) {
       logError("CategoryManagerSection.submitNewCategory", err);
@@ -47,15 +108,16 @@ export default function CategoryManagerSection({
 
   function startEdit(category) {
     setEditingId(category.id);
-    setEditingJp(category.nameJp);
-    setEditingEn(category.nameEn);
+    const nameFieldForLang = getNameFieldForLanguage(primaryLangCode);
+    // Get name in current language from the corresponding field
+    const nameInCurrentLang = category[nameFieldForLang] || "";
+    setEditingName(nameInCurrentLang);
     setEditingIcon(category.icon || "");
   }
 
   function cancelEdit() {
     setEditingId("");
-    setEditingJp("");
-    setEditingEn("");
+    setEditingName("");
     setEditingIcon("");
   }
 
@@ -64,12 +126,13 @@ export default function CategoryManagerSection({
       return;
     }
     try {
+      const nameFieldForLang = getNameFieldForLanguage(primaryLangCode);
       const payload = {
         id: editingId,
-        nameJp: editingJp,
-        nameEn: editingEn,
-        icon: editingIcon
+        icon: editingIcon,
+        [nameFieldForLang]: editingName
       };
+      
       await onUpdateCategory(payload);
       cancelEdit();
     } catch (err) {
@@ -126,17 +189,10 @@ export default function CategoryManagerSection({
         <div className="category-create-row">
           <input
             type="text"
-            value={newCategoryNameJp}
-            onChange={(e) => setNewCategoryNameJp(e.target.value)}
-            placeholder={t.categoryNameJpPlaceholder}
+            value={newCategoryName}
+            onChange={(e) => setNewCategoryName(e.target.value)}
+            placeholder={getLanguageDisplayName(primaryLangCode, safeLocale)}
           />
-          <input
-            type="text"
-            value={newCategoryNameEn}
-            onChange={(e) => setNewCategoryNameEn(e.target.value)}
-            placeholder={t.categoryNameEnPlaceholder}
-          />
-          {/* JP + EN only */}
           <input
             type="text"
             value={newCategoryIcon}
@@ -158,13 +214,26 @@ export default function CategoryManagerSection({
                 <span>{category.icon || "\uD83C\uDFF7\uFE0F"}</span>
                 <span>{displayName(category, safeLocale)}</span>
                 {isEditing ? (
-                  <>
-                    <input value={editingJp} onChange={(e) => setEditingJp(e.target.value)} />
-                    <input value={editingEn} onChange={(e) => setEditingEn(e.target.value)} />
-                    <input value={editingIcon} onChange={(e) => setEditingIcon(e.target.value)} />
-                    <button type="button" className="inline-action" onClick={saveEdit}>{t.saveButton}</button>
-                    <button type="button" className="inline-action" onClick={cancelEdit}>{t.cancelEditButton}</button>
-                  </>
+                  <div className="category-edit-form">
+                    <div className="category-edit-row">
+                      <input
+                        type="text"
+                        value={editingName}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        placeholder={getLanguageDisplayName(primaryLangCode, safeLocale)}
+                      />
+                      <input
+                        type="text"
+                        value={editingIcon}
+                        onChange={(e) => setEditingIcon(e.target.value)}
+                        placeholder="Icon"
+                      />
+                    </div>
+                    <div className="category-edit-actions">
+                      <button type="button" className="inline-action" onClick={saveEdit}>{t.saveButton}</button>
+                      <button type="button" className="inline-action" onClick={cancelEdit}>{t.cancelEditButton}</button>
+                    </div>
+                  </div>
                 ) : (
                   <>
                     <button type="button" className="inline-action" onClick={() => moveCategory(category.id, -1)}>↑</button>

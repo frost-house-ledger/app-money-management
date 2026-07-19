@@ -134,7 +134,6 @@ export function createBackupService({
           category_id: item.categoryId || "",
           category_name_jp: category?.nameJp || "",
           category_name_en: category?.nameEn || "",
-          category_name_de: category?.nameDe || "",
           category_icon: category?.icon || "",
           note: item.note || "",
           created_at: item.createdAt || "",
@@ -156,7 +155,6 @@ export function createBackupService({
           category_id: item.categoryId || "",
           category_name_jp: category?.nameJp || "",
           category_name_en: category?.nameEn || "",
-          category_name_de: category?.nameDe || "",
           category_icon: category?.icon || "",
           note: "",
           created_at: item.createdAt || "",
@@ -196,9 +194,8 @@ export function createBackupService({
       }
       const incomingCategory = {
         id: categoryId,
-        nameJp: String(row.category_name_jp || row.category_name_en || row.category_name_de || categoryId).trim(),
-        nameEn: String(row.category_name_en || row.category_name_jp || row.category_name_de || categoryId).trim(),
-        nameDe: String(row.category_name_de || row.category_name_en || row.category_name_jp || categoryId).trim(),
+        nameJp: String(row.category_name_jp || row.category_name_en || categoryId).trim(),
+        nameEn: String(row.category_name_en || row.category_name_jp || categoryId).trim(),
         icon: String(row.category_icon || "🏷️").trim() || "🏷️",
         sortOrder: categoryMap.get(categoryId)?.sortOrder || (categoryMap.size + 1) * 10,
         isActive: 1,

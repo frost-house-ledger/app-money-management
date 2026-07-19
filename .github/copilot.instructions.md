@@ -6,6 +6,7 @@
 - All comments and error messages in British English to release internationally.
 - Provide next steps for improving user convenience.
 - Update all affected files and test changes thoroughly.
+- No need to build; I do myself. Just ensure code is correct and ready to build.
 
 
 ## Cost Optimization

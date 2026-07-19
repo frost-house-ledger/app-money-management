@@ -407,7 +407,7 @@ export default function App() {
             const base = rawLocale.split('-')[0];
             if (it && typeof it === 'object') {
               // Prefer Japanese when locale explicitly Japanese; otherwise prefer English.
-              if ((base === 'ja' || rawLocale === 'ja' || rawLocale === 'jp') && it.nameJp) return it.nameJp;
+              if ((base === 'jp') && it.nameJp) return it.nameJp;
               if ((base === 'en' || rawLocale === 'en') && it.nameEn) return it.nameEn;
               if (it.nameEn) return it.nameEn;
               if (it.nameJp) return it.nameJp;

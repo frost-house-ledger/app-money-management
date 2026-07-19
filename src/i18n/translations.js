@@ -165,7 +165,6 @@ export const TRANSLATIONS = {
   addCategoryNamePlaceholder: { jp: "カテゴリ名", en: "Category name", de: "Kategoriename", es: "Nombre de categoría", pt: "Nome da categoria", it: "Nome categoria", fr: "Nom de la catégorie", ru: "Название категории", tw: "分類名稱", ko: "카테고리 이름", ar: "اسم الفئة" },
   categoryNameJpPlaceholder: { jp: "日本語名", en: "Japanese name", de: "Japanischer Name", es: "Nombre en japonés", pt: "Nome em japonês", it: "Nome giapponese", fr: "Nom japonais", ru: "Название на японском", tw: "日文名稱", ko: "일본어 이름", ar: "الاسم باليابانية" },
   categoryNameEnPlaceholder: { jp: "英語名", en: "English name", de: "Englischer Name", es: "Nombre en inglés", pt: "Nome em inglês", it: "Nome in inglese", fr: "Nom anglais", ru: "Название на английском", tw: "英文名稱", ko: "영어 이름", ar: "الاسم بالإنجليزية" },
-  categoryNameDePlaceholder: { jp: "ドイツ語名", en: "German name", de: "Deutscher Name", es: "Nombre en alemán", pt: "Nome em alemão", it: "Nome in tedesco", fr: "Nom allemand", ru: "Название на немецком", tw: "德文名稱", ko: "독일어 이름", ar: "الاسم بالألمانية" },
   addCategoryIconPlaceholder: { jp: "アイコン (例: 🍜)", en: "Icon (e.g. 🍜)", de: "Symbol (z. B. 🍜)", es: "Icono (ej. 🍜)", pt: "Ícone (ex. 🍜)", it: "Icona (es. 🍜)", fr: "Icône (ex. 🍜)", ru: "Иконка (напр. 🍜)", tw: "圖示 (例如: 🍜)", ko: "아이콘 (예: 🍜)", ar: "أيقونة (مثال: 🍜)" },
   addCategoryButton: { jp: "追加", en: "Add", de: "Hinzufuegen", es: "Agregar", pt: "Adicionar", it: "Aggiungi", fr: "Ajouter", ru: "Добавить", tw: "新增", ko: "추가", ar: "إضافة" },
   saveButton: { jp: "目標額を保存", en: "Save the target amount", de: "Zielbetrag speichern", es: "Guardar la cantidad objetivo", pt: "Salvar o valor alvo", it: "Salva l'importo obiettivo", fr: "Enregistrer le montant cible", ru: "Сохранить целевую сумму", tw: "儲存目標金額", ko: "목표 금액 저장", ar: "حفظ المبلغ المستهدف" },
@@ -569,8 +568,90 @@ export const TRANSLATIONS = {
     tw: "不允許指定未來日期。",
     ko: "미래 날짜는 허용되지 않습니다.",
     ar: "التواريخ المستقبلية غير مسموح بها."
+  },
+
+  // -------------------------
+  // Language Settings
+  // -------------------------
+  settingsLanguageManageButton: {
+    jp: "言語設定の管理",
+    en: "Manage Languages",
+    de: "Sprachen verwalten",
+    es: "Gestionar idiomas",
+    pt: "Gerenciar idiomas",
+    it: "Gestisci lingue",
+    fr: "Gérer les langues",
+    ru: "Управление языками",
+    tw: "管理語言",
+    ko: "언어 관리",
+    ar: "إدارة اللغات"
+  },
+  settingsLanguageVisibilityTitle: {
+    jp: "言語設定",
+    en: "Language Settings",
+    de: "Spracheinstellungen",
+    es: "Configuración de idioma",
+    pt: "Configurações de idioma",
+    it: "Impostazioni della lingua",
+    fr: "Paramètres de langue",
+    ru: "Параметры языка",
+    tw: "語言設定",
+    ko: "언어 설정",
+    ar: "إعدادات اللغة"
+  },
+  settingsLanguageVisibilityDescription: {
+    jp: "表示する言語を選択してください。",
+    en: "Select which languages to display.",
+    de: "Wählen Sie die anzuzeigenden Sprachen aus.",
+    es: "Seleccione qué idiomas mostrar.",
+    pt: "Selecione quais idiomas exibir.",
+    it: "Seleziona quali lingue visualizzare.",
+    fr: "Sélectionnez les langues à afficher.",
+    ru: "Выберите языки для отображения.",
+    tw: "選擇要顯示的語言。",
+    ko: "표시할 언어를 선택하세요.",
+    ar: "حدد اللغات التي سيتم عرضها."
+  },
+  cancelButton: {
+    jp: "キャンセル",
+    en: "Cancel",
+    de: "Abbrechen",
+    es: "Cancelar",
+    pt: "Cancelar",
+    it: "Annulla",
+    fr: "Annuler",
+    ru: "Отмена",
+    tw: "取消",
+    ko: "취소",
+    ar: "إلغاء"
+  },
+  saveButton: {
+    jp: "保存",
+    en: "Save",
+    de: "Speichern",
+    es: "Guardar",
+    pt: "Guardar",
+    it: "Salva",
+    fr: "Enregistrer",
+    ru: "Сохранить",
+    tw: "保存",
+    ko: "저장",
+    ar: "حفظ"
+  },
+  savingButton: {
+    jp: "保存中...",
+    en: "Saving...",
+    de: "Wird gespeichert...",
+    es: "Guardando...",
+    pt: "Guardando...",
+    it: "Salvataggio in corso...",
+    fr: "Enregistrement en cours...",
+    ru: "Сохранение...",
+    tw: "保存中...",
+    ko: "저장 중...",
+    ar: "جاري الحفظ..."
   }
-};
+}
 
 // Category name translations — map category id -> localized labels
 TRANSLATIONS.categoryNames = {

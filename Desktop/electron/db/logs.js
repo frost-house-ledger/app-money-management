@@ -8,7 +8,6 @@ export function createInputLogger(insertInputLogStmt) {
       amount: record.amount,
       targetDate: record.targetDate,
       categoryId: record.categoryId || null,
-      category: record.category || null,
       note: record.note || null,
       payloadJson: JSON.stringify(record.payload || {})
     });

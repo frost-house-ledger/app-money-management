@@ -8,7 +8,6 @@
   { "id": "education", "name": "Education", "icon": "📚" },
   { "id": "entertainment", "name": "Entertainment", "icon": "🎬" },
   { "id": "travel", "name": "Travel", "icon": "✈️" },
-  { "id": "shopping", "name": "Shopping", "icon": "🛍️" },
   { "id": "subscription", "name": "Subscription", "icon": "🔁" },
   { "id": "insurance", "name": "Insurance", "icon": "🛡️" },
   { "id": "other", "name": "Other", "icon": "📦" }
