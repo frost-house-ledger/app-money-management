@@ -50,20 +50,12 @@ jobs:
 
                 const oldVersionStr = versionMatch[1];
                 const newVersionStr = versionMatch[2];
-
-                // Extract major versions for comparison
-                const oldMajor = parseInt(oldVersionStr.split('.')[0], 10);
-                const newMajor = parseInt(newVersionStr.split('.')[0], 10);
-
-                // Only auto-merge patch and minor version updates, skip major version bumps
-                const isMajorUpdate = newMajor > oldMajor;
                 
-                if (isMajorUpdate) {
-                  core.info(`PR #${prNumber}: Major version update detected (${oldVersionStr} → ${newVersionStr}) — skipping.`);
-                  return;
-                }
+                core.info(`PR #${prNumber}: Version update (${oldVersionStr} → ${newVersionStr})`);
 
-                // Merge the PR
+                core.info(`PR #${prNumber}: Version update (${oldVersionStr} → ${newVersionStr})`);
+
+                // Merge the PR (no version filtering - merge all updates)
                 await github.rest.pulls.merge({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
@@ -71,7 +63,7 @@ jobs:
                   merge_method: "squash"
                 });
 
-                core.info(`PR #${prNumber}: Auto-merged (patch/minor update).`);
+                core.info(`PR #${prNumber}: Auto-merged.`);
 
                 // Delete the branch after successful merge
                 const headRef = pr.data.head.ref;
