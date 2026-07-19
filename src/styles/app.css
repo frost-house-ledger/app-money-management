@@ -104,6 +104,66 @@ html[lang="ru"] .hero p {
   padding: 6px 8px;
 }
 
+/* Language select region colors */
+.language-select option[data-region="Asia"] {
+  background-color: #3a2422;
+  color: #f0f0f0;
+}
+.language-select option[data-region="Europe"] {
+  background-color: #1f3a54;
+  color: #f0f0f0;
+}
+.language-select option[data-region="Middle East"] {
+  background-color: #3d3427;
+  color: #f0f0f0;
+}
+.language-select option[data-region="Global"] {
+  background-color: #3d3a1a;
+  color: #f0f0f0;
+}
+.language-select option[data-region="Europe/Asia"] {
+  background-color: #1a3a35;
+  color: #f0f0f0;
+}
+.language-select option[data-region="Other"] {
+  background-color: #2a2a2a;
+  color: #f0f0f0;
+}
+
+/* Currency select region colors */
+.currency-select option[data-region="Asia"] {
+  background-color: #3a2422;
+  color: #f0f0f0;
+}
+.currency-select option[data-region="Europe"] {
+  background-color: #1f3a54;
+  color: #f0f0f0;
+}
+.currency-select option[data-region="Middle East"] {
+  background-color: #3d3427;
+  color: #f0f0f0;
+}
+.currency-select option[data-region="Oceania"] {
+  background-color: #1a3a25;
+  color: #f0f0f0;
+}
+.currency-select option[data-region="North America"] {
+  background-color: #2f1f3d;
+  color: #f0f0f0;
+}
+.currency-select option[data-region="South America"] {
+  background-color: #3a2815;
+  color: #f0f0f0;
+}
+.currency-select option[data-region="Africa"] {
+  background-color: #2d2418;
+  color: #f0f0f0;
+}
+.currency-select option[data-region="Other"] {
+  background-color: #2a2a2a;
+  color: #f0f0f0;
+}
+
 .card {
   backdrop-filter: blur(8px);
   border: 1px solid var(--line);

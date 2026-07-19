@@ -2,51 +2,117 @@ import React from "react";
 import { logError } from "../../lib/logger.js";
 import languagesData from "../../../json/languages.json";
 
-// Build LANGUAGE_INFO from languages.json
+/**
+ * Build LANGUAGE_INFO from languages.json
+ * Includes: code, region, all name fields (nameJa, nameEn, nameRu, nameDe, etc.)
+ */
 const LANGUAGE_INFO = {};
+const LANGUAGE_BY_REGION = {};
+
 if (Array.isArray(languagesData?.items)) {
   languagesData.items.forEach(item => {
-    LANGUAGE_INFO[item.code] = {
+    // Extract all fields from the language item
+    const info = {
       code: item.code,
+      region: item.region || "Other",
       nameJa: item.nameJa,
-      nameEn: item.nameEn
+      nameEn: item.nameEn,
+      flag: item.flag,
+      hidden: item.hidden ?? false
     };
+    
+    // Include all name* fields dynamically
+    Object.keys(item).forEach(key => {
+      if (key.startsWith("name")) {
+        info[key] = item[key];
+      }
+    });
+    
+    LANGUAGE_INFO[item.code] = info;
+    
+    // Index by region for region-based lookups
+    if (!LANGUAGE_BY_REGION[info.region]) {
+      LANGUAGE_BY_REGION[info.region] = [];
+    }
+    LANGUAGE_BY_REGION[info.region].push(info);
   });
 }
 
-// Generate field name from language code (e.g., "ru" -> "nameRu", "jp" -> "nameJp")
+/**
+ * Generate the name field key for a given language code
+ * e.g., "ru" -> "nameRu", "jp" -> "nameJp", "en" -> "nameEn"
+ * Validates the field exists in the language item before recommending it
+ * @param {string} langCode - Language code (e.g., "jp", "en", "ru")
+ * @returns {string} Field name (e.g., "nameJp"), defaults to "nameEn"
+ */
 function getNameFieldForLanguage(langCode) {
   if (!langCode) return "nameEn";
-  const code = String(langCode).toLowerCase();
-  if (code === "jp") return "nameJp";
+  
+  const code = String(langCode).toLowerCase().trim();
+  if (!code) return "nameEn";
+  
+  // Special cases for jp and en
+  if (code === "jp") return "nameJa";
   if (code === "en") return "nameEn";
-  // For other languages, capitalize first letter: ru -> nameRu, de -> nameDe, etc.
-  return "name" + code.charAt(0).toUpperCase() + code.slice(1);
+  
+  // For other languages: capitalize first letter (ru -> nameRu, de -> nameDe, etc.)
+  const fieldName = "name" + code.charAt(0).toUpperCase() + code.slice(1);
+  
+  return fieldName;
+}
+
+/**
+ * Get language info by code, with optional region filtering
+ * @param {string} code - Language code
+ * @returns {object|null} Language info or null if not found
+ */
+function getLanguageInfo(code) {
+  return LANGUAGE_INFO[String(code || "").toLowerCase()] || null;
+}
+
+/**
+ * Get all languages in a specific region
+ * @param {string} region - Region name (e.g., "Asia", "Europe")
+ * @returns {array} Array of language info objects
+ */
+function getLanguagesByRegion(region) {
+  return LANGUAGE_BY_REGION[region] || [];
 }
 
 function getLanguageCode(locale) {
   const raw = String(locale || "").toLowerCase();
-  const info = LANGUAGE_INFO[raw];
+  const info = getLanguageInfo(raw);
   return info ? info.code : "en";
 }
 
 function getLanguageDisplayName(langCode, displayLocale = "jp") {
-  const info = Object.values(LANGUAGE_INFO).find((i) => i.code === langCode);
+  const info = getLanguageInfo(langCode);
   if (!info) return langCode;
   const isJp = String(displayLocale || "").toLowerCase().startsWith("jp");
   return isJp ? info.nameJa : info.nameEn;
 }
 
+/**
+ * Get display name for a category in the specified locale
+ * Tries language-specific name field, then falls back to Ja/En
+ * @param {object} category - Category object
+ * @param {string} locale - Locale code
+ * @returns {string} Display name
+ */
 function displayName(category, locale) {
+  if (!category) return "";
+  
   // Get name in the appropriate language field
   const langCode = getLanguageCode(locale);
   const nameField = getNameFieldForLanguage(langCode);
-  // Try to get name from language-specific field first, then fallback to other language fields
+  
+  // Try to get name from language-specific field
   if (category[nameField]) {
     return category[nameField];
   }
-  // Fallback: try other common fields
-  return category.nameJp || category.nameEn || category.id;
+  
+  // Fallback: try other common fields in priority order
+  return category.nameJa || category.nameEn || category.name || category.id || "";
 }
 
 export default function CategoryManagerSection({

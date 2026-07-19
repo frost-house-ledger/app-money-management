@@ -2,7 +2,9 @@ import React from "react";
 import { formatMessage } from "../../i18n/translations.js";
 import { logError } from "../../lib/logger.js";
 import languagesData from "../../../json/languages.json";
+import currenciesData from "../../../json/currency.json";
 import LanguageVisibilityModal from "./LanguageVisibilityModal.jsx";
+import CurrencyVisibilityModal from "./CurrencyVisibilityModal.jsx";
 
 export default function SettingsPage({
   locale,
@@ -25,11 +27,19 @@ export default function SettingsPage({
 }) {
   const [showLanguageVisibilityModal, setShowLanguageVisibilityModal] = React.useState(false);
   const [languageRefreshKey, setLanguageRefreshKey] = React.useState(0);
+  const [showCurrencyVisibilityModal, setShowCurrencyVisibilityModal] = React.useState(false);
+  const [currencyRefreshKey, setCurrencyRefreshKey] = React.useState(0);
 
   const handleCloseLanguageModal = () => {
     setShowLanguageVisibilityModal(false);
     // Trigger UI refresh to show updated language list
     setLanguageRefreshKey((prev) => prev + 1);
+  };
+
+  const handleCloseCurrencyModal = () => {
+    setShowCurrencyVisibilityModal(false);
+    // Trigger UI refresh to show updated currency list
+    setCurrencyRefreshKey((prev) => prev + 1);
   };
 
   // Load language visibility preferences
@@ -50,6 +60,27 @@ export default function SettingsPage({
         return !userHidden;
       }
       return !lang.hidden;
+    });
+  };
+
+  // Load currency visibility preferences
+  const getVisibleCurrencies = () => {
+    const allCurrencies = Array.isArray(currenciesData?.items) ? currenciesData.items : [];
+    const userPrefs = (() => {
+      try {
+        const stored = localStorage.getItem("currencyVisibility");
+        return stored ? JSON.parse(stored) : {};
+      } catch (e) {
+        return {};
+      }
+    })();
+
+    return allCurrencies.filter((curr) => {
+      const userHidden = userPrefs[curr.code]?.hidden;
+      if (userHidden !== undefined) {
+        return !userHidden;
+      }
+      return !curr.hidden;
     });
   };
   
@@ -83,22 +114,8 @@ export default function SettingsPage({
 
   const syncServerUrls = Array.isArray(syncServerInfo?.urls) ? syncServerInfo.urls : [];
 
-  const CURRENCY_LIST = [
-    { code: 'JPY', name: 'Japanese Yen' },
-    { code: 'TWD', name: 'Taiwan Dollar' },
-    { code: 'EUR', name: 'Euro' },
-    { code: 'GBP', name: 'British Pound' },
-    { code: 'CHF', name: 'Swiss Franc' },
-    { code: 'AUD', name: 'Australian Dollar' },
-    { code: 'NZD', name: 'New Zealand Dollar' },
-    { code: 'SGD', name: 'Singapore Dollar' },
-    { code: 'INR', name: 'Indian Rupee' },
-    { code: 'CAD', name: 'Canadian Dollar' },
-    { code: 'USD', name: 'United States Dollar' }
-  ];
-
   const safeLanguageOptions = getVisibleLanguages();
-  const safeCurrencyList = Array.isArray(CURRENCY_LIST) ? CURRENCY_LIST : [];
+  const safeCurrencyList = getVisibleCurrencies();
   try {
     return (
       <section className="forms-grid settings-page">
@@ -109,7 +126,8 @@ export default function SettingsPage({
           <label>
             {t.settingsLanguageLabel}
             <select
-              className="settings-select"
+              key={`language-select-${languageRefreshKey}`}
+              className="settings-select language-select"
               value={locale}
               onChange={(e) => {
                 try {
@@ -119,11 +137,31 @@ export default function SettingsPage({
                 }
               }}
             >
-              {safeLanguageOptions.map((language) => (
-                <option key={language.code} value={language.code}>
-                  {language.flag} {language.name}
-                </option>
-              ))}
+              {Object.entries(
+                safeLanguageOptions.reduce((acc, lang) => {
+                  const region = lang.region || "Other";
+                  if (!acc[region]) acc[region] = [];
+                  acc[region].push(lang);
+                  return acc;
+                }, {})
+              )
+                .sort(([a], [b]) => {
+                  const order = ["Asia", "Global", "Europe", "Middle East", "Europe/Asia", "Other"];
+                  return order.indexOf(a) - order.indexOf(b);
+                })
+                .map(([region, langs]) => (
+                  <optgroup key={region} label={region} data-region={region}>
+                    {langs.map((language) => (
+                      <option
+                        key={language.code}
+                        value={language.code}
+                        data-region={region}
+                      >
+                        {language.flag} {language.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
             </select>
           </label>
 
@@ -138,7 +176,8 @@ export default function SettingsPage({
           <label>
             {t.settingsCurrencyLabel}
             <select
-              className="settings-select"
+              key={`currency-select-${currencyRefreshKey}`}
+              className="settings-select currency-select"
               value={selectedCurrency}
               onChange={(e) => {
                 try {
@@ -148,13 +187,43 @@ export default function SettingsPage({
                 }
               }}
             >
-              {safeCurrencyList.map((currency) => (
-                <option key={currency.code} value={currency.code}>
-                  {currency.code}({currency.name})
-                </option>
-              ))}
+              {Object.entries(
+                safeCurrencyList.reduce((acc, curr) => {
+                  const region = curr.region || "Other";
+                  if (!acc[region]) acc[region] = [];
+                  acc[region].push(curr);
+                  return acc;
+                }, {})
+              )
+                .sort(([a], [b]) => {
+                  const order = ["Asia", "Oceania", "Europe", "North America", "South America", "Middle East", "Africa", "Other"];
+                  return order.indexOf(a) - order.indexOf(b);
+                })
+                .map(([region, currs]) => (
+                  <optgroup key={region} label={region} data-region={region}>
+                    {currs.map((currency) => (
+                      <option
+                        key={currency.code}
+                        value={currency.code}
+                        data-region={region}
+                      >
+                        {currency.code} ({currency.name})
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
             </select>
           </label>
+
+          <button
+            type="button"
+            onClick={() => setShowCurrencyVisibilityModal(true)}
+            className="settings-button"
+          >
+            {t.settingsCurrencyManageButton}
+          </button>
+
+          <br />
 
           <label>
             {t.csvImportLabel}
@@ -241,6 +310,14 @@ export default function SettingsPage({
         {showLanguageVisibilityModal && (
           <LanguageVisibilityModal
             onClose={handleCloseLanguageModal}
+            locale={locale}
+            t={t}
+          />
+        )}
+
+        {showCurrencyVisibilityModal && (
+          <CurrencyVisibilityModal
+            onClose={handleCloseCurrencyModal}
             locale={locale}
             t={t}
           />

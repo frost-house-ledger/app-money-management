@@ -650,6 +650,45 @@ export const TRANSLATIONS = {
     tw: "保存中...",
     ko: "저장 중...",
     ar: "جاري الحفظ..."
+  },
+  settingsCurrencyManageButton: {
+    jp: "通貨設定の管理",
+    en: "Manage Currencies",
+    de: "Währungen verwalten",
+    es: "Gestionar monedas",
+    pt: "Gerenciar moedas",
+    it: "Gestisci valute",
+    fr: "Gérer les devises",
+    ru: "Управление валютами",
+    tw: "管理貨幣",
+    ko: "통화 관리",
+    ar: "إدارة العملات"
+  },
+  settingsCurrencyVisibilityTitle: {
+    jp: "通貨設定",
+    en: "Currency Settings",
+    de: "Währungseinstellungen",
+    es: "Configuración de moneda",
+    pt: "Configurações de moeda",
+    it: "Impostazioni valuta",
+    fr: "Paramètres de devise",
+    ru: "Параметры валюты",
+    tw: "貨幣設定",
+    ko: "통화 설정",
+    ar: "إعدادات العملة"
+  },
+  settingsCurrencyVisibilityDescription: {
+    jp: "表示する通貨を選択してください。",
+    en: "Select which currencies to display.",
+    de: "Wählen Sie die anzuzeigenden Währungen aus.",
+    es: "Seleccione qué monedas mostrar.",
+    pt: "Selecione quais moedas exibir.",
+    it: "Seleziona quali valute visualizzare.",
+    fr: "Sélectionnez les devises à afficher.",
+    ru: "Выберите валюты для отображения.",
+    tw: "選擇要顯示的貨幣。",
+    ko: "표시할 통화를 선택하세요.",
+    ar: "حدد العملات التي سيتم عرضها."
   }
 }
 

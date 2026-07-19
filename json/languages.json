@@ -34,8 +34,14 @@
     { "code": "ru", "name": "Русский (Russian)", "flag": "🇷🇺", "nameJa": "ロシア語", "nameEn": "Russian", "region": "Europe/Asia", "hidden": true },
 
     { "code": "ar", "name": "العربية (Arabic)", "flag": "🇸🇦", "nameJa": "アラビア語", "nameEn": "Arabic", "region": "Middle East", "hidden": true },
-    { "code": "he", "name": "עברית (Hebrew)", "flag": "🇮🇱", "nameJa": "ヘブライ語", "nameEn": "Hebrew", "region": "Middle East", "hidden": true }
+    { "code": "he", "name": "עברית (Hebrew)", "flag": "🇮🇱", "nameJa": "ヘブライ語", "nameEn": "Hebrew", "region": "Middle East", "hidden": true },
+    { "code": "ms", "name": "Bahasa Melayu (Malay)", "flag": "🇲🇾", "nameJa": "マレー語", "nameEn": "Malay", "region": "Asia", "hidden": true },
+    { "code": "fa", "name": "فارسی (Persian)", "flag": "🇮🇷", "nameJa": "ペルシア語", "nameEn": "Persian", "region": "Middle East", "hidden": true },
+    { "code": "sq", "name": "Shqip (Albanian)", "flag": "🇦🇱", "nameJa": "アルバニア語", "nameEn": "Albanian", "region": "Europe", "hidden": true },
+    { "code": "ur", "name": "اردو (Urdu)", "flag": "🇵🇰", "nameJa": "ウルドゥー語", "nameEn": "Urdu", "region": "Asia", "hidden": true },
+    { "code": "tl", "name": "Tagalog (Filipino)", "flag": "🇵🇭", "nameJa": "タガログ語", "nameEn": "Tagalog", "region": "Asia", "hidden": true }
   ]
 }
+
 
 
