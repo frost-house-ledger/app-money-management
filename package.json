@@ -78,7 +78,7 @@
     "jest-environment-jsdom": "^30.4.1",
     "typescript": "^6.0.3",
     "vite": "^6.4.2",
-    "wait-on": "^9.0.4"
+    "wait-on": "^9.0.10"
   },
   "overrides": {
     "@babel/core": "7.29.7"
