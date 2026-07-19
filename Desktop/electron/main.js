@@ -116,6 +116,8 @@ async function createMainWindow(ledger) {
 
   ipcMain.handle("category:reorder", async (_event, payload) => ledger.reorderCategories(payload));
 
+  ipcMain.handle("category:reset", async (_event) => ledger.resetCategories());
+
   ipcMain.handle("summary:month", async (_event, payload) => {
     if (typeof payload === "string") {
       return ledger.getMonthSummary(payload);

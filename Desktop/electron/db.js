@@ -732,6 +732,7 @@ export function createLedgerStore(dataDir) {
     updateCategory: categoryStore.updateCategory,
     deleteCategory: categoryStore.deleteCategory,
     reorderCategories: categoryStore.reorderCategories,
+    resetCategories: categoryStore.resetCategories,
     addRecurring: recurringStore.addRecurring,
     updateRecurring: recurringStore.updateRecurring,
     deleteRecurring: recurringStore.deleteRecurring,

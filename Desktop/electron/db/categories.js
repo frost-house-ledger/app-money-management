@@ -363,6 +363,17 @@ export function createCategoryStore({
     return { ok: true };
   }
 
+  function resetCategories() {
+    const defaultCategories = DEFAULT_CATEGORIES.map((item, index) => ({
+      ...item,
+      sortOrder: (index + 1) * 10,
+      isActive: 1,
+      updatedAt: new Date().toISOString()
+    }));
+    writeCategoriesFile(defaultCategories);
+    return { ok: true };
+  }
+
   function replaceCategoriesForSync(items) {
     if (!Array.isArray(items)) {
       throw new Error("同期カテゴリデータが不正です。");
@@ -394,6 +405,7 @@ export function createCategoryStore({
     updateCategory,
     deleteCategory,
     reorderCategories,
+    resetCategories,
     replaceCategoriesForSync,
     getCategoryMap
   };

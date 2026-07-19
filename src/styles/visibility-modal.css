@@ -84,67 +84,10 @@
   transition: all 0.2s;
   border: 2px solid #444;
   position: relative;
-  background: #333333;
 }
 
 .language-item:hover {
-  background: #404040;
   border-color: #5cc2ff;
-}
-
-/* Language region colors */
-.language-item[data-region="Asia"] {
-  border-color: #c23b22;
-  background: #3a2422;
-}
-.language-item[data-region="Asia"]:hover {
-  border-color: #e74c3c;
-  background: #4a3432;
-}
-
-.language-item[data-region="Europe"] {
-  border-color: #2c5aa0;
-  background: #1f3a54;
-}
-.language-item[data-region="Europe"]:hover {
-  border-color: #5dade2;
-  background: #2d4a64;
-}
-
-.language-item[data-region="Middle East"] {
-  border-color: #8b6f47;
-  background: #3d3427;
-}
-.language-item[data-region="Middle East"]:hover {
-  border-color: #d4a574;
-  background: #4d4437;
-}
-
-.language-item[data-region="Global"] {
-  border-color: #9d7500;
-  background: #3d3a1a;
-}
-.language-item[data-region="Global"]:hover {
-  border-color: #f39c12;
-  background: #4d4a2a;
-}
-
-.language-item[data-region="Europe/Asia"] {
-  border-color: #0b6b5c;
-  background: #1a3a35;
-}
-.language-item[data-region="Europe/Asia"]:hover {
-  border-color: #1abc9c;
-  background: #2a4a45;
-}
-
-.language-item[data-region="Other"] {
-  border-color: #555555;
-  background: #2a2a2a;
-}
-.language-item[data-region="Other"]:hover {
-  border-color: #7f8c8d;
-  background: #3a3a3a;
 }
 
 .language-item input[type="checkbox"] {
@@ -206,85 +149,10 @@
   transition: all 0.2s;
   border: 2px solid #444;
   position: relative;
-  background: #333333;
 }
 
 .currency-item:hover {
-  background: #404040;
   border-color: #5cc2ff;
-}
-
-/* Currency region colors */
-.currency-item[data-region="Asia"] {
-  border-color: #c23b22;
-  background: #3a2422;
-}
-.currency-item[data-region="Asia"]:hover {
-  border-color: #e74c3c;
-  background: #4a3432;
-}
-
-.currency-item[data-region="Europe"] {
-  border-color: #2c5aa0;
-  background: #1f3a54;
-}
-.currency-item[data-region="Europe"]:hover {
-  border-color: #5dade2;
-  background: #2d4a64;
-}
-
-.currency-item[data-region="Middle East"] {
-  border-color: #8b6f47;
-  background: #3d3427;
-}
-.currency-item[data-region="Middle East"]:hover {
-  border-color: #d4a574;
-  background: #4d4437;
-}
-
-.currency-item[data-region="Oceania"] {
-  border-color: #1e7e34;
-  background: #1a3a25;
-}
-.currency-item[data-region="Oceania"]:hover {
-  border-color: #2ecc71;
-  background: #2a4a35;
-}
-
-.currency-item[data-region="North America"] {
-  border-color: #5a3a7a;
-  background: #2f1f3d;
-}
-.currency-item[data-region="North America"]:hover {
-  border-color: #9b59b6;
-  background: #3f2f4d;
-}
-
-.currency-item[data-region="South America"] {
-  border-color: #b35900;
-  background: #3a2815;
-}
-.currency-item[data-region="South America"]:hover {
-  border-color: #e67e22;
-  background: #4a3825;
-}
-
-.currency-item[data-region="Africa"] {
-  border-color: #5c4033;
-  background: #2d2418;
-}
-.currency-item[data-region="Africa"]:hover {
-  border-color: #795548;
-  background: #3d3428;
-}
-
-.currency-item[data-region="Other"] {
-  border-color: #555555;
-  background: #2a2a2a;
-}
-.currency-item[data-region="Other"]:hover {
-  border-color: #7f8c8d;
-  background: #3a3a3a;
 }
 
 .currency-item input[type="checkbox"] {
@@ -408,49 +276,6 @@
   flex-shrink: 0;
 }
 
-/* Language selector region colors */
-.language-selector-option[data-region="Asia"] {
-  border-left-color: #c23b22;
-}
-.language-selector-option[data-region="Asia"]:hover {
-  border-left-color: #e74c3c;
-}
-
-.language-selector-option[data-region="Europe"] {
-  border-left-color: #2c5aa0;
-}
-.language-selector-option[data-region="Europe"]:hover {
-  border-left-color: #5dade2;
-}
-
-.language-selector-option[data-region="Middle East"] {
-  border-left-color: #8b6f47;
-}
-.language-selector-option[data-region="Middle East"]:hover {
-  border-left-color: #d4a574;
-}
-
-.language-selector-option[data-region="Global"] {
-  border-left-color: #9d7500;
-}
-.language-selector-option[data-region="Global"]:hover {
-  border-left-color: #f39c12;
-}
-
-.language-selector-option[data-region="Europe/Asia"] {
-  border-left-color: #0b6b5c;
-}
-.language-selector-option[data-region="Europe/Asia"]:hover {
-  border-left-color: #1abc9c;
-}
-
-.language-selector-option[data-region="Other"] {
-  border-left-color: #555555;
-}
-.language-selector-option[data-region="Other"]:hover {
-  border-left-color: #7f8c8d;
-}
-
 /* === Currency Selector Styles === */
 .currency-selector-wrapper {
   position: relative;
@@ -541,61 +366,4 @@
   cursor: pointer;
   accent-color: #5cc2ff;
   flex-shrink: 0;
-}
-
-/* Currency selector region colors */
-.currency-selector-option[data-region="Asia"] {
-  border-left-color: #c23b22;
-}
-.currency-selector-option[data-region="Asia"]:hover {
-  border-left-color: #e74c3c;
-}
-
-.currency-selector-option[data-region="Europe"] {
-  border-left-color: #2c5aa0;
-}
-.currency-selector-option[data-region="Europe"]:hover {
-  border-left-color: #5dade2;
-}
-
-.currency-selector-option[data-region="Middle East"] {
-  border-left-color: #8b6f47;
-}
-.currency-selector-option[data-region="Middle East"]:hover {
-  border-left-color: #d4a574;
-}
-
-.currency-selector-option[data-region="Oceania"] {
-  border-left-color: #1e7e34;
-}
-.currency-selector-option[data-region="Oceania"]:hover {
-  border-left-color: #2ecc71;
-}
-
-.currency-selector-option[data-region="North America"] {
-  border-left-color: #5a3a7a;
-}
-.currency-selector-option[data-region="North America"]:hover {
-  border-left-color: #9b59b6;
-}
-
-.currency-selector-option[data-region="South America"] {
-  border-left-color: #b35900;
-}
-.currency-selector-option[data-region="South America"]:hover {
-  border-left-color: #e67e22;
-}
-
-.currency-selector-option[data-region="Africa"] {
-  border-left-color: #5c4033;
-}
-.currency-selector-option[data-region="Africa"]:hover {
-  border-left-color: #795548;
-}
-
-.currency-selector-option[data-region="Other"] {
-  border-left-color: #555555;
-}
-.currency-selector-option[data-region="Other"]:hover {
-  border-left-color: #7f8c8d;
 }

@@ -5,6 +5,7 @@ import languagesData from "../../../json/languages.json";
 import currenciesData from "../../../json/currency.json";
 import LanguageVisibilityModal from "./LanguageVisibilityModal.jsx";
 import CurrencyVisibilityModal from "./CurrencyVisibilityModal.jsx";
+import "../../styles/app.css";
 
 export default function SettingsPage({
   locale,
@@ -137,31 +138,15 @@ export default function SettingsPage({
                 }
               }}
             >
-              {Object.entries(
-                safeLanguageOptions.reduce((acc, lang) => {
-                  const region = lang.region || "Other";
-                  if (!acc[region]) acc[region] = [];
-                  acc[region].push(lang);
-                  return acc;
-                }, {})
-              )
-                .sort(([a], [b]) => {
-                  const order = ["Asia", "Global", "Europe", "Middle East", "Europe/Asia", "Other"];
-                  return order.indexOf(a) - order.indexOf(b);
-                })
-                .map(([region, langs]) => (
-                  <optgroup key={region} label={region} data-region={region}>
-                    {langs.map((language) => (
-                      <option
-                        key={language.code}
-                        value={language.code}
-                        data-region={region}
-                      >
-                        {language.flag} {language.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
+              {safeLanguageOptions.map((language) => (
+                <option
+                  key={language.code}
+                  value={language.code}
+                  data-region={language.region}
+                >
+                  {language.flag} {language.name}
+                </option>
+              ))}
             </select>
           </label>
 
@@ -187,31 +172,15 @@ export default function SettingsPage({
                 }
               }}
             >
-              {Object.entries(
-                safeCurrencyList.reduce((acc, curr) => {
-                  const region = curr.region || "Other";
-                  if (!acc[region]) acc[region] = [];
-                  acc[region].push(curr);
-                  return acc;
-                }, {})
-              )
-                .sort(([a], [b]) => {
-                  const order = ["Asia", "Oceania", "Europe", "North America", "South America", "Middle East", "Africa", "Other"];
-                  return order.indexOf(a) - order.indexOf(b);
-                })
-                .map(([region, currs]) => (
-                  <optgroup key={region} label={region} data-region={region}>
-                    {currs.map((currency) => (
-                      <option
-                        key={currency.code}
-                        value={currency.code}
-                        data-region={region}
-                      >
-                        {currency.code} ({currency.name})
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
+              {safeCurrencyList.map((currency) => (
+                <option
+                  key={currency.code}
+                  value={currency.code}
+                  data-region={currency.region}
+                >
+                  {currency.code} ({currency.name})
+                </option>
+              ))}
             </select>
           </label>
 

@@ -17,7 +17,8 @@ export function createElectronApi() {
       add: (payload) => window.ledgerApi.category.add(payload),
       update: (payload) => window.ledgerApi.category.update(payload),
       delete: (payload) => window.ledgerApi.category.delete(payload),
-      reorder: (payload) => window.ledgerApi.category.reorder(payload)
+      reorder: (payload) => window.ledgerApi.category.reorder(payload),
+      reset: () => window.ledgerApi.category.reset()
     },
     recurring: {
       list: () => window.ledgerApi.recurring.list(),

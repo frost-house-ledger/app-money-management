@@ -122,6 +122,7 @@ export default function CategoryManagerSection({
   onUpdateCategory,
   onDeleteCategory,
   onReorderCategories,
+  onResetCategories,
   t
 }) {
   const safeLocale = locale || "jp";
@@ -235,6 +236,17 @@ export default function CategoryManagerSection({
     }
   }
 
+  async function safeResetCategories() {
+    if (!window.confirm("本当にカテゴリをデフォルト状態に戻しますか？")) {
+      return;
+    }
+    try {
+      await onResetCategories();
+    } catch (err) {
+      logError("CategoryManagerSection.safeResetCategories", err);
+    }
+  }
+
   return (
     <section className="card category-manager-card">
       <div className="category-manager-header">
@@ -242,13 +254,22 @@ export default function CategoryManagerSection({
           <h2>{t.categoryManagerTitle}</h2>
           <p className="subtext">{t.categoryManagerSubtext}</p>
         </div>
-        <button
-          type="button"
-          className="inline-action"
-          onClick={() => setListOpen((v) => !v)}
-        >
-          {listOpen ? t.categoryHideListButton ?? "▲ Close" : t.categoryShowListButton ?? "▼ Show List"}
-        </button>
+        <div className="category-manager-actions">
+          <button
+            type="button"
+            className="inline-action"
+            onClick={() => setListOpen((v) => !v)}
+          >
+            {listOpen ? t.categoryHideListButton ?? "▲ Close" : t.categoryShowListButton ?? "▼ Show List"}
+          </button>
+          <button
+            type="button"
+            className="inline-action danger-action"
+            onClick={safeResetCategories}
+          >
+            {t.categoryResetButton ?? "デフォルトに戻す"}
+          </button>
+        </div>
       </div>
 
       <div className="category-create">

@@ -526,6 +526,17 @@ export default function App() {
     }
   }
 
+  async function onResetCategories() {
+    setErrorText("");
+    try {
+      await api.category.reset();
+      await loadCategories();
+      showToast("カテゴリをデフォルトに戻しました");
+    } catch (error) {
+      setErrorText(error.message || t.errorCategoryRequired);
+    }
+  }
+
   async function onSubmitRecurring(event) {
     event.preventDefault();
     setErrorText("");
@@ -940,6 +951,7 @@ export default function App() {
           onUpdateCategory={onUpdateCategory}
           onDeleteCategory={onDeleteCategory}
           onReorderCategories={onReorderCategories}
+          onResetCategories={onResetCategories}
           dailyRows={dailyRows}
           filteredRecurring={filteredRecurring}
           dailyTitle={formatMessage(t.dailyListTitle, { month: selectedMonth })}

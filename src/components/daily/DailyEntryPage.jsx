@@ -16,6 +16,7 @@ export default function DailyEntryPage({
   onUpdateCategory,
   onDeleteCategory,
   onReorderCategories,
+  onResetCategories,
   dailyRows,
   filteredRecurring,
   dailyTitle,
@@ -49,6 +50,7 @@ export default function DailyEntryPage({
         onUpdateCategory={onUpdateCategory}
         onDeleteCategory={onDeleteCategory}
         onReorderCategories={onReorderCategories}
+        onResetCategories={onResetCategories}
         t={t}
       />
 

@@ -1,6 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=M+PLUS+1:wght@400;600&display=swap");
 
-/* === デフォルト: ダークテーマ === */
+/* === dark theme === */
 :root {
   --bg-0: #121a27;
   --bg-1: #1a2739;
@@ -15,8 +15,6 @@
   --input-bg: rgba(255, 255, 255, 0.08);
   --nav-bg: rgba(255, 255, 255, 0.05);
 }
-
-
 
 * {
   box-sizing: border-box;
@@ -102,66 +100,6 @@ html[lang="ru"] .hero p {
 }
 .settings-select optgroup[label] {
   padding: 6px 8px;
-}
-
-/* Language select region colors */
-.language-select option[data-region="Asia"] {
-  background-color: #3a2422;
-  color: #f0f0f0;
-}
-.language-select option[data-region="Europe"] {
-  background-color: #1f3a54;
-  color: #f0f0f0;
-}
-.language-select option[data-region="Middle East"] {
-  background-color: #3d3427;
-  color: #f0f0f0;
-}
-.language-select option[data-region="Global"] {
-  background-color: #3d3a1a;
-  color: #f0f0f0;
-}
-.language-select option[data-region="Europe/Asia"] {
-  background-color: #1a3a35;
-  color: #f0f0f0;
-}
-.language-select option[data-region="Other"] {
-  background-color: #2a2a2a;
-  color: #f0f0f0;
-}
-
-/* Currency select region colors */
-.currency-select option[data-region="Asia"] {
-  background-color: #3a2422;
-  color: #f0f0f0;
-}
-.currency-select option[data-region="Europe"] {
-  background-color: #1f3a54;
-  color: #f0f0f0;
-}
-.currency-select option[data-region="Middle East"] {
-  background-color: #3d3427;
-  color: #f0f0f0;
-}
-.currency-select option[data-region="Oceania"] {
-  background-color: #1a3a25;
-  color: #f0f0f0;
-}
-.currency-select option[data-region="North America"] {
-  background-color: #2f1f3d;
-  color: #f0f0f0;
-}
-.currency-select option[data-region="South America"] {
-  background-color: #3a2815;
-  color: #f0f0f0;
-}
-.currency-select option[data-region="Africa"] {
-  background-color: #2d2418;
-  color: #f0f0f0;
-}
-.currency-select option[data-region="Other"] {
-  background-color: #2a2a2a;
-  color: #f0f0f0;
 }
 
 .card {
@@ -1313,82 +1251,6 @@ button {
   color: #dcecff;
   font-weight: 500;
 }
-
-/* Language options */
-.settings-select option[value="ja"] {
-  background: #2a1e1a;
-  color: #f4a98a;
-}
-
-.settings-select option[value="en"] {
-  background: #192130;
-  color: #7dc6f5;
-}
-
-.settings-select option[value="de"] {
-  background: #221e10;
-  color: #f0d080;
-}
-
-/* Asian currencies */
-.settings-select option[value="JPY"] {
-  background: #2a1e1a;
-  color: #f4a98a;
-}
-
-.settings-select option[value="TWD"] {
-  background: #2a1e1a;
-  color: #f4a98a;
-}
-
-/* South Asian currencies */
-.settings-select option[value="SGD"] {
-  background: #292a1a;
-  color: #8af4aa;
-}
-
-.settings-select option[value="INR"] {
-  background: #292a1a;
-  color: #8af4aa;
-}
-
-/* European / Oceanian currencies */
-.settings-select option[value="EUR"] {
-  background: #1a2035;
-  color: #90b8f5;
-}
-
-.settings-select option[value="GBP"] {
-  background: #1a2035;
-  color: #90b8f5;
-}
-
-.settings-select option[value="CHF"] {
-  background: #1a2035;
-  color: #90b8f5;
-}
-
-.settings-select option[value="AUD"] {
-  background: #1a2035;
-  color: #90b8f5;
-}
-
-.settings-select option[value="NZD"] {
-  background: #1a2035;
-  color: #90b8f5;
-}
-
-/* North American currencies */
-.settings-select option[value="CAD"] {
-  background: #1a2035;
-  color: #f590eb;
-}
-
-.settings-select option[value="USD"] {
-  background: #1a2035;
-  color: #f590eb;
-}
-
 
 .er-status {
   display: block;
