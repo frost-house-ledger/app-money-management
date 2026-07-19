@@ -40,21 +40,26 @@ jobs:
                 const title = pr.data.title;
                 core.info(`Processing PR #${prNumber}: ${title}`);
 
-                // Extract version numbers from PR title (e.g., "bump xyz from 1.2.3 to 2.0.0")
-                const versionMatch = title.match(/from\s+(\d+)\.(\d+)\.(\d+)\s+to\s+(\d+)\.(\d+)\.(\d+)/);
+                // Extract version numbers from PR title (supports various formats: "from X to Y", "from X.Y to A.B", "from X.Y.Z to A.B.C")
+                const versionMatch = title.match(/from\s+([\d.]+)\s+to\s+([\d.]+)/);
                 
                 if (!versionMatch) {
                   core.info(`PR #${prNumber}: Could not parse version numbers — skipping.`);
                   return;
                 }
 
-                const [, oldMajor, oldMinor, oldPatch, newMajor, newMinor, newPatch] = versionMatch.map(Number);
+                const oldVersionStr = versionMatch[1];
+                const newVersionStr = versionMatch[2];
+
+                // Extract major versions for comparison
+                const oldMajor = parseInt(oldVersionStr.split('.')[0], 10);
+                const newMajor = parseInt(newVersionStr.split('.')[0], 10);
 
                 // Only auto-merge patch and minor version updates, skip major version bumps
                 const isMajorUpdate = newMajor > oldMajor;
                 
                 if (isMajorUpdate) {
-                  core.info(`PR #${prNumber}: Major version update detected — skipping.`);
+                  core.info(`PR #${prNumber}: Major version update detected (${oldVersionStr} → ${newVersionStr}) — skipping.`);
                   return;
                 }
 
@@ -113,7 +118,7 @@ jobs:
                 // Filter for Dependabot PRs by checking user and version pattern in title
                 const dependabotPRs = allPRs.data.filter(pr => {
                   const isDependabot = pr.user.login === 'dependabot[bot]';
-                  const hasVersionPattern = /from\s+\d+\.\d+\.\d+\s+to\s+\d+\.\d+\.\d+/.test(pr.title);
+                  const hasVersionPattern = /from\s+[\d.]+\s+to\s+[\d.]+/.test(pr.title);
                   return isDependabot && hasVersionPattern;
                 });
                 
