@@ -40,25 +40,26 @@ jobs:
                 const title = pr.data.title;
                 core.info(`Processing PR #${prNumber}: ${title}`);
 
-                // Extract version numbers from PR title (e.g., "bump xyz from 1.2.3 to 2.0.0")
-                const versionMatch = title.match(/from\s+(\d+)\.(\d+)\.(\d+)\s+to\s+(\d+)\.(\d+)\.(\d+)/);
+                // Check for merge conflicts
+                if (pr.data.mergeable === false) {
+                  core.warning(`PR #${prNumber}: Has merge conflicts — skipping.`);
+                  return;
+                }
+
+                // Extract version numbers from PR title (supports various formats: "from X to Y", "from X.Y to A.B", "from X.Y.Z to A.B.C")
+                const versionMatch = title.match(/from\s+([\d.]+)\s+to\s+([\d.]+)/);
                 
                 if (!versionMatch) {
                   core.info(`PR #${prNumber}: Could not parse version numbers — skipping.`);
                   return;
                 }
 
-                const [, oldMajor, oldMinor, oldPatch, newMajor, newMinor, newPatch] = versionMatch.map(Number);
-
-                // Only auto-merge patch and minor version updates, skip major version bumps
-                const isMajorUpdate = newMajor > oldMajor;
+                const oldVersionStr = versionMatch[1];
+                const newVersionStr = versionMatch[2];
                 
-                if (isMajorUpdate) {
-                  core.info(`PR #${prNumber}: Major version update detected — skipping.`);
-                  return;
-                }
+                core.info(`PR #${prNumber}: Version update (${oldVersionStr} → ${newVersionStr})`);
 
-                // Merge the PR
+                // Merge the PR (no version filtering - merge all updates)
                 await github.rest.pulls.merge({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
@@ -66,7 +67,7 @@ jobs:
                   merge_method: "squash"
                 });
 
-                core.info(`PR #${prNumber}: Auto-merged (patch/minor update).`);
+                core.info(`PR #${prNumber}: Auto-merged.`);
 
                 // Delete the branch after successful merge
                 const headRef = pr.data.head.ref;
@@ -81,7 +82,11 @@ jobs:
                   core.warning(`PR #${prNumber}: Failed to delete branch '${headRef}': ${error.message}`);
                 }
               } catch (error) {
-                core.warning(`Failed to process PR #${prNumber}: ${error.message}`);
+                if (error.message.includes('Merge conflict')) {
+                  core.warning(`PR #${prNumber}: Merge conflict detected — skipping.`);
+                } else {
+                  core.warning(`Failed to process PR #${prNumber}: ${error.message}`);
+                }
               }
             }
 
@@ -99,14 +104,26 @@ jobs:
                 }
                 prNumbers = [prNum];
               } else {
-                // Manual trigger without PR number: search for all "chore" PRs
-                core.info('No PR number specified — searching for all "chore" PRs...');
-                const searchResult = await github.rest.search.issuesAndPullRequests({
-                  q: `repo:${context.repo.owner}/${context.repo.repo} label:chore is:pr is:open`,
+                // Manual trigger without PR number: search for all Dependabot PRs
+                core.info('No PR number specified — searching for open Dependabot PRs...');
+                
+                // Fetch all open PRs and filter for Dependabot PRs
+                const allPRs = await github.rest.pulls.list({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  state: 'open',
                   per_page: 100
                 });
-                prNumbers = searchResult.data.items.map(item => item.number);
-                core.info(`Found ${prNumbers.length} open "chore" PRs.`);
+                
+                // Filter for Dependabot PRs by checking user and version pattern in title
+                const dependabotPRs = allPRs.data.filter(pr => {
+                  const isDependabot = pr.user.login === 'dependabot[bot]';
+                  const hasVersionPattern = /from\s+[\d.]+\s+to\s+[\d.]+/.test(pr.title);
+                  return isDependabot && hasVersionPattern;
+                });
+                
+                prNumbers = dependabotPRs.map(pr => pr.number);
+                core.info(`Found ${prNumbers.length} open Dependabot PRs: ${prNumbers.join(', ')}`);
               }
             } else {
               // Pull request event: process the current PR

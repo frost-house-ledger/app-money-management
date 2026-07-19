@@ -13,6 +13,9 @@ updates:
     open-pull-requests-limit: 10
     reviewers:
       - "KFrost533"
+    labels:
+      - "chore"
+      - "dependencies"
 
   # Android gradle dependencies
   - package-ecosystem: "gradle"
@@ -22,6 +25,9 @@ updates:
     open-pull-requests-limit: 10
     reviewers:
       - "KFrost533"
+    labels:
+      - "chore"
+      - "dependencies"
 
   - package-ecosystem: "github-actions"
     directory: "/"
