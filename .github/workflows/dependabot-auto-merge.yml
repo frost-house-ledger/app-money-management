@@ -9,9 +9,10 @@ on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: 'Pull Request number to merge (for manual trigger)'
+        description: 'Pull Request number to merge (leave empty for PR events)'
         required: false
-        type: number
+        default: ''
+        type: string
 
 permissions:
   pull-requests: write
@@ -30,13 +31,22 @@ jobs:
             // Determine PR number from trigger type
             let prNumber;
             if (context.eventName === 'workflow_dispatch') {
-              prNumber = parseInt(context.payload.inputs?.pr_number, 10);
-              if (!prNumber || isNaN(prNumber)) {
-                core.setFailed('PR number is required for manual workflow_dispatch');
+              const inputPr = context.payload.inputs?.pr_number;
+              if (!inputPr || inputPr.trim() === '') {
+                core.info('PR number not specified for manual workflow_dispatch — skipping.');
+                return;
+              }
+              prNumber = parseInt(inputPr, 10);
+              if (isNaN(prNumber)) {
+                core.setFailed('Invalid PR number: must be a number');
                 return;
               }
             } else {
-              prNumber = context.payload.pull_request.number;
+              prNumber = context.payload.pull_request?.number;
+              if (!prNumber) {
+                core.setFailed('PR number not found in event payload');
+                return;
+              }
             }
 
             const pr = await github.rest.pulls.get({
@@ -73,3 +83,16 @@ jobs:
             });
 
             core.info("Dependabot PR auto-merged (patch/minor update).");
+
+            // Delete the branch after successful merge
+            const headRef = pr.data.head.ref;
+            try {
+              await github.rest.git.deleteRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `heads/${headRef}`
+              });
+              core.info(`Branch '${headRef}' deleted successfully.`);
+            } catch (error) {
+              core.warning(`Failed to delete branch '${headRef}': ${error.message}`);
+            }
