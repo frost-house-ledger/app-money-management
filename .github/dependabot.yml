@@ -5,7 +5,28 @@
 
 version: 2
 updates:
-  - package-ecosystem: "" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  # npm dependencies at root level
+  - package-ecosystem: "npm"
+    directory: "/"
     schedule:
-      interval: "monthly"
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "KFrost533"
+
+  # Android gradle dependencies
+  - package-ecosystem: "gradle"
+    directory: "/android"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "KFrost533"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "KFrost533"

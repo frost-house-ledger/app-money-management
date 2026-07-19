@@ -237,7 +237,7 @@ export default function CategoryManagerSection({
   }
 
   async function safeResetCategories() {
-    if (!window.confirm("本当にカテゴリをデフォルト状態に戻しますか？")) {
+    if (!window.confirm("Are you sure you want to reset categories to default?")) {
       return;
     }
     try {
@@ -267,7 +267,7 @@ export default function CategoryManagerSection({
             className="inline-action danger-action"
             onClick={safeResetCategories}
           >
-            {t.categoryResetButton ?? "デフォルトに戻す"}
+            {t.categoryResetButton ?? "Reset to Default"}
           </button>
         </div>
       </div>
