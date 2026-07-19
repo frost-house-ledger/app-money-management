@@ -100,34 +100,25 @@ jobs:
                 prNumbers = [prNum];
               } else {
                 // Manual trigger without PR number: search for all Dependabot PRs
-                core.info('No PR number specified — searching for Dependabot PRs...');
+                core.info('No PR number specified — searching for open Dependabot PRs...');
                 
-                // First try to find PRs with "chore" label (set by dependabot.yml)
-                let searchResult = await github.rest.search.issuesAndPullRequests({
-                  q: `repo:${context.repo.owner}/${context.repo.repo} label:chore is:pr is:open author:dependabot`,
+                // Fetch all open PRs and filter for Dependabot PRs
+                const allPRs = await github.rest.pulls.list({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  state: 'open',
                   per_page: 100
                 });
                 
-                if (searchResult.data.items.length === 0) {
-                  // Fallback: search for "dependencies" label
-                  core.info('No "chore" labeled PRs found — trying "dependencies" label...');
-                  searchResult = await github.rest.search.issuesAndPullRequests({
-                    q: `repo:${context.repo.owner}/${context.repo.repo} label:dependencies is:pr is:open author:dependabot`,
-                    per_page: 100
-                  });
-                }
+                // Filter for Dependabot PRs by checking user and version pattern in title
+                const dependabotPRs = allPRs.data.filter(pr => {
+                  const isDependabot = pr.user.login === 'dependabot[bot]';
+                  const hasVersionPattern = /from\s+\d+\.\d+\.\d+\s+to\s+\d+\.\d+\.\d+/.test(pr.title);
+                  return isDependabot && hasVersionPattern;
+                });
                 
-                if (searchResult.data.items.length === 0) {
-                  // Final fallback: search by author only
-                  core.info('No labeled PRs found — searching by Dependabot author...');
-                  searchResult = await github.rest.search.issuesAndPullRequests({
-                    q: `repo:${context.repo.owner}/${context.repo.repo} is:pr is:open author:dependabot`,
-                    per_page: 100
-                  });
-                }
-                
-                prNumbers = searchResult.data.items.map(item => item.number);
-                core.info(`Found ${prNumbers.length} open Dependabot PRs.`);
+                prNumbers = dependabotPRs.map(pr => pr.number);
+                core.info(`Found ${prNumbers.length} open Dependabot PRs: ${prNumbers.join(', ')}`);
             } else {
               // Pull request event: process the current PR
               const prNum = context.payload.pull_request?.number;
