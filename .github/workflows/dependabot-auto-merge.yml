@@ -30,7 +30,7 @@ jobs:
             // Determine PR number from trigger type
             let prNumber;
             if (context.eventName === 'workflow_dispatch') {
-              prNumber = parseInt(github.event.inputs.pr_number, 10);
+              prNumber = parseInt(context.payload.inputs?.pr_number, 10);
               if (!prNumber || isNaN(prNumber)) {
                 core.setFailed('PR number is required for manual workflow_dispatch');
                 return;
