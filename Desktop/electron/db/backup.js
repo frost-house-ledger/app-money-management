@@ -175,7 +175,7 @@ export function createBackupService({
     authGuard.ensureAuthorized(input?.authToken);
     const rows = parseCsvText(input.csvText);
     if (rows.length === 0) {
-      throw new Error("CSV に取り込む行がありません。");
+      throw new Error("No row in CSV to import.");
     }
 
     const hasScopedRows = rows.some((row) => String(row.record_scope || row.scope || "").trim());

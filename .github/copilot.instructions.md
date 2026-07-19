@@ -12,6 +12,7 @@ The project is developed as open source and must remain safe, predictable, and e
 - Provide clear next steps to improve user convenience.
 - Update all affected files when making changes and test thoroughly.
 - Copilot does not need to build the project; ensure code is correct and ready to build.
+- Write all in English, even if the project is in another language.
 
 ---
 

@@ -644,6 +644,27 @@ export default function App() {
 
     // Allow future dates: no restriction on entryDate month
 
+    // Validation
+    const title = String(dailyForm.title || "").trim();
+    if (!title) {
+      setErrorText(t.errorDailyTitleRequired || "Enter a title for the daily entry.");
+      return;
+    }
+
+    if (dailyForm.type === "fee") {
+      const categoryId = String(dailyForm.categoryId || "").trim();
+      if (!categoryId) {
+        setErrorText(t.errorDailyCategoryRequired || "Select a category for the daily entry.");
+        return;
+      }
+    }
+
+    const amount = Number(dailyForm.amount || 0);
+    if (amount <= 0) {
+      setErrorText(t.errorDailyAmountInvalid || "Enter an amount greater than 0.");
+      return;
+    }
+
     try {
       if (editingDailyId) {
         await api.entry.update({

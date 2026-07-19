@@ -73,6 +73,7 @@ export function createRecurringStore({
           ...item,
           id: String(item.id),
           endMonth: item.endMonth || null,
+          frequency: "monthly",
           categoryId: item.type === "fee" ? String(item.categoryId || "other") : null
         }))
       );
@@ -80,13 +81,18 @@ export function createRecurringStore({
   }
 
   function listRecurringItems() {
-    return readRecurringItems().sort((a, b) => {
-      const monthCompare = a.startMonth.localeCompare(b.startMonth);
-      if (monthCompare !== 0) {
-        return monthCompare;
-      }
-      return String(a.createdAt).localeCompare(String(b.createdAt));
-    });
+    return readRecurringItems()
+      .map((item) => ({
+        ...item,
+        frequency: item.frequency || "monthly"
+      }))
+      .sort((a, b) => {
+        const monthCompare = a.startMonth.localeCompare(b.startMonth);
+        if (monthCompare !== 0) {
+          return monthCompare;
+        }
+        return String(a.createdAt).localeCompare(String(b.createdAt));
+      });
   }
 
   function sumRecurringByType(month, type, categoryId = null) {
@@ -117,7 +123,7 @@ export function createRecurringStore({
 
     const title = String(input.title || "").trim();
     if (!title) {
-      throw new Error("title を入力してください。");
+      throw new Error("Enter a title.");
     }
 
     const items = listRecurringItems();
@@ -130,6 +136,7 @@ export function createRecurringStore({
       amount: input.amount,
       startMonth: input.startMonth,
       endMonth: input.endMonth || null,
+      frequency: input.frequency || "monthly",
       createdAt,
       updatedAt: createdAt
     };
@@ -157,7 +164,7 @@ export function createRecurringStore({
 
     const title = String(input.title || "").trim();
     if (!title) {
-      throw new Error("title を入力してください。");
+      throw new Error("Enter a title.");
     }
 
     const items = listRecurringItems();
@@ -174,12 +181,13 @@ export function createRecurringStore({
         amount: input.amount,
         startMonth: input.startMonth,
         endMonth: input.endMonth || null,
+        frequency: input.frequency || "monthly",
         updatedAt: new Date().toISOString()
       };
     });
 
     if (!nextItems.some((item) => item.id === input.id)) {
-      throw new Error("更新対象の固定項目が見つかりません。");
+      throw new Error("The recurring item to update was not found.");
     }
 
     writeRecurringItems(nextItems);
@@ -200,13 +208,13 @@ export function createRecurringStore({
     authGuard.ensureAuthorized(input?.authToken);
     const id = String(input?.id || "").trim();
     if (!id) {
-      throw new Error("削除対象の固定項目IDが必要です。");
+      throw new Error("The ID of the recurring item to delete is required.");
     }
 
     const items = listRecurringItems();
     const target = items.find((item) => String(item.id) === id);
     if (!target) {
-      throw new Error("削除対象の固定項目が見つかりません。");
+      throw new Error("The recurring item to delete was not found.");
     }
 
     writeRecurringItems(items.filter((item) => String(item.id) !== id));
@@ -231,7 +239,7 @@ export function createRecurringStore({
 
   function replaceRecurringItemsForSync(items) {
     if (!Array.isArray(items)) {
-      throw new Error("同期固定項目データが不正です。");
+      throw new Error("The recurring items data for sync is invalid.");
     }
 
     const normalized = items

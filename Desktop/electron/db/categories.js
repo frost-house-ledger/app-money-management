@@ -59,7 +59,7 @@ export function pickCategoryName(category, locale = "jp") {
   if (!category) {
     const other = DEFAULT_CATEGORIES.find((c) => c.id === "other");
     // If no category provided, default to English for non-Japanese locales.
-    if (code === "ja" || code === "jp") return pickFromEntry(other) || "その他";
+    if (code === "ja" || code === "jp") return pickFromEntry(other) || "Other";
     return pickFromEntry(other) || "Other";
   }
 
@@ -222,7 +222,7 @@ export function createCategoryStore({
     const sortOrder = Number.isFinite(input.sortOrder) ? Number(input.sortOrder) : maxOrder + 10;
 
     if (rows.some((item) => item.id === fallbackId)) {
-      throw new Error("同じカテゴリIDが既に存在します。");
+      throw new Error("A category with the same ID already exists.");
     }
 
     const created = { id: fallbackId, icon, sortOrder, isActive: 1, updatedAt: new Date().toISOString() };
@@ -274,13 +274,13 @@ export function createCategoryStore({
     authGuard.ensureAuthorized(input?.authToken);
     const id = String(input.id || "").trim();
     if (!id) {
-      throw new Error("更新対象のカテゴリIDが必要です。");
+      throw new Error("Category ID to update is required.");
     }
 
     const rows = readCategoriesFile();
     const current = rows.find((item) => item.id === id);
     if (!current) {
-      throw new Error("カテゴリが見つかりません。");
+      throw new Error("Category not found.");
     }
 
     const icon = String(input.icon ?? (current.icon || "\uD83C\uDFF7\uFE0F")).trim() || "\uD83C\uDFF7\uFE0F";
@@ -310,15 +310,15 @@ export function createCategoryStore({
     authGuard.ensureAuthorized(input?.authToken);
     const id = String(input.id || "").trim();
     if (!id) {
-      throw new Error("削除対象のカテゴリIDが必要です。");
+      throw new Error("Category ID to delete is required.");
     }
     if (id === "other") {
-      throw new Error("other カテゴリは削除できません。");
+      throw new Error("The 'other' category cannot be deleted.");
     }
 
     const rows = readCategoriesFile();
     if (!rows.some((item) => item.id === id)) {
-      throw new Error("カテゴリが見つかりません。");
+      throw new Error("Category not found.");
     }
 
     const tx = db.transaction(() => {
@@ -339,14 +339,14 @@ export function createCategoryStore({
   function reorderCategories(input) {
     authGuard.ensureAuthorized(input?.authToken);
     if (!Array.isArray(input.ids) || input.ids.length === 0) {
-      throw new Error("並び替え対象のカテゴリID配列が必要です。");
+      throw new Error("An array of category IDs to reorder is required.");
     }
 
     const rows = readCategoriesFile();
     const byId = new Map(rows.map((item) => [item.id, item]));
     input.ids.forEach((id) => {
       if (!byId.has(id)) {
-        throw new Error(`カテゴリが見つかりません: ${id}`);
+        throw new Error(`Category not found: ${id}`);
       }
     });
 
@@ -376,7 +376,7 @@ export function createCategoryStore({
 
   function replaceCategoriesForSync(items) {
     if (!Array.isArray(items)) {
-      throw new Error("同期カテゴリデータが不正です。");
+      throw new Error("Synchronized category data is invalid.");
     }
     const normalized = items
       .map((item, index) => normalizeCategoryRecord(item, (index + 1) * 10))
@@ -384,7 +384,7 @@ export function createCategoryStore({
       .sort((a, b) => a.sortOrder - b.sortOrder);
 
     if (normalized.length === 0) {
-      throw new Error("同期カテゴリデータが空です。");
+      throw new Error("Synchronized category data is empty.");
     }
 
     writeCategoriesFile(normalized);
