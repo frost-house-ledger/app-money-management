@@ -119,6 +119,7 @@ jobs:
                 
                 prNumbers = dependabotPRs.map(pr => pr.number);
                 core.info(`Found ${prNumbers.length} open Dependabot PRs: ${prNumbers.join(', ')}`);
+              }
             } else {
               // Pull request event: process the current PR
               const prNum = context.payload.pull_request?.number;
