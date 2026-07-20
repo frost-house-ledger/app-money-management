@@ -82,6 +82,7 @@ export default function App() {
 
   const [errorText, setErrorText] = useState("");
   const [toastText, setToastText] = useState("");
+  const [deleteCompletionPopup, setDeleteCompletionPopup] = useState(null); // { title, type }
   const [editingRecurringId, setEditingRecurringId] = useState(null);
   const [editingDailyId, setEditingDailyId] = useState(null);
   const t = useMemo(() => getMessages(locale), [locale]);
@@ -102,6 +103,13 @@ export default function App() {
     setToastText(message);
     window.setTimeout(() => {
       setToastText("");
+    }, 2200);
+  }
+
+  function showDeleteCompletionPopup(title, type = "daily") {
+    setDeleteCompletionPopup({ title, type });
+    window.setTimeout(() => {
+      setDeleteCompletionPopup(null);
     }, 2200);
   }
 
@@ -419,7 +427,16 @@ export default function App() {
       ])
     );
     return recurringRows.map((row) => {
-      const categoryId = row.type === "fee" ? (row.categoryId || "food") : null;
+      // Handle category based on type
+      let categoryId = null;
+      if (row.type === "fee") {
+        categoryId = row.categoryId || "food";
+      } else if (row.type === "income") {
+        categoryId = "salary";
+      } else if (row.type === "investment") {
+        categoryId = "investment";
+      }
+      
       const category = categoryId ? categoryMap.get(String(categoryId).toLowerCase()) : null;
       return {
         ...row,
@@ -626,12 +643,14 @@ export default function App() {
   async function onDeleteRecurring(id) {
     setErrorText("");
     try {
+      const deletedRow = recurringRows.find((r) => String(r.id) === String(id));
+      const title = deletedRow?.title || "Item";
       await api.recurring.delete({ id });
       if (editingRecurringId === id) {
         onCancelRecurringEdit();
       }
       await refreshAll();
-      showToast(t.toastRecurringDeleted);
+      showDeleteCompletionPopup(title, "recurring");
     } catch (error) {
       setErrorText(error.message || t.errorRecurringDeleteFailed);
       throw error;
@@ -750,9 +769,11 @@ export default function App() {
   async function onDeleteDaily(id) {
     setErrorText("");
     try {
+      const deletedRow = dailyRows.find((r) => String(r.id) === String(id));
+      const title = deletedRow?.title || "Item";
       await api.entry.delete({ id });
       await refreshAll(selectedMonth, range);
-      showToast(t.toastDailyDeleted);
+      showDeleteCompletionPopup(title, "daily");
     } catch (error) {
       setErrorText(error.message || t.errorDailyDeleteFailed);
     }
@@ -851,6 +872,52 @@ export default function App() {
       </section>
 
       <div className={`toast ${toastText ? "show" : ""}`}>{toastText}</div>
+
+      {/* Delete completion popup - Windows-style notification */}
+      {deleteCompletionPopup && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          background: 'linear-gradient(135deg, #0d9488 0%, #06b6d4 100%)',
+          borderRadius: '8px',
+          padding: '16px 20px',
+          minWidth: '320px',
+          maxWidth: '400px',
+          zIndex: 10000,
+          animation: 'notificationSlideIn 0.4s ease-out',
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
+          fontWeight: '500',
+          color: 'white',
+          fontSize: '0.95rem',
+          lineHeight: '1.4'
+        }}>
+          ✓ {deleteCompletionPopup.type === 'recurring' ? t.toastRecurringDeleted : t.toastDailyDeleted}
+        </div>
+      )}
+
+      <style>{`
+        @keyframes notificationSlideIn {
+          from {
+            transform: translateX(450px);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        @keyframes notificationSlideOut {
+          from {
+            transform: translateX(0);
+            opacity: 1;
+          }
+          to {
+            transform: translateX(450px);
+            opacity: 0;
+          }
+        }
+      `}</style>
 
       {/* Today's date and current month income/expense snapshot */}
       <section className="card main-snapshot">

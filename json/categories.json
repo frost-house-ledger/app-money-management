@@ -11,8 +11,8 @@
     { "id": "travel", "nameJp": "旅行", "nameEn": "Travel", "icon": "✈️", "sortOrder": 75 },
     { "id": "subscription", "nameJp": "サブスク", "nameEn": "Subscription", "icon": "🔁", "sortOrder": 90 },
     { "id": "insurance", "nameJp": "保険", "nameEn": "Insurance", "icon": "🛡️", "sortOrder": 100 },
-    { "id": "salary", "nameJp": "給与", "nameEn": "Salary", "icon": "💼", "sortOrder": 105 },
-    { "id": "investment", "nameJp": "投資", "nameEn": "Investment", "icon": "📊", "sortOrder": 107 },
+    { "id": "salary", "nameJp": "💼 給与", "nameEn": "💼 Salary", "icon": "💼", "sortOrder": 105 },
+    { "id": "investment", "nameJp": "📊 投資", "nameEn": "📊 Investment", "icon": "📊", "sortOrder": 107 },
     { "id": "other", "nameJp": "その他", "nameEn": "Other", "icon": "📦", "sortOrder": 110 }
   ]
 }

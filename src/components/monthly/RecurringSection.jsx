@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import {
   formatBaseAmountForInput,
   formatCurrency,
@@ -179,6 +180,7 @@ export default function RecurringSection({
     const [isSaving, setIsSaving] = React.useState(false);
     const [pendingDeleteIds, setPendingDeleteIds] = React.useState([]);
     const [deleteProgress, setDeleteProgress] = React.useState({}); // { id: 0-100 }
+    const [pendingDeletePopup, setPendingDeletePopup] = React.useState(null); // { id, title }
     const pendingDeleteTimersRef = React.useRef(new Map());
     const pendingDeleteStartTimesRef = React.useRef(new Map());
     const DELETE_DELAY_MS = 5000;
@@ -250,6 +252,7 @@ export default function RecurringSection({
         delete updated[id];
         return updated;
       });
+      setPendingDeletePopup(null);
     }
 
     function requestDelete(id) {
@@ -257,10 +260,12 @@ export default function RecurringSection({
         return;
       }
 
+      const row = safeFilteredRecurring.find(r => r.id === id);
       const startTime = Date.now();
       pendingDeleteStartTimesRef.current.set(id, startTime);
       setDeleteProgress((current) => ({ ...current, [id]: 0 }));
       setPendingDeleteIds((current) => [...current, id]);
+      setPendingDeletePopup({ id, title: row?.title || "Item" });
 
       const timerId = window.setTimeout(async () => {
         try {
@@ -277,8 +282,9 @@ export default function RecurringSection({
             delete updated[id];
             return updated;
           });
+          setPendingDeletePopup(null);
         }
-      }, 10000);
+      }, DELETE_DELAY_MS);
 
       pendingDeleteTimersRef.current.set(id, timerId);
     }
@@ -386,7 +392,14 @@ export default function RecurringSection({
                           })()}
                         </td>
 
-                        <td>{row.type === 'fee' ? `${row.categoryIcon || '🍽️'} ${row.categoryDisplay || '-'}` : '-'}</td>
+                        <td>{row.type === 'fee' ? (() => {
+                          // Avoid double icons: if categoryDisplay already starts with an icon, don't add categoryIcon
+                          const display = row.categoryDisplay || '-';
+                          if (display !== '-' && display.match(/^[\p{Emoji}]/u)) {
+                            return display;
+                          }
+                          return `${row.categoryIcon || '🍽️'} ${display}`;
+                        })() : '-'}</td>
                         <td>{row.amount == null ? '-' : formatCurrency(row.amount, selectedCurrency, exchangeRates)}</td>
                         <td>{row.title}{row.type === 'income' && row.isSalary ? <span style={{ marginLeft: 6 }}>💼</span> : null}</td>
                         <td>{row.note ? (row.note.length > 40 ? row.note.slice(0,40) + '…' : row.note) : '-'}</td>
@@ -397,6 +410,43 @@ export default function RecurringSection({
               })}
             </tbody>
           </table>
+
+          {/* Delete pending popup */}
+          {pendingDeletePopup && createPortal(
+            <div style={{
+              position: 'fixed',
+              top: '20px',
+              right: '20px',
+              background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)',
+              borderRadius: '8px',
+              padding: '16px 20px',
+              minWidth: '320px',
+              maxWidth: '400px',
+              zIndex: 10000,
+              animation: 'notificationSlideIn 0.4s ease-out',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
+              fontWeight: '500',
+              color: 'white',
+              fontSize: '0.95rem',
+              lineHeight: '1.4'
+            }}>
+              ⏱ {t.deleteButton}: {pendingDeletePopup.title}
+            </div>,
+            document.body
+          )}
+
+          <style>{`
+            @keyframes notificationSlideIn {
+              from {
+                transform: translateX(450px);
+                opacity: 0;
+              }
+              to {
+                transform: translateX(0);
+                opacity: 1;
+              }
+            }
+          `}</style>
         </article>
       );
     } catch (err) {

@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import {
   formatBaseAmountForInput,
   formatCurrency,
@@ -243,9 +244,10 @@ export function DailyListSection({
   const [isSaving, setIsSaving] = React.useState(false);
   const [pendingDeleteIds, setPendingDeleteIds] = React.useState([]);
   const [deleteProgress, setDeleteProgress] = React.useState({}); // { id: 0-100 }
+  const [pendingDeletePopup, setPendingDeletePopup] = React.useState(null); // { id, title }
   const pendingDeleteTimersRef = React.useRef(new Map());
   const pendingDeleteStartTimesRef = React.useRef(new Map());
-  const DELETE_DELAY_MS = 10000;
+  const DELETE_DELAY_MS = 5000;
 
   // Update progress bar every 50ms
   React.useEffect(() => {
@@ -351,6 +353,7 @@ export function DailyListSection({
       delete updated[id];
       return updated;
     });
+    setPendingDeletePopup(null);
   }
 
   function requestDelete(id) {
@@ -362,10 +365,12 @@ export function DailyListSection({
       cancelInlineEdit();
     }
 
+    const row = dailyRows.find(r => r.id === id);
     const startTime = Date.now();
     pendingDeleteStartTimesRef.current.set(id, startTime);
     setDeleteProgress((current) => ({ ...current, [id]: 0 }));
     setPendingDeleteIds((current) => [...current, id]);
+    setPendingDeletePopup({ id, title: row?.title || "Item" });
 
     const timerId = window.setTimeout(async () => {
       try {
@@ -382,8 +387,9 @@ export function DailyListSection({
           delete updated[id];
           return updated;
         });
+        setPendingDeletePopup(null);
       }
-    }, 10000);
+    }, DELETE_DELAY_MS);
 
     pendingDeleteTimersRef.current.set(id, timerId);
   }
@@ -452,7 +458,13 @@ export function DailyListSection({
                   </td>
                   <td><strong>{row.entryDate}</strong></td>
                   <td>{row.type}</td>
-                  <td>{row.categoryDisplay ? `${row.categoryIcon || '🍽️'} ${row.categoryDisplay}` : '-'}</td>
+                  <td>{row.categoryDisplay ? (() => {
+                    // Avoid double icons: if categoryDisplay already starts with an icon, don't add categoryIcon
+                    if (row.categoryDisplay.match(/^[\p{Emoji}]/u)) {
+                      return row.categoryDisplay;
+                    }
+                    return `${row.categoryIcon || '🍽️'} ${row.categoryDisplay}`;
+                  })() : '-'}</td>
                   <td>{row.title}</td>
                   <td style={{ textAlign: 'right' }}>{formatCurrency(row.amount, selectedCurrency, exchangeRates)}</td>
                   <td>{row.note || '-'}</td>
@@ -478,6 +490,53 @@ export function DailyListSection({
           )}
         </div>
       )}
+
+      {/* Delete pending popup */}
+      {pendingDeletePopup && createPortal(
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)',
+          borderRadius: '8px',
+          padding: '16px 20px',
+          minWidth: '320px',
+          maxWidth: '400px',
+          zIndex: 10000,
+          animation: 'notificationSlideIn 0.4s ease-out',
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
+          fontWeight: '500',
+          color: 'white',
+          fontSize: '0.95rem',
+          lineHeight: '1.4'
+        }}>
+          ⏱ {t.deleteButton}: {pendingDeletePopup.title}
+        </div>,
+        document.body
+      )}
+
+      <style>{`
+        @keyframes notificationSlideIn {
+          from {
+            transform: translateX(450px);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        @keyframes notificationSlideOut {
+          from {
+            transform: translateX(0);
+            opacity: 1;
+          }
+          to {
+            transform: translateX(450px);
+            opacity: 0;
+          }
+        }
+      `}</style>
     </article>
   );
 }
