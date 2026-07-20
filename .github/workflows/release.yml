@@ -5,8 +5,7 @@ on:
     tags:
       - "v*"
     branches:
-      - master  
-
+      - "master"
 permissions:
   contents: write
 
