@@ -16,3 +16,5 @@ date,type,category,title,description,price
 2026-05-15,expense,utilities,"Internet Bill","Monthly fee",5500
 2026-05-15,expense,transport,"Train Pass","Monthly commute",8000
 2026-05-08,expense,food,"MacDonalds","Filet-O-Fish",1000
+2026-05-08,expense,food,"Starbucks","Coffee",500
+2026-05-09,expense,transport,"Taxi","Airport to hotel",3500
