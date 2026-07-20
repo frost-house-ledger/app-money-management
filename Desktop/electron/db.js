@@ -20,6 +20,18 @@ import {
   validateType
 } from "./validation.js";
 
+// Resolve categoryId based on type
+function resolveCategoryId(type, categoryId) {
+  if (type === "fee") {
+    return String(categoryId || "food");
+  } else if (type === "income") {
+    return "salary";
+  } else if (type === "investment") {
+    return "investment";
+  }
+  return null;
+}
+
 export function createLedgerStore(dataDir) {
   const dbPath = path.join(dataDir, "ledger.sqlite");
   const recurringJsonPath = path.join(dataDir, "recurring-items.json");
@@ -107,21 +119,27 @@ export function createLedgerStore(dataDir) {
       ? 0
       : recurringStore.sumRecurringByType(month, "fee", categoryId || null);
     const recurringIncome = categoryId || noDateOverlap ? 0 : recurringStore.sumRecurringByType(month, "income");
+    const recurringInvestment = categoryId || noDateOverlap ? 0 : recurringStore.sumRecurringByType(month, "investment");
     const dailyFee = sumDaily("fee");
     const dailyIncome = sumDaily("income");
+    const dailyInvestment = sumDaily("investment");
 
     const fee = recurringFee + dailyFee;
     const income = recurringIncome + dailyIncome;
+    const investment = recurringInvestment + dailyInvestment;
 
     return {
       month,
       fee,
       income,
+      investment,
       balance: income - fee,
       recurringFee,
       recurringIncome,
+      recurringInvestment,
       dailyFee,
-      dailyIncome
+      dailyIncome,
+      dailyInvestment
     };
   }
 
@@ -188,7 +206,7 @@ export function createLedgerStore(dataDir) {
     }
 
     const categoryMap = categoryStore.getCategoryMap();
-    const categoryId = input.type === "fee" ? String(input.categoryId || "food") : null;
+    const categoryId = resolveCategoryId(input.type, input.categoryId);
 
     const row = insertDailyStmt.run({
       syncId: input.syncId || createSyncId(),
@@ -357,10 +375,13 @@ export function createLedgerStore(dataDir) {
       title,
       amount: input.amount,
       entryDate: input.entryDate,
-      categoryId: input.type === "fee" ? String(input.categoryId || "food") : null,
+      categoryId: resolveCategoryId(input.type, input.categoryId),
       note: input.note ? String(input.note) : null,
       updatedAt: new Date().toISOString()
     });
+
+    const resolvedCategoryId = resolveCategoryId(input.type, input.categoryId);
+    const resolvedCategory = categoryMap.get(resolvedCategoryId) || null;
 
     logInput({
       source: "daily",
@@ -369,8 +390,8 @@ export function createLedgerStore(dataDir) {
       title,
       amount: input.amount,
       targetDate: input.entryDate,
-      categoryId: input.type === "fee" ? String(input.categoryId || "food") : null,
-      note: input.note,
+      categoryId: resolvedCategoryId,
+      note: input.note ? String(input.note) : null,
       payload: {
         before: {
           title: oldEntry?.title,
@@ -386,8 +407,8 @@ export function createLedgerStore(dataDir) {
           amount: input.amount,
           entryDate: input.entryDate,
           type: input.type,
-          categoryId: input.type === "fee" ? String(input.categoryId || "food") : null,
-          categoryIcon: input.type === "fee" ? (currentCategory?.icon || "🍽️") : null,
+          categoryId: resolvedCategoryId,
+          categoryIcon: resolvedCategory?.icon || "🍽️",
           note: input.note || null
         }
       }
@@ -711,7 +732,8 @@ export function createLedgerStore(dataDir) {
   const { initialCachePath } = runStoreMigrations({
     categoryStore,
     recurringStore,
-    rebuildMonthlyJsonCache
+    rebuildMonthlyJsonCache,
+    db
   });
   const backupService = createBackupService({
     authGuard,

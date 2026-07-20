@@ -866,6 +866,10 @@ export default function App() {
           <span>{t.thisMonthIncomeLabel}</span>
           <strong>{formatCurrency(currentMonthSnapshot?.income || 0, selectedCurrency, exchangeRates)}</strong>
         </div>
+        <div className="snapshot-item">
+          <span>{t.thisMonthInvestmentLabel}</span>
+          <strong>{formatCurrency(currentMonthSnapshot?.investment || 0, selectedCurrency, exchangeRates)}</strong>
+        </div>
       </section>
 
       {/* Month select for all tabs */}

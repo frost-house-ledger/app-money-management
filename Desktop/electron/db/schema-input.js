@@ -3,7 +3,7 @@ export function ensureLedgerSchema(db) {
     CREATE TABLE IF NOT EXISTS daily_entries (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       sync_id TEXT,
-      type TEXT NOT NULL CHECK(type IN ('fee','income')),
+      type TEXT NOT NULL CHECK(type IN ('fee','income','investment')),
       title TEXT NOT NULL,
       amount REAL NOT NULL CHECK(amount >= 0),
       entry_date TEXT NOT NULL,
@@ -17,7 +17,7 @@ export function ensureLedgerSchema(db) {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       source TEXT NOT NULL CHECK(source IN ('monthly','daily')),
       action TEXT NOT NULL DEFAULT 'add',
-      type TEXT NOT NULL CHECK(type IN ('fee','income')),
+      type TEXT NOT NULL CHECK(type IN ('fee','income','investment')),
       title TEXT NOT NULL,
       amount REAL NOT NULL,
       target_date TEXT NOT NULL,

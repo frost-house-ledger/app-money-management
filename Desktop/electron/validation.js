@@ -1,6 +1,6 @@
 export function validateType(type) {
-  if (type !== "fee" && type !== "income") {
-    throw new Error("type must be 'fee' or 'income'.");
+  if (type !== "fee" && type !== "income" && type !== "investment") {
+    throw new Error("type must be 'fee', 'income', or 'investment'.");
   }
 }
 

@@ -19,8 +19,7 @@ export const TRANSLATIONS = {
   todayLabel: { jp: "今日", en: "Today", de: "Heute", es: "Hoy", pt: "Hoje", it: "Oggi", fr: "Aujourd'hui", ru: "Сегодня", tw: "今天", ko: "오늘", ar: "اليوم" },
   thisMonthExpenseLabel: { jp: "今月の費用", en: "This month expense", de: "Ausgaben diesen Monat", es: "Gastos de este mes", pt: "Despesas deste mês", it: "Spese di questo mese", fr: "Dépenses de ce mois", ru: "Расходы за этот месяц", tw: "本月支出", ko: "이번달 지출", ar: "مصاريف هذا الشهر" },
   thisMonthIncomeLabel: { jp: "今月の収入", en: "This month income", de: "Einnahmen diesen Monat", es: "Ingresos de este mes", pt: "Rendimento deste mês", it: "Entrate di questo mese", fr: "Revenus de ce mois", ru: "Доход за этот месяц", tw: "本月收入", ko: "이번달 수입", ar: "دخل هذا الشهر" },
-  mainPageTab: { jp: "メイン", en: "Main", de: "Hauptseite", es: "Principal", pt: "Principal", it: "Principale", fr: "Accueil", ru: "Главная", tw: "主頁", ko: "메인", ar: "الرئيسية" },
-  thisMonthIncomeLabel: { jp: "今月の収入", en: "This month income", de: "Einnahmen diesen Monat", es: "Ingresos de este mes", pt: "Rendimento deste mês", it: "Entrate di questo mese", fr: "Revenus de ce mois", ru: "Доход за этот месяц", tw: "本月收入", ko: "이번달 수입", ar: "دخل هذا الشهر" },
+  thisMonthInvestmentLabel: { jp: "今月の投資", en: "This month investment", de: "Investitionen diesen Monat", es: "Inversión de este mes", pt: "Investimento deste mês", it: "Investimenti di questo mese", fr: "Investissements de ce mois", ru: "Инвестиции в этом месяце", tw: "本月投資", ko: "이번달 투자", ar: "الاستثمار لهذا الشهر" },
 
   // -------------------------
   // Page Tabs
@@ -67,6 +66,8 @@ export const TRANSLATIONS = {
 
   monthlyExpenseTotal: { jp: "月次費用合計", en: "Monthly expense total", de: "Monatliche Gesamtausgaben", es: "Total de gastos mensuales", pt: "Total de despesas mensais", it: "Totale spese mensili", fr: "Total des dépenses mensuelles", ru: "Общие ежемесячные расходы", tw: "月度支出總計", ko: "월간 지출 합계", ar: "إجمالي المصروفات الشهرية" },
   monthlyIncomeTotal: { jp: "月次収入合計", en: "Monthly income total", de: "Monatliche Gesamteinnahmen", es: "Total de ingresos mensuales", pt: "Total de rendimentos mensais", it: "Totale entrate mensili", fr: "Total des revenus mensuels", ru: "Общий ежемесячный доход", tw: "月度收入總計", ko: "월간 수입 합계", ar: "إجمالي الدخل الشهري" },
+  monthlyInvestmentTotal: { jp: "月次投資合計", en: "Monthly investment total", de: "Gesamte monatliche Investitionen", es: "Total de inversiones mensuales", pt: "Total de investimentos mensais", it: "Totale investimenti mensili", fr: "Total des investissements mensuels", ru: "Общие ежемесячные инвестиции", tw: "月度投資總計", ko: "월간 투자 합계", ar: "إجمالي الاستثمارات الشهرية" },
+  totalWealth: { jp: "総資産", en: "Total wealth", de: "Gesamtvermögen", es: "Riqueza total", pt: "Riqueza total", it: "Ricchezza totale", fr: "Richesse totale", ru: "Общее богатство", tw: "總資產", ko: "총자산", ar: "إجمالي الثروة" },
   monthlyError: { jp: "グラフ開始月がグラフ終了月より後になっています", en: "Chart start month is after end month", de: "Diagramm-Startmonat ist nach dem Endmonat", es: "El mes de inicio es posterior al mes de fin", pt: "O mês inicial é posterior ao mês final", it: "Il mese di inizio è successivo al mese di fine", fr: "Le mois de début est après le mois de fin", ru: "Месяц начала позже месяца окончания", tw: "圖表起始月晚於結束月", ko: "차트 시작월이 종료월보다 큽니다", ar: "شهر بدء الرسم البياني بعد شهر الانتهاء" },
 
   // -------------------------
@@ -122,6 +123,7 @@ export const TRANSLATIONS = {
   typeLabel: { jp: "種別", en: "Type", de: "Typ", es: "Tipo", pt: "Tipo", it: "Tipo", fr: "Type", ru: "Тип", tw: "類型", ko: "종류", ar: "النوع" },
   typeFee: { jp: "費用", en: "Expense", de: "Ausgabe", es: "Gasto", pt: "Despesa", it: "Spesa", fr: "Dépense", ru: "Расход", tw: "費用", ko: "비용", ar: "مصاريف" },
   typeIncome: { jp: "給与", en: "Income", de: "Einnahme", es: "Ingreso", pt: "Rendimento", it: "Entrata", fr: "Revenu", ru: "Доход", tw: "收入", ko: "수입", ar: "دخل" },
+  typeInvestment: { jp: "投資", en: "Investment", de: "Investition", es: "Inversión", pt: "Investimento", it: "Investimento", fr: "Investissement", ru: "Инвестиция", tw: "投資", ko: "투자", ar: "الاستثمار" },
   titleLabel: { jp: "タイトル", en: "Title", de: "Titel", es: "Título", pt: "Título", it: "Titolo", fr: "Titre", ru: "Заголовок", tw: "標題", ko: "제목", ar: "العنوان" },
   recurringTitlePlaceholder: { jp: "家賃 / 給与", en: "Rent / Salary", de: "Miete / Gehalt", es: "Alquiler / Salario", pt: "Aluguel / Salário", it: "Affitto / Stipendio", fr: "Loyer / Salaire", ru: "Аренда / Зарплата", tw: "房租 / 薪水", ko: "임대료 / 급여", ar: "إيجار / راتب" },
   amountLabel: { jp: "金額", en: "Amount", de: "Betrag", es: "Cantidad", pt: "Valor", it: "Importo", fr: "Montant", ru: "Сумма", tw: "金額", ko: "금액", ar: "المبلغ" },

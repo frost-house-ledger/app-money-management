@@ -51,12 +51,13 @@ export default function DailySection({
             setDailyForm((curr) => ({
               ...curr,
               type: nextType,
-              categoryId: nextType === "fee" ? curr.categoryId || dailyCategoryOptions[0]?.id || "food" : ""
+              categoryId: nextType === "fee" ? curr.categoryId || dailyCategoryOptions[0]?.id || "food" : nextType === "investment" ? "investment" : nextType === "income" ? "salary" : ""
             }));
           }}
         >
           <option value="fee">{t.typeFee}</option>
           <option value="income">{t.typeIncome}</option>
+          <option value="investment">{t.typeInvestment}</option>
         </select>
       </label>
 
@@ -68,11 +69,17 @@ export default function DailySection({
           onChange={(e) => setDailyForm((curr) => ({ ...curr, categoryId: e.target.value }))}
           disabled={dailyForm.type !== "fee"}
         >
-          {dailyCategoryOptions.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.icon || "🍽️"} {category.label}
-            </option>
-          ))}
+          {dailyForm.type === "investment" ? (
+            <option value="investment">📊 {t.typeInvestment}</option>
+          ) : dailyForm.type === "income" ? (
+            <option value="salary">💼 {t.typeIncome}</option>
+          ) : (
+            dailyCategoryOptions.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.icon || "🍽️"} {category.label}
+              </option>
+            ))
+          )}
         </select>
       </label>
       
@@ -235,7 +242,29 @@ export function DailyListSection({
   const [inlineError, setInlineError] = React.useState("");
   const [isSaving, setIsSaving] = React.useState(false);
   const [pendingDeleteIds, setPendingDeleteIds] = React.useState([]);
+  const [deleteProgress, setDeleteProgress] = React.useState({}); // { id: 0-100 }
   const pendingDeleteTimersRef = React.useRef(new Map());
+  const pendingDeleteStartTimesRef = React.useRef(new Map());
+  const DELETE_DELAY_MS = 10000;
+
+  // Update progress bar every 50ms
+  React.useEffect(() => {
+    if (Object.keys(deleteProgress).length === 0) return;
+
+    const animationFrameId = setInterval(() => {
+      setDeleteProgress((current) => {
+        const updated = { ...current };
+        pendingDeleteStartTimesRef.current.forEach((startTime, id) => {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(100, (elapsed / DELETE_DELAY_MS) * 100);
+          updated[id] = progress;
+        });
+        return updated;
+      });
+    }, 50);
+
+    return () => clearInterval(animationFrameId);
+  }, [deleteProgress]);
 
   React.useEffect(() => {
     return () => {
@@ -315,7 +344,13 @@ export function DailyListSection({
       window.clearTimeout(timerId);
       pendingDeleteTimersRef.current.delete(id);
     }
+    pendingDeleteStartTimesRef.current.delete(id);
     setPendingDeleteIds((current) => current.filter((item) => item !== id));
+    setDeleteProgress((current) => {
+      const updated = { ...current };
+      delete updated[id];
+      return updated;
+    });
   }
 
   function requestDelete(id) {
@@ -327,6 +362,9 @@ export function DailyListSection({
       cancelInlineEdit();
     }
 
+    const startTime = Date.now();
+    pendingDeleteStartTimesRef.current.set(id, startTime);
+    setDeleteProgress((current) => ({ ...current, [id]: 0 }));
     setPendingDeleteIds((current) => [...current, id]);
 
     const timerId = window.setTimeout(async () => {
@@ -337,9 +375,15 @@ export function DailyListSection({
         setInlineError(error.message || t.errorDailyDeleteFailed);
       } finally {
         pendingDeleteTimersRef.current.delete(id);
+        pendingDeleteStartTimesRef.current.delete(id);
         setPendingDeleteIds((current) => current.filter((item) => item !== id));
+        setDeleteProgress((current) => {
+          const updated = { ...current };
+          delete updated[id];
+          return updated;
+        });
       }
-    }, 30000);
+    }, 10000);
 
     pendingDeleteTimersRef.current.set(id, timerId);
   }
@@ -356,11 +400,14 @@ export function DailyListSection({
 
   const dailyFee = filteredDailyRows.filter(row => row.type === "fee").reduce((sum, row) => sum + Number(row.amount || 0), 0);
   const dailyIncome = filteredDailyRows.filter(row => row.type === "income").reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  const dailyInvestment = filteredDailyRows.filter(row => row.type === "investment").reduce((sum, row) => sum + Number(row.amount || 0), 0);
   const recurringFee = filteredRecurringRows.filter(row => row.type === "fee").reduce((sum, row) => sum + Number(row.amount || 0), 0);
   const recurringIncome = filteredRecurringRows.filter(row => row.type === "income").reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  const recurringInvestment = filteredRecurringRows.filter(row => row.type === "investment").reduce((sum, row) => sum + Number(row.amount || 0), 0);
 
   const totalFee = dailyFee + recurringFee;
   const totalIncome = dailyIncome + recurringIncome;
+  const totalInvestment = dailyInvestment + recurringInvestment;
 
   return (
     <article className="card">
@@ -381,12 +428,21 @@ export function DailyListSection({
         <tbody>
           {dailyRows.map((row) => {
             const isPendingDelete = pendingDeleteIds.includes(row.id);
+            const progress = deleteProgress[row.id] || 0;
+            const progressStyle = isPendingDelete ? {
+              background: `linear-gradient(to right, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.2) ${progress}%, transparent ${progress}%, transparent 100%)`,
+              transition: 'background 50ms linear'
+            } : {};
+
             return (
-              <tr key={`daily-${row.id}`} className={`${inlineEditId === row.id ? 'daily-list-item--editing' : ''} ${isPendingDelete ? 'daily-list-item--pending-delete' : ''}`}>
+              <tr key={`daily-${row.id}`} className={`${inlineEditId === row.id ? 'daily-list-item--editing' : ''} ${isPendingDelete ? 'daily-list-item--pending-delete' : ''}`} style={progressStyle}>
                 <>
                   <td style={{ whiteSpace: 'nowrap' }}>
                     {isPendingDelete ? (
-                      <button type="button" className="inline-action" onClick={() => cancelPendingDelete(row.id)}>{t.restoreButton}</button>
+                      <>
+                        <button type="button" className="inline-action" onClick={() => cancelPendingDelete(row.id)}>{t.restoreButton}</button>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--ink-2)', marginTop: '4px' }}>{Math.round(progress)}%</div>
+                      </>
                     ) : (
                       <>
                         <button type="button" className="inline-action" onClick={() => openFullPageEditor(row)}>{t.editDailyButton}</button>
@@ -413,6 +469,12 @@ export function DailyListSection({
           )}
           {totalIncome > 0 && (
             <span className="daily-total-income">{t.monthlyIncomeTotal}: {formatCurrency(totalIncome, selectedCurrency, exchangeRates)}</span>
+          )}
+          {totalInvestment > 0 && (
+            <>
+              <span className="daily-total-wealth">{t.totalWealth}: {formatCurrency(totalIncome - totalFee + totalInvestment, selectedCurrency, exchangeRates)}</span>
+              <span className="daily-total-investment">{t.monthlyInvestmentTotal}: {formatCurrency(totalInvestment, selectedCurrency, exchangeRates)}</span>
+            </>
           )}
         </div>
       )}
