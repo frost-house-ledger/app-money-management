@@ -38,7 +38,7 @@ export default function MonthlyFullEditor({ initial = {}, categoryOptions = [], 
       const payload = {
         id: form.id,
         type: form.type,
-        categoryId: form.type === 'fee' ? form.categoryId : null,
+        categoryId: form.type === 'fee' ? (form.categoryId || categoryOptions[0]?.id || 'food') : null,
         title: form.title,
         amount: sanitizeNumericInput(form.amount),
         note: form.note || '',
@@ -87,9 +87,21 @@ export default function MonthlyFullEditor({ initial = {}, categoryOptions = [], 
 
       <label>
         {t.typeLabel}
-        <select value={form.type} onChange={(e) => setField('type', e.target.value)}>
+        <select value={form.type} onChange={(e) => {
+          const nextType = e.target.value;
+          setField('type', nextType);
+          // Set categoryId based on type
+          if (nextType === 'investment') {
+            setField('categoryId', 'investment');
+          } else if (nextType === 'income') {
+            setField('categoryId', 'salary');
+          } else if (nextType !== 'fee') {
+            setField('categoryId', '');
+          }
+        }}>
           <option value="fee">{t.typeFee}</option>
           <option value="income">{t.typeIncome}</option>
+          <option value="investment">{t.typeInvestment}</option>
         </select>
       </label>
 
@@ -104,9 +116,15 @@ export default function MonthlyFullEditor({ initial = {}, categoryOptions = [], 
       <label>
         {t.categoryLabel}
         <select value={form.categoryId || ''} onChange={(e) => setField('categoryId', e.target.value)} disabled={form.type !== 'fee'}>
-          {categoryOptions.map((c) => (
-            <option key={c.id} value={c.id}>{(c.icon ? c.icon + ' ' : '') + c.label}</option>
-          ))}
+          {form.type === 'investment' ? (
+            <option value="investment">📊 {t.typeInvestment}</option>
+          ) : form.type === 'income' ? (
+            <option value="salary">💼 {t.typeIncome}</option>
+          ) : (
+            categoryOptions.map((c) => (
+              <option key={c.id} value={c.id}>{(c.icon ? c.icon + ' ' : '') + c.label}</option>
+            ))
+          )}
         </select>
       </label>
 
