@@ -26,6 +26,7 @@
     "dist:win32": "npm run react:build && electron-builder --publish never --win nsis --ia32 && npm run move:exe",
     "predist:win:all": "npm run test && npm run generate:icons && npm run kill-running",
     "dist:win:all": "npm run react:build && electron-builder --publish never --win nsis --x64 --ia32 && npm run move:exe",
+    "dist:win:all:fast": "npm run react:build && electron-builder --publish never --win nsis --x64 --ia32 && npm run move:exe",
     "test": "jest",
     
     "predist:mac": "npm run test && npm run generate:icons && npm run kill-running",
@@ -76,6 +77,7 @@
     "identity-obj-proxy": "^3.0.0",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
+    "tar": ">=7.5.16",
     "typescript": "^7.0.2",
     "vite": "^8.1.5",
     "wait-on": "^9.0.10"
