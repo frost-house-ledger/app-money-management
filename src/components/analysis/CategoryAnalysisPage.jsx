@@ -219,6 +219,7 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
           exchangeRates={exchangeRates}
           formatCurrency={formatCurrency}
           onBack={() => setView("main")}
+          t={t}
         />
       ) : (
         <>
@@ -231,7 +232,7 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
           {/* Top: Category table */}
           <div>
             <div style={{ marginBottom: 12, fontSize: "0.875rem", color: "#8fa8c8" }}>
-              ※目標額を超過した項目は赤文字で表示されます。
+              {t.targetAmountNote}
             </div>
             <table className="app-table" style={{ tableLayout: "fixed", width: "100%" }}>
               <thead>
@@ -267,7 +268,7 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
             
             <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 8 }}>
               <button className="secondary-button" type="button" onClick={() => setView("targetSetting")}>
-                目標額を設定
+                {t.targetAmountSettingTitle}
               </button>
             </div>
           </div>

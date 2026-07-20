@@ -12,7 +12,8 @@ export default function TargetAmountSetting({
   selectedCurrency,
   exchangeRates,
   formatCurrency,
-  onBack
+  onBack,
+  t
 }) {
   // Get currency icon from JSON data
   const getCurrencyIcon = (currencyCode) => {
@@ -24,21 +25,21 @@ export default function TargetAmountSetting({
     <>
       <section className="card">
         <div style={{ display: "flex", alignItems: "left", justifyContent: "space-between", marginBottom: 20 }}>
-          <h2>目標額の設定</h2>
+          <h2>{t.targetAmountSettingTitle}</h2>
           <button 
             className="secondary-button" 
             type="button" 
             onClick={onBack}
           >
-            ← 戻る
+            {t.backButton}
           </button>
         </div>
 
         <table className="app-table">
           <thead>
             <tr>
-              <th>カテゴリ</th>
-              <th>目標額</th>
+              <th>{t.categoryLabel}</th>
+              <th>{t.targetAmountLabel}</th>
             </tr>
           </thead>
           <tbody>
@@ -89,7 +90,7 @@ export default function TargetAmountSetting({
             type="button" 
             onClick={onBack}
           >
-            キャンセル
+            {t.cancelButton}
           </button>
           <button 
             className="secondary-button" 
@@ -100,7 +101,7 @@ export default function TargetAmountSetting({
             }}
             disabled={saving}
           >
-            保存
+            {saving ? t.savingButton : t.setTargetAmountButton}
           </button>
         </div>
         {saveMessage && (
