@@ -12,10 +12,12 @@ import {
   Legend,
 } from "chart.js";
 import { Pie, Bar } from 'react-chartjs-2';
+
 // register Chart.js components for react-chartjs-2
 ChartJS.register(ArcElement, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Tooltip, Legend);
 import { formatCurrency } from "../../lib/currency.js";
 import { logError } from "../../lib/logger.js";
+import TargetAmountSetting from "./TargetAmountSetting.jsx";
 
 const COLORS = ["#f97f69", "#2fbc9d", "#4f86c6", "#f4b942", "#b892ff", "#6bc1a7", "#f28c8c"];
 
@@ -25,15 +27,19 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
   const [targets, setTargets] = useState({});
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
+  const [view, setView] = useState("main"); // 'main' or 'targetSetting'
 
   useEffect(() => {
     async function load() {
       try {
+        const year = selectedMonth.slice(0, 4);
+        const yearStartMonth = `${year}-01`;
+        const yearEndMonth = `${year}-12`;
         const [breakdown, trend] = await Promise.all([
           api.summary.categoryBreakdown({ month: selectedMonth, locale }),
           api.summary.categoryTrend({
-            fromMonth: range.fromMonth,
-            toMonth: range.toMonth,
+            fromMonth: yearStartMonth,
+            toMonth: yearEndMonth,
             locale
           })
         ]);
@@ -47,7 +53,8 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
     }
 
     load();
-  }, [selectedMonth, range.fromMonth, range.toMonth, locale]);
+  }, [selectedMonth, locale]
+  );
 
   // Load saved monthly targets for the selected month from localStorage
   useEffect(() => {
@@ -155,18 +162,28 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
 
   const trendData = useMemo(() => {
     try {
+      const year = selectedMonth.slice(0, 4);
       const byMonth = new Map();
+      
+      // Initialize all 12 months in YYYY-MM format
+      for (let m = 1; m <= 12; m++) {
+        const month = `${year}-${String(m).padStart(2, '0')}`;
+        byMonth.set(month, { month });
+      }
+      
+      // Fill in data from safeTrendRows
       safeTrendRows.forEach((row) => {
         const current = byMonth.get(row.month) || { month: row.month };
         current[row.categoryDisplay] = Number(row.total || 0);
         byMonth.set(row.month, current);
       });
+      
       return Array.from(byMonth.values()).sort((a, b) => a.month.localeCompare(b.month));
     } catch (err) {
       logError("CategoryAnalysisPage.trendData", err);
       return [];
     }
-  }, [safeTrendRows]);
+  }, [safeTrendRows, selectedMonth]);
 
   const trendKeys = useMemo(() => {
     try {
@@ -177,101 +194,90 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
     }
   }, [safeTrendRows]);
 
+  const formatTrendRange = (selectedMonth) => {
+    if (!selectedMonth || selectedMonth.length < 6) return "";
+    const year = selectedMonth.slice(0, 4);
+    const startMonth = `${year}01`;
+    const endMonth = `${year}12`;
+    return `${startMonth}-${endMonth}`;
+  };
+
   return (
     <section className="chart-dashboard-page">
-      <section className="card">
-        <h2>{t.categoryAnalysisTitle}</h2>
+      {/* When clicking the target amount setting button */}
+
+      {/* Target Amount Setting Modal */}
+      {view === "targetSetting" ? (
+        <TargetAmountSetting
+          mergedRows={mergedRows}
+          targets={targets}
+          handleTargetChange={handleTargetChange}
+          handleSaveTargets={handleSaveTargets}
+          saving={saving}
+          saveMessage={saveMessage}
+          selectedCurrency={selectedCurrency}
+          exchangeRates={exchangeRates}
+          formatCurrency={formatCurrency}
+          onBack={() => setView("main")}
+          t={t}
+        />
+      ) : (
+        <>
+          <section className="card">
+        <h2>{t.categoryAnalysisTitle}({selectedMonth})</h2>
         <p className="subtext">{t.categoryAnalysisSubtext}</p>
 
-        {/* Category ratio table with targets input */}
-        <table className="app-table">
-          <thead>
-            <tr>
-              <th>{t.categoryLabel}</th>
-              <th>{t.amountLabel}</th>
-              <th>{t.percentageLabel}</th>
-              <th>{t.targetAmountLabel}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {mergedRows.map((row) => {
-              const ratio = total > 0 ? (Number(row.total || 0) / total) * 100 : 0;
-              const key = row.categoryId || row.categoryDisplay;
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
-              const targetVal = targets[key] === "" || targets[key] === undefined ? null : Number(targets[key]);
-              const amountVal = Number(row.total || 0);
-              const exceeded = targetVal !== null && !Number.isNaN(targetVal) && amountVal > targetVal;
-
-              return (
-                <tr key={key} className="daily-list-item">
-                  <td>
-                    <strong>{row.categoryIcon} {row.categoryDisplay}</strong>
-                  </td>
-
-                  <td className={`amount ${exceeded ? "exceeded" : ""}`}>{formatCurrency(row.total, selectedCurrency, exchangeRates)}</td>
-
-                  <td>{ratio.toFixed(1)}%</td>
-
-                  <td>
-                    <input
-                      type="number"
-                      className={`category-target-input`}
-                      value={targets[key] === undefined ? "" : targets[key]}
-                      onChange={(e) => handleTargetChange(key, e.target.value)}
-                      placeholder=""
-                    />
-                  </td>
+          {/* Top: Category table */}
+          <div>
+            <div style={{ marginBottom: 12, fontSize: "0.875rem", color: "#8fa8c8" }}>
+              {t.targetAmountNote}
+            </div>
+            <table className="app-table" style={{ tableLayout: "fixed", width: "100%" }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: "left", width: "140px"}}>{t.categoryLabel}</th>
+                  <th style={{ textAlign: "left", width: "140px"}}>{t.amountLabel}</th>
+                  <th style={{ textAlign: "left", width: "140px"}}>{t.percentageLabel}</th>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        
-        <br />
+              </thead>
 
-        {/* Category target fee save button */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <button className="secondary-button" type="button" onClick={handleSaveTargets} disabled={saving}>
-            {t.saveButton}
-          </button>
-          <span style={{ color: "#8fa8c8" }}>{saveMessage}</span>
-        </div>
+              <tbody>
+                {mergedRows.map((row) => {
+                  const key = row.categoryId || row.categoryDisplay;
 
-      </section>
-      
-      {/* Pie graph */}
-      <section className="card chart-card">
-        <h2>{t.categoryRatioChartTitle}</h2>
-        <div className="chart-wrap chart-wrap--pie">
-          <Pie
-            data={{
-              labels: pieData.map((d) => d.name),
-              datasets: [{
-                data: pieData.map((d) => d.value),
-                backgroundColor: pieData.map((_, i) => COLORS[i % COLORS.length]),
-                borderWidth: 0,
-              }],
-            }}
-            options={{
-              responsive: false,
-              plugins: {
-                legend: { position: "right", labels: { color: "#8fa8c8", boxWidth: 14 } },
-                tooltip: {
-                  callbacks: {
-                    label: (ctx) => ` ${ctx.label}: ${formatCurrency(ctx.parsed, selectedCurrency, exchangeRates)}`,
-                  },
-                },
-              },
-            }}
-            width={320}
-            height={260}
-          />
+                  const targetVal = targets[key] === "" || targets[key] === undefined ? null : Number(targets[key]);
+                  const amountVal = Number(row.total || 0);
+                  const exceeded = targetVal !== null && !Number.isNaN(targetVal) && amountVal > targetVal;
+                  const percentage = total > 0 ? ((amountVal / total) * 100).toFixed(1) : 0;
+
+                  return (
+                    <tr key={key} className="daily-list-item">
+                      <td style={{ textAlign: "left", width: "140px" }}>
+                        <strong>{row.categoryIcon} {row.categoryDisplay}</strong>
+                      </td>
+
+                      <td style={{ textAlign: "left", width: "140px"}} className={`amount ${exceeded ? "exceeded" : ""}`}>{formatCurrency(row.total, selectedCurrency, exchangeRates)}</td>
+                      <td style={{ textAlign: "left", width: "140px"}}>{percentage}%</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            
+            <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 8 }}>
+              <button className="secondary-button" type="button" onClick={() => setView("targetSetting")}>
+                {t.targetAmountSettingTitle}
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Trend graph */}
+      {/* category trend graph for each month */}
       <section className="card chart-card">
-        <h2>{t.categoryTrendChartTitle}</h2>
+        <h2>{t.categoryTrendChartTitle}({formatTrendRange(selectedMonth)})</h2>
         <div className="chart-wrap">
           <Bar
             data={{
@@ -303,7 +309,10 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
             height={300}
           />
         </div>
-      </section>
+          </section>
+        </>
+      )}
     </section>
+  
   );
 }

@@ -569,6 +569,71 @@ export const TRANSLATIONS = {
     ko: "미래 날짜는 허용되지 않습니다.",
     ar: "التواريخ المستقبلية غير مسموح بها."
   },
+  targetAmountNote: {
+    jp: "※目標額を超過した項目は赤文字で表示されます。",
+    en: "※ Items that exceed the target amount are displayed in red.",
+    de: "※ Artikel, die den Zielbetrag überschreiten, werden rot angezeigt.",
+    es: "※ Los elementos que superan la cantidad objetivo se muestran en rojo.",
+    pt: "※ Itens que excedem o valor alvo são exibidos em vermelho.",
+    it: "※ Gli articoli che superano l'importo obiettivo vengono visualizzati in rosso.",
+    fr: "※ Les articles qui dépassent le montant cible s'affichent en rouge.",
+    ru: "※ Элементы, превышающие целевую сумму, отображаются красным цветом.",
+    tw: "※ 超過目標金額的項目會以紅色顯示。",
+    ko: "※ 목표 금액을 초과하는 항목은 빨간색으로 표시됩니다.",
+    ar: "※ يتم عرض العناصر التي تتجاوز المبلغ المستهدف بالأحمر."
+  },
+  targetAmountSettingTitle: {
+    jp: "目標額の設定",
+    en: "Target Amount Settings",
+    de: "Zielbetrags Einstellungen",
+    es: "Configuración de cantidad objetivo",
+    pt: "Configurações de valor alvo",
+    it: "Impostazioni importo obiettivo",
+    fr: "Paramètres de montant cible",
+    ru: "Параметры целевой суммы",
+    tw: "目標金額設定",
+    ko: "목표 금액 설정",
+    ar: "إعدادات المبلغ المستهدف"
+  },
+  setTargetAmountButton: {
+    jp: "目標額を設定",
+    en: "Set Target Amount",
+    de: "Zielbetrag festlegen",
+    es: "Establecer cantidad objetivo",
+    pt: "Definir valor alvo",
+    it: "Imposta importo obiettivo",
+    fr: "Définir le montant cible",
+    ru: "Установить целевую сумму",
+    tw: "設定目標金額",
+    ko: "목표 금액 설정",
+    ar: "تعيين المبلغ المستهدف"
+  },
+  targetAmountExceededNote: {
+    jp: "※目標額を超過した項目は赤文字で表示されます。",
+    en: "※ Items that exceed the target amount are displayed in red.",
+    de: "※ Artikel, die den Zielbetrag überschreiten, werden rot angezeigt.",
+    es: "※ Los elementos que superan la cantidad objetivo se muestran en rojo.",
+    pt: "※ Itens que excedem o valor alvo são exibidos em vermelho.",
+    it: "※ Gli articoli che superano l'importo obiettivo vengono visualizzati in rosso.",
+    fr: "※ Les articles qui dépassent le montant cible s'affichent en rouge.",
+    ru: "※ Элементы, превышающие целевую сумму, отображаются красным цветом.",
+    tw: "※ 超過目標金額的項目會以紅色顯示。",
+    ko: "※ 목표 금액을 초과하는 항목은 빨간색으로 표시됩니다.",
+    ar: "※ يتم عرض العناصر التي تتجاوز المبلغ المستهدف بالأحمر."
+  },
+  backButton: {
+    jp: "← 戻る",
+    en: "← Back",
+    de: "← Zurück",
+    es: "← Atrás",
+    pt: "← Voltar",
+    it: "← Indietro",
+    fr: "← Retour",
+    ru: "← Назад",
+    tw: "← 返回",
+    ko: "← 뒤로",
+    ar: "← رجوع"
+  },
 
   // -------------------------
   // Language Settings

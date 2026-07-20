@@ -18,14 +18,12 @@ jest.mock('../../../src/lib/api', () => ({
 
 // Mock react-chartjs-2
 jest.mock('react-chartjs-2', () => ({
-  Pie: () => <div data-testid="pie-chart">Pie Chart</div>,
   Bar: () => <div data-testid="bar-chart">Bar Chart</div>,
 }));
 
 // Mock chart.js
 jest.mock('chart.js', () => ({
   Chart: { register: jest.fn() },
-  ArcElement: {},
   CategoryScale: {},
   LinearScale: {},
   BarElement: {},
@@ -97,7 +95,7 @@ describe('CategoryAnalysisPage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByTestId('pie-chart')).toBeInTheDocument();
+      expect(screen.getByTestId('bar-chart')).toBeInTheDocument();
     });
   });
 });

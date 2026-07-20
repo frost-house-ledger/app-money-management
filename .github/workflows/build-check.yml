@@ -18,9 +18,13 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 24
+          cache: 'npm'
+
+      - name: Clear npm cache
+        run: npm cache clean --force
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Run tests
         run: npm test
@@ -40,9 +44,13 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 24
+          cache: 'npm'
+
+      - name: Clear npm cache
+        run: npm cache clean --force
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build Windows executable (x64)
         run: npm run dist:win
