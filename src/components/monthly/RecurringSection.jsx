@@ -252,7 +252,7 @@ export default function RecurringSection({
         delete updated[id];
         return updated;
       });
-      setPendingDeletePopup(null);
+setPendingDeletePopup((current) => (current?.id === id ? null : current));
     }
 
     function requestDelete(id) {
