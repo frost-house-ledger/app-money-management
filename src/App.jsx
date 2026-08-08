@@ -885,7 +885,7 @@ export default function App() {
       {/* Delete completion popup - matches daily toast style */}
       {deleteCompletionPopup && (
         <div className="toast show">
-          ✓ {deleteCompletionPopup.type === 'recurring' ? t.toastRecurringDeleted : t.toastDailyDeleted}
+          ✓ {deleteCompletionPopup.type === 'recurring' ? t.toastRecurringDeleted : t.toastDailyDeleted}: {deleteCompletionPopup.title}
         </div>
       )}
 
