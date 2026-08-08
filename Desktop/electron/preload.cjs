@@ -20,7 +20,8 @@ contextBridge.exposeInMainWorld("ledgerApi", {
     add: (payload) => ipcRenderer.invoke("category:add", payload),
     update: (payload) => ipcRenderer.invoke("category:update", payload),
     delete: (payload) => ipcRenderer.invoke("category:delete", payload),
-    reorder: (payload) => ipcRenderer.invoke("category:reorder", payload)
+    reorder: (payload) => ipcRenderer.invoke("category:reorder", payload),
+    reset: () => ipcRenderer.invoke("category:reset")
   },
   history: {
     list: (payload) => ipcRenderer.invoke("history:list", payload)

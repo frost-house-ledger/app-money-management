@@ -82,6 +82,7 @@ export default function App() {
 
   const [errorText, setErrorText] = useState("");
   const [toastText, setToastText] = useState("");
+  const [deleteCompletionPopup, setDeleteCompletionPopup] = useState(null); // { title, type }
   const [editingRecurringId, setEditingRecurringId] = useState(null);
   const [editingDailyId, setEditingDailyId] = useState(null);
   const t = useMemo(() => getMessages(locale), [locale]);
@@ -102,6 +103,13 @@ export default function App() {
     setToastText(message);
     window.setTimeout(() => {
       setToastText("");
+    }, 2200);
+  }
+
+  function showDeleteCompletionPopup(title, type = "daily") {
+    setDeleteCompletionPopup({ title, type });
+    window.setTimeout(() => {
+      setDeleteCompletionPopup(null);
     }, 2200);
   }
 
@@ -155,7 +163,7 @@ export default function App() {
 
   async function loadCategories() {
     try {
-      const rows = await api.category.list();
+      const rows = await api.category.list({ includeInactive: true });
       setCategories(rows);
     } catch (error) {
       logError("loadCategories", error);
@@ -419,7 +427,16 @@ export default function App() {
       ])
     );
     return recurringRows.map((row) => {
-      const categoryId = row.type === "fee" ? (row.categoryId || "food") : null;
+      // Handle category based on type
+      let categoryId = null;
+      if (row.type === "fee") {
+        categoryId = row.categoryId || "food";
+      } else if (row.type === "income") {
+        categoryId = "salary";
+      } else if (row.type === "investment") {
+        categoryId = "investment";
+      }
+      
       const category = categoryId ? categoryMap.get(String(categoryId).toLowerCase()) : null;
       return {
         ...row,
@@ -475,12 +492,17 @@ export default function App() {
   async function onCreateCategory(payload) {
     setErrorText("");
     try {
+      console.log("[onCreateCategory] Received payload:", payload);
       const created = await api.category.add(payload);
+      console.log("[onCreateCategory] Created:", created);
       await loadCategories();
       setDailyForm((current) => ({ ...current, categoryId: String(created.id || "").toLowerCase() }));
       showToast(t.toastCategoryAdded);
+      return created;
     } catch (error) {
+      console.error("[onCreateCategory] Error:", error);
       setErrorText(error.message || t.errorCategoryRequired);
+      throw error;
     }
   }
 
@@ -491,6 +513,7 @@ export default function App() {
       await loadCategories();
     } catch (error) {
       setErrorText(error.message || t.errorCategoryRequired);
+      throw error;
     }
   }
 
@@ -513,6 +536,7 @@ export default function App() {
       }));
     } catch (error) {
       setErrorText(error.message || t.errorCategoryRequired);
+      throw error;
     }
   }
 
@@ -523,6 +547,7 @@ export default function App() {
       await loadCategories();
     } catch (error) {
       setErrorText(error.message || t.errorCategoryRequired);
+      throw error;
     }
   }
 
@@ -531,9 +556,10 @@ export default function App() {
     try {
       await api.category.reset();
       await loadCategories();
-      showToast("カテゴリをデフォルトに戻しました");
+      showToast("Reset categories to default.");
     } catch (error) {
       setErrorText(error.message || t.errorCategoryRequired);
+      throw error;
     }
   }
 
@@ -626,12 +652,14 @@ export default function App() {
   async function onDeleteRecurring(id) {
     setErrorText("");
     try {
+      const deletedRow = recurringRows.find((r) => String(r.id) === String(id));
+      const title = deletedRow?.title || "Item";
       await api.recurring.delete({ id });
       if (editingRecurringId === id) {
         onCancelRecurringEdit();
       }
       await refreshAll();
-      showToast(t.toastRecurringDeleted);
+      showDeleteCompletionPopup(title, "recurring");
     } catch (error) {
       setErrorText(error.message || t.errorRecurringDeleteFailed);
       throw error;
@@ -750,9 +778,11 @@ export default function App() {
   async function onDeleteDaily(id) {
     setErrorText("");
     try {
+      const deletedRow = dailyRows.find((r) => String(r.id) === String(id));
+      const title = deletedRow?.title || "Item";
       await api.entry.delete({ id });
       await refreshAll(selectedMonth, range);
-      showToast(t.toastDailyDeleted);
+      showDeleteCompletionPopup(title, "daily");
     } catch (error) {
       setErrorText(error.message || t.errorDailyDeleteFailed);
     }
@@ -851,6 +881,40 @@ export default function App() {
       </section>
 
       <div className={`toast ${toastText ? "show" : ""}`}>{toastText}</div>
+
+      {/* Delete completion popup - matches daily toast style */}
+      {deleteCompletionPopup && (
+        <div className="toast show">
+          ✓ {deleteCompletionPopup.type === 'recurring' ? t.toastRecurringDeleted : t.toastDailyDeleted}: {deleteCompletionPopup.title}
+        </div>
+      )}
+
+      <style>{`
+        @keyframes notificationSlideIn {
+          from {
+            transform: translateX(450px);
+            opacity: 0;
+          }
+          to {
+            const rows = await api.category.list({ includeInactive: true });
+            logError("loadCategories.count", {
+              total: Array.isArray(rows) ? rows.length : 0,
+              active: Array.isArray(rows) ? rows.filter((item) => Number(item?.isActive) === 1).length : 0
+            });
+            opacity: 1;
+          }
+        }
+        @keyframes notificationSlideOut {
+          from {
+            transform: translateX(0);
+            opacity: 1;
+          }
+          to {
+            transform: translateX(450px);
+            opacity: 0;
+          }
+        }
+      `}</style>
 
       {/* Today's date and current month income/expense snapshot */}
       <section className="card main-snapshot">
@@ -971,7 +1035,7 @@ export default function App() {
           onCancelDailyEdit={onCancelDailyEdit}
           onDeleteDaily={onDeleteDaily}
           dailyCategoryOptions={dailyCategoryOptions}
-          categories={categories.filter((item) => Number(item.isActive) === 1)}
+          categories={categories}
           onCreateCategory={onCreateCategory}
           onUpdateCategory={onUpdateCategory}
           onDeleteCategory={onDeleteCategory}

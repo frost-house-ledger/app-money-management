@@ -52,7 +52,7 @@ function getNameFieldForLanguage(langCode) {
   if (!code) return "nameEn";
   
   // Special cases for jp and en
-  if (code === "jp") return "nameJa";
+  if (code === "jp") return "nameJp";
   if (code === "en") return "nameEn";
   
   // For other languages: capitalize first letter (ru -> nameRu, de -> nameDe, etc.)
@@ -112,7 +112,7 @@ function displayName(category, locale) {
   }
   
   // Fallback: try other common fields in priority order
-  return category.nameJa || category.nameEn || category.name || category.id || "";
+  return category.nameJp || category.nameJa || category.nameEn || category.name || category.id || "";
 }
 
 export default function CategoryManagerSection({
@@ -137,6 +137,7 @@ export default function CategoryManagerSection({
   const [editingName, setEditingName] = React.useState("");
   const [editingIcon, setEditingIcon] = React.useState("");
   const [listOpen, setListOpen] = React.useState(false);
+  const [managerError, setManagerError] = React.useState("");
   
   const safeCategories = Array.isArray(categories) ? categories : [];
 
@@ -156,7 +157,9 @@ export default function CategoryManagerSection({
 
   async function submitNewCategory() {
     try {
+      setManagerError("");
       if (!newCategoryName.trim()) {
+        setManagerError(t.errorCategoryRequired || "Category name is required.");
         return;
       }
       const nameFieldForLang = getNameFieldForLanguage(primaryLangCode);
@@ -164,11 +167,15 @@ export default function CategoryManagerSection({
         icon: newCategoryIcon,
         [nameFieldForLang]: newCategoryName
       };
-      
+      console.log("[submitNewCategory] Sending payload:", { primaryLangCode, nameFieldForLang, payload });
+
       await onCreateCategory(payload);
       setNewCategoryName("");
       setNewCategoryIcon("");
+      setListOpen(true);
     } catch (err) {
+      console.error("[submitNewCategory] Error:", err);
+      setManagerError(err?.message || t.errorCategoryRequired || "Failed to add category.");
       logError("CategoryManagerSection.submitNewCategory", err);
     }
   }
@@ -193,16 +200,18 @@ export default function CategoryManagerSection({
       return;
     }
     try {
+      setManagerError("");
       const nameFieldForLang = getNameFieldForLanguage(primaryLangCode);
       const payload = {
         id: editingId,
         icon: editingIcon,
         [nameFieldForLang]: editingName
       };
-      
+
       await onUpdateCategory(payload);
       cancelEdit();
     } catch (err) {
+      setManagerError(err?.message || t.errorCategoryRequired || "Failed to update category.");
       logError("CategoryManagerSection.saveEdit", err);
     }
   }
@@ -230,9 +239,21 @@ export default function CategoryManagerSection({
 
   async function safeDeleteCategory(id) {
     try {
+      setManagerError("");
       await onDeleteCategory(id);
     } catch (err) {
+      setManagerError(err?.message || t.errorCategoryRequired || "Failed to delete category.");
       logError("CategoryManagerSection.safeDeleteCategory", err);
+    }
+  }
+
+  async function restoreCategory(id) {
+    try {
+      setManagerError("");
+      await onUpdateCategory({ id, isActive: 1 });
+    } catch (err) {
+      setManagerError(err?.message || t.errorCategoryRequired || "Failed to restore category.");
+      logError("CategoryManagerSection.restoreCategory", err);
     }
   }
 
@@ -241,8 +262,10 @@ export default function CategoryManagerSection({
       return;
     }
     try {
+      setManagerError("");
       await onResetCategories();
     } catch (err) {
+      setManagerError(err?.message || t.errorCategoryRequired || "Failed to reset categories.");
       logError("CategoryManagerSection.safeResetCategories", err);
     }
   }
@@ -290,16 +313,19 @@ export default function CategoryManagerSection({
             {t.addCategoryButton}
           </button>
         </div>
+        {managerError && <p className="error">{managerError}</p>}
       </div>
 
       {listOpen && (
         <ul className="list category-list">
           {safeCategories.map((category) => {
             const isEditing = editingId === category.id;
+            const isActive = Number(category.isActive) === 1;
             return (
-              <li key={category.id} className="category-row">
+              <li key={category.id} className="category-row" style={{ opacity: isActive ? 1 : 0.65 }}>
                 <span>{category.icon || "\uD83C\uDFF7\uFE0F"}</span>
                 <span>{displayName(category, safeLocale)}</span>
+                {!isActive && <span style={{ fontSize: "0.78rem", color: "var(--ink-soft)" }}>({t.categoryInactiveLabel || "inactive"})</span>}
                 {isEditing ? (
                   <div className="category-edit-form">
                     <div className="category-edit-row">
@@ -326,11 +352,20 @@ export default function CategoryManagerSection({
                     <button type="button" className="inline-action" onClick={() => moveCategory(category.id, -1)}>↑</button>
                     <button type="button" className="inline-action" onClick={() => moveCategory(category.id, 1)}>↓</button>
                     <button type="button" className="inline-action" onClick={() => startEdit(category)}>{t.editRecurringButton}</button>
+                    {!isActive && (
+                      <button
+                        type="button"
+                        className="inline-action"
+                        onClick={() => restoreCategory(category.id)}
+                      >
+                        {t.restoreButton || "Restore"}
+                      </button>
+                    )}
                     <button
                       type="button"
                       className="inline-action"
                       onClick={() => safeDeleteCategory(category.id)}
-                      disabled={category.id === "other"}
+                      disabled={category.id === "other" || !isActive}
                     >
                       {t.deleteButton}
                     </button>

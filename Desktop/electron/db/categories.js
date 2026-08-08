@@ -18,11 +18,12 @@ function ensureJsonFile(filePath, fallback) {
 }
 
 function normalizeCategoryRecord(item, fallbackSortOrder = 0) {
+  const fallbackName = String(item.name || item.nameJp || item.nameJa || item.nameEn || item.id || "").trim();
   // Collect all name* fields dynamically
   const normalized = {
     id: String(item.id || "").trim(),
-    nameJp: String(item.nameJp || "").trim(),
-    nameEn: String(item.nameEn || "").trim(),
+    nameJp: String(item.nameJp || item.nameJa || fallbackName).trim(),
+    nameEn: String(item.nameEn || fallbackName).trim(),
     icon: String(item.icon || "\uD83C\uDFF7\uFE0F").trim() || "\uD83C\uDFF7\uFE0F",
     sortOrder: Number.isFinite(Number(item.sortOrder)) ? Number(item.sortOrder) : fallbackSortOrder,
     isActive: Number(item.isActive) === 0 ? 0 : 1,
@@ -87,8 +88,9 @@ export function createCategoryStore({
     const items = Array.isArray(raw.items) ? raw.items : [];
     const normalized = items
       .map((item, index) => normalizeCategoryRecord(item, (index + 1) * 10))
-      .filter((item) => item.id && item.nameJp && item.nameEn)
+      .filter((item) => item.id)
       .sort((a, b) => a.sortOrder - b.sortOrder);
+    console.log("[readCategoriesFile] Raw items:", items.length, "Normalized:", normalized.length);
     
     // Deduplicate by case-insensitive ID (keep first occurrence)
     const seenIds = new Set();
@@ -205,6 +207,7 @@ export function createCategoryStore({
     authGuard.ensureAuthorized(input?.authToken);
     const includeInactive = Boolean(input.includeInactive);
     const rows = readCategoriesFile();
+    console.log("[listCategories] includeInactive=", includeInactive, "total=", rows.length, "active=", rows.filter(r => r.isActive === 1).length);
     if (includeInactive) {
       return rows;
     }
@@ -233,8 +236,14 @@ export function createCategoryStore({
         created[key] = String(value).trim();
       }
     }
+
+    // Ensure both primary name fields exist so category stays visible after reload.
+    const fallbackName = String(created.nameJp || created.nameJa || created.nameEn || input.name || fallbackId).trim();
+    if (!created.nameJp) created.nameJp = fallbackName;
+    if (!created.nameEn) created.nameEn = fallbackName;
     
     writeCategoriesFile([...rows, created].sort((a, b) => a.sortOrder - b.sortOrder));
+    console.log("[addCategory] Created:", created, "Total after add:", rows.length + 1);
     return created;
   }
 
@@ -371,6 +380,7 @@ export function createCategoryStore({
       updatedAt: new Date().toISOString()
     }));
     writeCategoriesFile(defaultCategories);
+    console.log("[resetCategories] Reset complete. Total:", defaultCategories.length);
     return { ok: true };
   }
 
@@ -380,7 +390,7 @@ export function createCategoryStore({
     }
     const normalized = items
       .map((item, index) => normalizeCategoryRecord(item, (index + 1) * 10))
-      .filter((item) => item.id && item.nameJp && item.nameEn && item.nameDe)
+      .filter((item) => item.id && item.nameJp && item.nameEn)
       .sort((a, b) => a.sortOrder - b.sortOrder);
 
     if (normalized.length === 0) {
