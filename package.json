@@ -80,7 +80,7 @@
     "tar": ">=7.5.22",
     "typescript": "^7.0.2",
     "vite": "^8.1.5",
-    "wait-on": "^9.0.10"
+    "wait-on": "^9.1.0"
   },
   "overrides": {
     "@babel/core": "8.0.1"
