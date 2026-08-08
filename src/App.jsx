@@ -163,7 +163,7 @@ export default function App() {
 
   async function loadCategories() {
     try {
-      const rows = await api.category.list();
+      const rows = await api.category.list({ includeInactive: true });
       setCategories(rows);
     } catch (error) {
       logError("loadCategories", error);
@@ -492,12 +492,17 @@ export default function App() {
   async function onCreateCategory(payload) {
     setErrorText("");
     try {
+      console.log("[onCreateCategory] Received payload:", payload);
       const created = await api.category.add(payload);
+      console.log("[onCreateCategory] Created:", created);
       await loadCategories();
       setDailyForm((current) => ({ ...current, categoryId: String(created.id || "").toLowerCase() }));
       showToast(t.toastCategoryAdded);
+      return created;
     } catch (error) {
+      console.error("[onCreateCategory] Error:", error);
       setErrorText(error.message || t.errorCategoryRequired);
+      throw error;
     }
   }
 
@@ -508,6 +513,7 @@ export default function App() {
       await loadCategories();
     } catch (error) {
       setErrorText(error.message || t.errorCategoryRequired);
+      throw error;
     }
   }
 
@@ -530,6 +536,7 @@ export default function App() {
       }));
     } catch (error) {
       setErrorText(error.message || t.errorCategoryRequired);
+      throw error;
     }
   }
 
@@ -540,6 +547,7 @@ export default function App() {
       await loadCategories();
     } catch (error) {
       setErrorText(error.message || t.errorCategoryRequired);
+      throw error;
     }
   }
 
@@ -548,9 +556,10 @@ export default function App() {
     try {
       await api.category.reset();
       await loadCategories();
-      showToast("カテゴリをデフォルトに戻しました");
+      showToast("Reset categories to default.");
     } catch (error) {
       setErrorText(error.message || t.errorCategoryRequired);
+      throw error;
     }
   }
 
@@ -873,25 +882,9 @@ export default function App() {
 
       <div className={`toast ${toastText ? "show" : ""}`}>{toastText}</div>
 
-      {/* Delete completion popup - Windows-style notification */}
+      {/* Delete completion popup - matches daily toast style */}
       {deleteCompletionPopup && (
-        <div style={{
-          position: 'fixed',
-          top: '20px',
-          right: '20px',
-          background: 'linear-gradient(135deg, #0d9488 0%, #06b6d4 100%)',
-          borderRadius: '8px',
-          padding: '16px 20px',
-          minWidth: '320px',
-          maxWidth: '400px',
-          zIndex: 10000,
-          animation: 'notificationSlideIn 0.4s ease-out',
-          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
-          fontWeight: '500',
-          color: 'white',
-          fontSize: '0.95rem',
-          lineHeight: '1.4'
-        }}>
+        <div className="toast show">
           ✓ {deleteCompletionPopup.type === 'recurring' ? t.toastRecurringDeleted : t.toastDailyDeleted}
         </div>
       )}
@@ -903,7 +896,11 @@ export default function App() {
             opacity: 0;
           }
           to {
-            transform: translateX(0);
+            const rows = await api.category.list({ includeInactive: true });
+            logError("loadCategories.count", {
+              total: Array.isArray(rows) ? rows.length : 0,
+              active: Array.isArray(rows) ? rows.filter((item) => Number(item?.isActive) === 1).length : 0
+            });
             opacity: 1;
           }
         }
@@ -1038,7 +1035,7 @@ export default function App() {
           onCancelDailyEdit={onCancelDailyEdit}
           onDeleteDaily={onDeleteDaily}
           dailyCategoryOptions={dailyCategoryOptions}
-          categories={categories.filter((item) => Number(item.isActive) === 1)}
+          categories={categories}
           onCreateCategory={onCreateCategory}
           onUpdateCategory={onUpdateCategory}
           onDeleteCategory={onDeleteCategory}

@@ -19,15 +19,21 @@ const DEFAULT_CATEGORIES = [
   { id: "beverage",      nameJp: "飲料",      nameEn: "Beverage",      icon: "☕",  sortOrder: 15,  isActive: 1 },
   { id: "transport",     nameJp: "交通",      nameEn: "Transport",     icon: "🚌",  sortOrder: 20,  isActive: 1 },
   { id: "housing",       nameJp: "住居",      nameEn: "Housing",       icon: "🏠",  sortOrder: 30,  isActive: 1 },
+  { id: "home-maintenance", nameJp: "住宅維持", nameEn: "Home Maintenance", icon: "🔧", sortOrder: 35, isActive: 1 },
   { id: "utilities",     nameJp: "光熱費",    nameEn: "Utilities",     icon: "💡",  sortOrder: 40,  isActive: 1 },
+  { id: "electronics", nameJp: "電子機器", nameEn: "Electronics", icon: "📱", sortOrder: 45, isActive: 1 },
   { id: "medical",       nameJp: "医療",      nameEn: "Medical",       icon: "💊",  sortOrder: 50,  isActive: 1 },
-  { id: "education",     nameJp: "教育",      nameEn: "Education",     icon: "📚",  sortOrder: 60,  isActive: 1 },
-  { id: "entertainment", nameJp: "娯楽",      nameEn: "Entertainment", icon: "🎬",  sortOrder: 70,  isActive: 1 },
-  { id: "travel",        nameJp: "旅行",      nameEn: "Travel",        icon: "✈️",  sortOrder: 80,  isActive: 1 },
-  { id: "shopping",      nameJp: "買い物",    nameEn: "Shopping",      icon: "🛍️", sortOrder: 90,  isActive: 1 },
+  { id: "beauty", nameJp: "美容", nameEn: "Beauty", icon: "💄", sortOrder: 55, isActive: 1 },
+  { id: "clothing", nameJp: "衣類", nameEn: "Clothing", icon: "👗", sortOrder: 60, isActive: 1 },
+  { id: "education",     nameJp: "教育",      nameEn: "Education",     icon: "📚",  sortOrder: 70,  isActive: 1 },
+  { id: "entertainment", nameJp: "娯楽",      nameEn: "Entertainment", icon: "🎬",  sortOrder: 80,  isActive: 1 },
+  { id: "travel",        nameJp: "旅行",      nameEn: "Travel",        icon: "✈️",  sortOrder: 90,  isActive: 1 },
+  { id: "pets", nameJp: "ペット", nameEn: "Pets", icon: "🐾", sortOrder: 100, isActive: 1 },
   { id: "subscription",  nameJp: "サブスク",  nameEn: "Subscription",  icon: "🔁",  sortOrder: 110,  isActive: 1 },
-  { id: "insurance",     nameJp: "保険",      nameEn: "Insurance",     icon: "⚕️",  sortOrder: 100,  isActive: 1 },
-  { id: "other",         nameJp: "その他",    nameEn: "Other",         icon: "📦",  sortOrder: 120, isActive: 1 }
+  { id: "insurance",     nameJp: "保険",      nameEn: "Insurance",     icon: "⚕️",  sortOrder: 120,  isActive: 1 },
+  { id: "gifts", nameJp: "贈り物/寄付", nameEn: "Gifts/Donations", icon: "🎁", sortOrder: 130, isActive: 1 },
+  { id: "hobbies", nameJp: "趣味", nameEn: "Hobbies", icon: "🎨", sortOrder: 135, isActive: 1 },
+  { id: "other",         nameJp: "その他",    nameEn: "Other",         icon: "📦",  sortOrder: 140, isActive: 1 },
 ];
 
 // ─── DB initialisation ────────────────────────────────────────────────────────
@@ -141,7 +147,14 @@ function readCategories() {
     if (raw) {
       const parsed = JSON.parse(raw);
       return Array.isArray(parsed.items)
-        ? parsed.items.map((item) => ({ ...item, updatedAt: item.updatedAt || "1970-01-01T00:00:00.000Z" }))
+        ? parsed.items.map((item) => {
+          const normalized = { ...item, updatedAt: item.updatedAt || "1970-01-01T00:00:00.000Z" };
+          // Backward compatibility: some builds stored Japanese name as nameJa.
+          if (!normalized.nameJp && normalized.nameJa) {
+            normalized.nameJp = normalized.nameJa;
+          }
+          return normalized;
+        })
         : DEFAULT_CATEGORIES;
     }
   } catch {}
@@ -649,12 +662,13 @@ export function createAndroidApi() {
       },
       async add(input) {
         const categories = readCategories();
-        const id = normalizeCategoryId(input.nameJp || input.nameEn || input.id) || `cat-${Date.now()}`;
+        const jpName = input.nameJp || input.nameJa || "";
+        const id = normalizeCategoryId(jpName || input.nameEn || input.id) || `cat-${Date.now()}`;
         if (categories.find((c) => c.id === id)) throw new Error("Category ID already exists");
         const maxSort = categories.reduce((m, c) => Math.max(m, c.sortOrder || 0), 0);
         const newCat = {
           id,
-          nameJp: String(input.nameJp || "").trim(),
+          nameJp: String(jpName || "").trim(),
           nameEn: String(input.nameEn || "").trim(),
           nameDe: String(input.nameDe || "").trim(),
           icon: String(input.icon || "📦").trim(),
@@ -670,7 +684,11 @@ export function createAndroidApi() {
         const categories = readCategories();
         const idx = categories.findIndex((c) => c.id === input.id);
         if (idx === -1) throw new Error("Category not found");
-        categories[idx] = { ...categories[idx], ...input, updatedAt: nowIso() };
+        const normalizedInput = { ...input };
+        if (!normalizedInput.nameJp && normalizedInput.nameJa) {
+          normalizedInput.nameJp = normalizedInput.nameJa;
+        }
+        categories[idx] = { ...categories[idx], ...normalizedInput, updatedAt: nowIso() };
         writeCategories(categories);
         return categories[idx];
       },
