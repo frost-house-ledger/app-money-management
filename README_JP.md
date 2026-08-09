@@ -100,6 +100,13 @@ npm run release -- -v 0.2.0
 
 出力（デバッグ APK）: `android/app/build/outputs/apk/debug/houseledger-debug.apk`
 
+## ドキュメント
+
+- [バックアップと復元](docs/DATA_BACKUP.md) — バックアップ方法、復元手順、保存場所、CSV の範囲、LAN 同期時の注意点
+- [アーキテクチャ](docs/ARCHITECTURE.md) — React、Electron、SQLite、Capacitor、API アダプター、LAN 同期の役割
+- [リリースガイド](docs/RELEASE.md) — リリースコマンド、ドライラン、ブランチ要件、x64 / x86 インストーラー名
+- [セキュリティポリシー](SECURITY.md) — 脆弱性の報告方法とセキュリティ上の注意
+
 ## データ保存
 
 アプリの全データはユーザーの app data フォルダにローカル保存されます。

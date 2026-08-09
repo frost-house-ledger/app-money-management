@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { api } from "../../lib/api.js";
 import { formatCurrency } from "../../lib/currency.js";
 import SavingsSimulationPanel from "./SavingsSimulationPanel.jsx";
@@ -6,22 +6,16 @@ import { logError } from "../../lib/logger.js";
 
 import {
   Chart as ChartJS,
-  ArcElement,
   CategoryScale,
   LinearScale,
   BarElement,
-  LineElement,
-  PointElement,
   Tooltip,
   Legend,
-  Filler,
   BarController,
-  LineController,
 } from "chart.js";
 
-import { Pie, Bar, Line } from "react-chartjs-2";
-import { buildEntryListPayload } from "../../lib/chartFilterPayloads.js";
-ChartJS.register(ArcElement, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Tooltip, Legend, Filler, BarController, LineController);
+import { Bar } from "react-chartjs-2";
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend, BarController);
 
 
 function formatDelta(value, currency, rates) {
@@ -30,88 +24,38 @@ function formatDelta(value, currency, rates) {
   return `${sign}${formatCurrency(Math.abs(amount), currency, rates)}`;
 }
 
-export default function StatisticsSummaryPage({ selectedCurrency, exchangeRates, t }) {
-  const thisYear = new Date().getFullYear();
-  const [year, setYear] = useState(String(thisYear));
+export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency, exchangeRates, t }) {
+  const fallbackYear = String(new Date().getFullYear());
+  const year = /^\d{4}-\d{2}$/.test(selectedMonth || "") ? selectedMonth.slice(0, 4) : fallbackYear;
   const [rows, setRows] = useState([]);
+  const [loadState, setLoadState] = useState("loading");
+  const [loadError, setLoadError] = useState("");
   const [showSimulation, setShowSimulation] = useState(false);
 
   const [currentBalance, setCurrentBalance] = useState("");
   const [currentBalanceRaw, setCurrentBalanceRaw] = useState("");
-  const [balanceSeries, setBalanceSeries] = useState({ labels: [], data: [] });
-  const [simulateMonths, setSimulateMonths] = useState(3);
-  const [simulationSeries, setSimulationSeries] = useState({ labels: [], data: [] });
-  
-  const [fromMonth, setFromMonth] = useState(`${thisYear}-01`);
-  const todayMonth = new Date().toISOString().slice(0, 7);
-  const [toMonth, setToMonth] = useState(todayMonth);
-  const [monthlySeries, setMonthlySeries] = useState({ labels: [], netData: [], cumulativeData: [] });
-  const [monthlyBalances, setMonthlyBalances] = useState([]);
-  const [saveMonth, setSaveMonth] = useState(todayMonth);
-  const [baselineKey, setBaselineKey] = useState("current");
-  const [showGridlines, setShowGridlines] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [futureMonthWarning, setFutureMonthWarning] = useState(false);
-  const futureWarningTimerRef = useRef(null);
 
-  // Ensure toMonth is never set beyond today's month — auto-correct if user picks a future month
-  useEffect(() => {
+  async function loadAnnualSummary() {
+    const fromMonth = `${year}-01`;
+    const toMonth = `${year}-12`;
+    setLoadState("loading");
+    setLoadError("");
     try {
-      if (toMonth > todayMonth) {
-        setToMonth(todayMonth);
-      }
-    } catch (e) {
-      /* no-op */
-    }
-  }, [toMonth, todayMonth]);
-
-  useEffect(() => {
-    return () => {
-      if (futureWarningTimerRef.current) {
-        clearTimeout(futureWarningTimerRef.current);
-        futureWarningTimerRef.current = null;
-      }
-    };
-  }, []);
-
-  function handleToMonthChange(e) {
-    try {
-      const v = e.target.value;
-      if (v > todayMonth) {
-        // keep existing auto-correct behaviour but show a short warning to the user
-        setToMonth(todayMonth);
-        setFutureMonthWarning(true);
-        if (futureWarningTimerRef.current) clearTimeout(futureWarningTimerRef.current);
-        futureWarningTimerRef.current = setTimeout(() => {
-          setFutureMonthWarning(false);
-          futureWarningTimerRef.current = null;
-        }, 3000);
-      } else {
-        setToMonth(v);
-      }
+      const result = await api.summary.range({ fromMonth, toMonth });
+      setRows(Array.isArray(result) ? result : []);
+      setLoadState("ready");
     } catch (err) {
-      // fallback: apply value
-      setToMonth(e.target.value);
+      logError("StatisticsSummaryPage.load", err);
+      setRows([]);
+      setLoadError(t?.errorLoadFailed || "Failed to load statistics.");
+      setLoadState("error");
     }
   }
 
   useEffect(() => {
-    async function load() {
-      const fromMonth = `${year}-01`;
-      const toMonth = `${year}-12`;
-      try {
-        const result = await api.summary.range({ fromMonth, toMonth });
-        setRows(Array.isArray(result) ? result : []);
-      } catch (err) {
-        logError("StatisticsSummaryPage.load", err);
-        setRows([]);
-      }
-    }
-    load();
+    loadAnnualSummary();
   }, [year]);
   const safeRows = Array.isArray(rows) ? rows : [];
-
-  const totalBalance = useMemo(() => safeRows.reduce((sum, row) => sum + Number(row.balance || 0), 0), [safeRows]);
 
   const rowsWithDiff = useMemo(() => {
     try {
@@ -131,156 +75,23 @@ export default function StatisticsSummaryPage({ selectedCurrency, exchangeRates,
     }
   }, [safeRows]);
 
-  // Load saved current actual balance for analysis and compute balance series
   useEffect(() => {
     try {
       const key = `analysis:currentBalance`;
       const saved = localStorage.getItem(key);
       if (saved !== null) setCurrentBalance(saved);
-      if (saved !== null) setCurrentBalanceRaw(formatCurrency(Number(saved), selectedCurrency, exchangeRates));
     } catch (e) {
       logError("StatisticsSummaryPage.loadCurrentBalance", e);
     }
   }, []);
 
   useEffect(() => {
-    async function loadEntriesAndComputeSeries() {
-      try {
-        // fetch all entries and compute cumulative balance by date up to today
-        // request entries for the current month to satisfy backend validation
-        const payload = buildEntryListPayload({ month: todayMonth, selectedDailyCategory: 'all', dateRange: {} });
-        const all = await api.entry.list(payload);
-        const today = new Date().toISOString().slice(0, 10);
-        const filtered = Array.isArray(all) ? all.filter((r) => (r.entryDate || "") <= today) : [];
-        // aggregate by date
-        const byDate = new Map();
-        filtered.forEach((r) => {
-          const d = String(r.entryDate || "");
-          const signed = r.type === "income" ? Number(r.amount || 0) : -Number(r.amount || 0);
-          byDate.set(d, (byDate.get(d) || 0) + signed);
-        });
-        const dates = Array.from(byDate.keys()).sort();
-        const startBalance = Number(currentBalance === "" ? 0 : Number(currentBalance || 0));
-        const labels = [];
-        const data = [];
-        let running = startBalance;
-        for (const d of dates) {
-          running = running + (byDate.get(d) || 0);
-          labels.push(d);
-          data.push(running);
-        }
-        setBalanceSeries({ labels, data });
-      } catch (e) {
-        logError("StatisticsSummaryPage.balanceSeries", e);
-        setBalanceSeries({ labels: [], data: [] });
-      }
+    if (currentBalance === "") {
+      setCurrentBalanceRaw("");
+      return;
     }
-    loadEntriesAndComputeSeries();
-  }, [currentBalance]);
-
-  // Load monthly aggregated data and compute monthly net + cumulative series
-  useEffect(() => {
-    async function loadMonthlySeries() {
-      try {
-        // Ensure toMonth is not in the future
-        const cappedTo = toMonth > todayMonth ? todayMonth : toMonth;
-        const result = await api.summary.range({ fromMonth: fromMonth, toMonth: cappedTo });
-        const rows = Array.isArray(result) ? result.slice() : [];
-        rows.sort((a, b) => String(a.month || "").localeCompare(String(b.month || "")));
-
-        const labels = rows.map((r) => r.month || "");
-        const netData = rows.map((r) => Number(r.income || 0) - Number(r.fee || 0));
-        // compute cumulative sums starting from zero (so we can align to any baseline)
-        const cumulative = [];
-        let running = 0;
-        for (const n of netData) {
-          running = running + n;
-          cumulative.push(running);
-        }
-        setMonthlySeries({ labels, netData, cumulativeData: cumulative });
-      } catch (e) {
-        logError("StatisticsSummaryPage.monthlySeries", e);
-        setMonthlySeries({ labels: [], netData: [], cumulativeData: [] });
-      }
-    }
-    loadMonthlySeries();
-  }, [fromMonth, toMonth, currentBalance]);
-
-  // Derived chart data: baseline alignment and bar colors
-  const baselineValue = (() => {
-    if (baselineKey === "current") return Number(currentBalance || 0);
-    const it = monthlyBalances.find((m) => m.month === baselineKey);
-    return it ? Number(it.balance || 0) : Number(currentBalance || 0);
-  })();
-
-  const cumulativeFromZero = Array.isArray(monthlySeries.cumulativeData) ? monthlySeries.cumulativeData : [];
-  const displayCumulative = cumulativeFromZero.map((v, i) => {
-    if (baselineKey === "current") {
-      return Number(currentBalance || 0) + v;
-    }
-    const idx = (monthlySeries.labels || []).indexOf(baselineKey);
-    if (idx >= 0) {
-      const offset = baselineValue - (cumulativeFromZero[idx] || 0);
-      return v + offset;
-    }
-    return baselineValue + v;
-  });
-
-  const barColors = (monthlySeries.netData || []).map((n) => (n >= 0 ? "rgba(34,197,94,0.6)" : "rgba(239,68,68,0.6)"));
-
-  // Load saved monthly balances from localStorage
-  useEffect(() => {
-
-    try {
-      const key = `analysis:monthlyBalances`;
-      const raw = localStorage.getItem(key);
-      const parsed = raw ? JSON.parse(raw) : [];
-      const arr = Array.isArray(parsed) ? parsed.slice() : [];
-      arr.sort((a, b) => String(a.month || "").localeCompare(String(b.month || "")));
-      setMonthlyBalances(arr);
-
-    } catch (e) {
-      logError("StatisticsSummaryPage.loadMonthlyBalances", e);
-      setMonthlyBalances([]);
-    }
-  }, []);
-
-  function saveMonthlyBalance() {
-    try {
-      const key = `analysis:monthlyBalances`;
-      const month = saveMonth || todayMonth;
-      const bal = Number(currentBalance || 0);
-      const next = monthlyBalances.filter((m) => m.month !== month).concat({ month, balance: bal });
-      next.sort((a, b) => String(a.month || "").localeCompare(String(b.month || "")));
-      localStorage.setItem(key, JSON.stringify(next));
-      setMonthlyBalances(next);
-    } catch (e) {
-      logError("StatisticsSummaryPage.saveMonthlyBalance", e);
-    }
-  }
-
-  function deleteMonthlyBalance(month) {
-    try {
-      const key = `analysis:monthlyBalances`;
-      const next = monthlyBalances.filter((m) => m.month !== month);
-      next.sort((a, b) => String(a.month || "").localeCompare(String(b.month || "")));
-      localStorage.setItem(key, JSON.stringify(next));
-      setMonthlyBalances(next);
-      if (baselineKey === month) setBaselineKey("current");
-    } catch (e) {
-      logError("StatisticsSummaryPage.deleteMonthlyBalance", e);
-    }
-  }
-
-  function confirmDeleteMonthlyBalance(month) {
-    try {
-      const ok = window.confirm(`Do you want to delete the saved balance for ${month}?`);
-      if (!ok) return;
-      deleteMonthlyBalance(month);
-    } catch (e) {
-      logError('StatisticsSummaryPage.confirmDeleteMonthlyBalance', e);
-    }
-  }
+    setCurrentBalanceRaw(formatCurrency(Number(currentBalance), selectedCurrency, exchangeRates));
+  }, [currentBalance, selectedCurrency, exchangeRates]);
 
   // Derived net-series for the monthly summary (labels, per-month net, cumulative net)
   const rowsNetSeries = useMemo(() => {
@@ -300,8 +111,6 @@ export default function StatisticsSummaryPage({ selectedCurrency, exchangeRates,
     }
   }, [rowsWithDiff]);
 
-  const cumulativeNetDisplay = Array.isArray(rowsNetSeries.cumulative) ? rowsNetSeries.cumulative : [];
-
   // If user provided a currentBalance in UI, treat it as the value for the first month (January)
   const cumulativeNetWithBaseline = (() => {
     try {
@@ -320,7 +129,6 @@ export default function StatisticsSummaryPage({ selectedCurrency, exchangeRates,
     try {
       const key = `analysis:currentBalance`;
       localStorage.setItem(key, String(currentBalance || ""));
-      setCurrentBalanceRaw(formatCurrency(Number(currentBalance || 0), selectedCurrency, exchangeRates));
     } catch (e) {
       logError('StatisticsSummaryPage.saveCurrentBalance', e);
     }
@@ -339,7 +147,16 @@ export default function StatisticsSummaryPage({ selectedCurrency, exchangeRates,
             <h3>{t.monthlySummaryGraphTitle || "Summary"}</h3>
 
             <div style={{ height: 300, marginTop: 12 }}>
-              {rowsWithDiff && rowsWithDiff.length > 0 ? (
+              {loadState === "loading" ? (
+                <div className="subtext">{t.loadingLabel || "Loading..."}</div>
+              ) : loadState === "error" ? (
+                <div className="error" role="alert">
+                  <p>{loadError}</p>
+                  <button type="button" className="secondary-button" onClick={loadAnnualSummary}>
+                    {t.actionRetry || "Retry"}
+                  </button>
+                </div>
+              ) : rowsWithDiff && rowsWithDiff.length > 0 ? (
                 <Bar
                   data={{
                     labels: rowsWithDiff.map((r) => r.month),
@@ -376,8 +193,8 @@ export default function StatisticsSummaryPage({ selectedCurrency, exchangeRates,
                       }
                     },
                     scales: {
-                      x: { grid: { color: showGridlines ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0)' }, ticks: { color: '#9fb0d0' } },
-                      y: { grid: { color: showGridlines ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0)' }, ticks: { color: '#9fb0d0' } },
+                      x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#9fb0d0' } },
+                      y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#9fb0d0' } },
                     },
                   }}
                 />

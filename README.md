@@ -105,6 +105,13 @@ The command updates `package.json` and `package-lock.json`, creates the matching
 
 Output (debug APK): `android/app/build/outputs/apk/debug/houseledger-debug.apk`
 
+## Documentation
+
+- [Backup and restore](docs/DATA_BACKUP.md) — backup methods, restore steps, storage locations, CSV scope, and LAN sync precautions.
+- [Architecture](docs/ARCHITECTURE.md) — React, Electron, SQLite, Capacitor, API adapters, and LAN sync responsibilities.
+- [Release Guide](docs/RELEASE.md) — release commands, dry runs, branch requirements, and x64/x86 installer names.
+- [Security Policy](SECURITY.md) — vulnerability reporting and security guidance.
+
 ## Data storage
 
 All app data is stored locally in the user's app data folder.

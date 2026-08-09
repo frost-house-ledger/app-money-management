@@ -57,7 +57,6 @@ export default function App() {
   const [monthlyRows, setMonthlyRows] = useState([]);
   const [recurringRows, setRecurringRows] = useState([]);
   const [dailyRows, setDailyRows] = useState([]);
-  const [currentMonthSnapshot, setCurrentMonthSnapshot] = useState(null);
   const [historyRows, setHistoryRows] = useState([]);
 
   const [recurringForm, setRecurringForm] = useState({
@@ -123,6 +122,12 @@ export default function App() {
       setErrorText(error?.message || t.errorLoadFailed || "Failed to load month data");
     }
   }
+  function shiftSelectedMonth(offset) {
+    const [year, month] = String(selectedMonth || baseMonth).split("-").map(Number);
+    const next = new Date(year, month - 1 + offset, 1);
+    const nextMonth = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}`;
+    setSelectedMonth(nextMonth);
+  }
 
   async function loadChartMonthSummary(month) {
     try {
@@ -168,16 +173,6 @@ export default function App() {
     } catch (error) {
       logError("loadCategories", error);
       setErrorText(error?.message || t.errorLoadFailed || "Failed to load categories");
-    }
-  }
-
-  async function loadCurrentMonthSnapshot() {
-    try {
-      const snapshot = await api.summary.month({ month: currentYYYYMM });
-      setCurrentMonthSnapshot(snapshot);
-    } catch (error) {
-      logError("loadCurrentMonthSnapshot", error);
-      setErrorText(error?.message || t.errorLoadFailed || "Failed to load snapshot");
     }
   }
 
@@ -231,7 +226,6 @@ export default function App() {
       await Promise.all([
         loadRecurring(),
         loadCategories(),
-        loadCurrentMonthSnapshot(),
         loadHistory(),
         loadMonthData(month),
         loadChartMonthSummary(month),
@@ -425,7 +419,13 @@ export default function App() {
         }
       ])
     );
-    return recurringRows.map((row) => {
+    return recurringRows
+      .filter((row) => {
+        const startMonth = String(row.startMonth || "");
+        const endMonth = String(row.endMonth || "");
+        return startMonth <= selectedMonth && (!endMonth || selectedMonth <= endMonth);
+      })
+      .map((row) => {
       // Handle category based on type
       let categoryId = null;
       if (row.type === "fee") {
@@ -442,8 +442,8 @@ export default function App() {
         categoryDisplay: category?.label || "-",
         categoryIcon: category?.icon || "🍽️"
       };
-    });
-  }, [recurringRows, categories, locale]);
+      });
+  }, [recurringRows, categories, locale, selectedMonth]);
 
   const dailyTitleSuggestions = useMemo(() => {
     const seen = new Set();
@@ -487,6 +487,16 @@ export default function App() {
     month: "2-digit",
     day: "2-digit"
   });
+  const selectedMonthLabel = (() => {
+    const match = /^(\d{4})-(\d{2})$/.exec(selectedMonth || "");
+    if (!match) {
+      return selectedMonth;
+    }
+    return new Date(Number(match[1]), Number(match[2]) - 1, 1).toLocaleDateString(localeTag, {
+      year: "numeric",
+      month: "long"
+    });
+  })();
 
   async function onCreateCategory(payload) {
     setErrorText("");
@@ -932,16 +942,16 @@ export default function App() {
           <strong>{todayLabel}</strong>
         </div>
         <div className="snapshot-item">
-          <span>{t.thisMonthExpenseLabel}</span>
-          <strong>{formatCurrency(currentMonthSnapshot?.fee || 0, selectedCurrency, exchangeRates)}</strong>
+          <span>{formatMessage(t.thisMonthExpenseLabel, { month: selectedMonthLabel })}</span>
+          <strong>{formatCurrency(monthlySummary?.fee || 0, selectedCurrency, exchangeRates)}</strong>
         </div>
         <div className="snapshot-item">
-          <span>{t.thisMonthIncomeLabel}</span>
-          <strong>{formatCurrency(currentMonthSnapshot?.income || 0, selectedCurrency, exchangeRates)}</strong>
+          <span>{formatMessage(t.thisMonthIncomeLabel, { month: selectedMonthLabel })}</span>
+          <strong>{formatCurrency(monthlySummary?.income || 0, selectedCurrency, exchangeRates)}</strong>
         </div>
         <div className="snapshot-item">
-          <span>{t.thisMonthInvestmentLabel}</span>
-          <strong>{formatCurrency(currentMonthSnapshot?.investment || 0, selectedCurrency, exchangeRates)}</strong>
+          <span>{formatMessage(t.thisMonthInvestmentLabel, { month: selectedMonthLabel })}</span>
+          <strong>{formatCurrency(monthlySummary?.investment || 0, selectedCurrency, exchangeRates)}</strong>
         </div>
       </section>
 
@@ -949,11 +959,31 @@ export default function App() {
       <section className="chart-month-toolbar">
         <label>
           <span>{t.chartMonthLabel}:</span>
-          <input
-            type="month"
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-          />
+          <div className="chart-month-controls">
+            <button
+              type="button"
+              className="month-step-button"
+              onClick={() => shiftSelectedMonth(-1)}
+              aria-label={t.previousMonthButton || "Previous month"}
+              title={t.previousMonthButton || "Previous month"}
+            >
+              &lt;
+            </button>
+            <input
+              type="month"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+            />
+            <button
+              type="button"
+              className="month-step-button"
+              onClick={() => shiftSelectedMonth(1)}
+              aria-label={t.nextMonthButton || "Next month"}
+              title={t.nextMonthButton || "Next month"}
+            >
+              &gt;
+            </button>
+          </div>
         </label>
       </section>
 
@@ -1013,6 +1043,7 @@ export default function App() {
 
       {activePage === "chart" ? (
         <StatisticsSummaryPage
+          selectedMonth={selectedMonth}
           selectedCurrency={selectedCurrency}
           exchangeRates={exchangeRates}
           t={t}

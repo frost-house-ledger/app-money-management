@@ -133,6 +133,27 @@ html[lang="ru"] .hero p {
   padding: 8px 12px;
   border-radius: 10px;
 }
+.chart-month-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.month-step-button {
+  width: 34px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ink);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.month-step-button:hover,
+.month-step-button:focus-visible {
+  background: rgba(255, 255, 255, 0.1);
+}
 
 /* Make the two chart panels feel separated */
 .chart-card {
