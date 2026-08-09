@@ -59,9 +59,9 @@ jobs:
           # Standardized output names for artifacts (ensure electron-builder uses these names)
 
           $x64Pattern  = "release\\HouseLedger-$tag-x64.exe"
-          $ia32Pattern = "release\\HouseLedger-$tag-ia32.exe"
+          $x86Pattern  = "release\\HouseLedger-$tag-ia32.exe"
 
-          Write-Host "Searching for artifacts using patterns:" $x64Pattern $ia32Pattern
+          Write-Host "Searching for artifacts using patterns:" $x64Pattern $x86Pattern
 
           function Find-Installer($pattern, $fallback) {
             $file = Get-Item $pattern -ErrorAction SilentlyContinue
@@ -71,14 +71,14 @@ jobs:
           }
 
           $x64  = Find-Installer $x64Pattern  "release\\HouseLedger-*-x64.exe"
-          $ia32 = Find-Installer $ia32Pattern "release\\HouseLedger-*-ia32.exe"
+          $x86 = Find-Installer $x86Pattern "release\\HouseLedger-*-ia32.exe"
 
 
           # ===============================================
           # Copy artifact copies with deterministic names to Actions artifacts (for CI consumers)
           mkdir -Force artifacts
           Copy-Item $x64.FullName -Destination "artifacts\\HouseLedger-$($tag)-x64.exe" -Force
-          Copy-Item $ia32.FullName -Destination "artifacts\\HouseLedger-$($tag)-ia32.exe" -Force
+          Copy-Item $x86.FullName -Destination "artifacts\\HouseLedger-$($tag)-x86.exe" -Force
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -95,7 +95,7 @@ jobs:
         run: |
           $tag = "${{ github.ref_name }}"
           gh release delete $tag -y || true
-          gh release create $tag --title "HouseLedger $tag" --generate-notes $PWD\artifacts\HouseLedger-$($tag)-x64.exe $PWD\artifacts\HouseLedger-$($tag)-ia32.exe
+          gh release create $tag --title "HouseLedger $tag" --generate-notes $PWD\artifacts\HouseLedger-$($tag)-x64.exe $PWD\artifacts\HouseLedger-$($tag)-x86.exe
 
       # Rollback step: if anything after this fails, delete the created release and fail early
       - name: Rollback on failure

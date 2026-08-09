@@ -84,6 +84,14 @@ npm install
 npm run dev
 ```
 
+`master` からリリース:
+
+```bash
+npm run release -- -v 0.2.0
+```
+
+このコマンドは `package.json` と `package-lock.json` を更新し、対応する `v0.2.0` タグを作成して、`master` とタグを push します。その後 GitHub Actions が Windows インストーラーをビルドして公開します。Git を変更せず確認する場合は `--dry-run` を付けてください。
+
 ## Android での利用（Capacitor）
 
 1. Android Studio（SDK / Platform Tools 含む）をインストール
