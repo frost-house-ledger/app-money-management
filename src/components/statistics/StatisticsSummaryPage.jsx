@@ -28,24 +28,32 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
   const fallbackYear = String(new Date().getFullYear());
   const year = /^\d{4}-\d{2}$/.test(selectedMonth || "") ? selectedMonth.slice(0, 4) : fallbackYear;
   const [rows, setRows] = useState([]);
+  const [loadState, setLoadState] = useState("loading");
+  const [loadError, setLoadError] = useState("");
   const [showSimulation, setShowSimulation] = useState(false);
 
   const [currentBalance, setCurrentBalance] = useState("");
   const [currentBalanceRaw, setCurrentBalanceRaw] = useState("");
 
-  useEffect(() => {
-    async function load() {
-      const fromMonth = `${year}-01`;
-      const toMonth = `${year}-12`;
-      try {
-        const result = await api.summary.range({ fromMonth, toMonth });
-        setRows(Array.isArray(result) ? result : []);
-      } catch (err) {
-        logError("StatisticsSummaryPage.load", err);
-        setRows([]);
-      }
+  async function loadAnnualSummary() {
+    const fromMonth = `${year}-01`;
+    const toMonth = `${year}-12`;
+    setLoadState("loading");
+    setLoadError("");
+    try {
+      const result = await api.summary.range({ fromMonth, toMonth });
+      setRows(Array.isArray(result) ? result : []);
+      setLoadState("ready");
+    } catch (err) {
+      logError("StatisticsSummaryPage.load", err);
+      setRows([]);
+      setLoadError(t?.errorLoadFailed || "Failed to load statistics.");
+      setLoadState("error");
     }
-    load();
+  }
+
+  useEffect(() => {
+    loadAnnualSummary();
   }, [year]);
   const safeRows = Array.isArray(rows) ? rows : [];
 
@@ -67,17 +75,23 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
     }
   }, [safeRows]);
 
-  // Load saved current actual balance for analysis and compute balance series
   useEffect(() => {
     try {
       const key = `analysis:currentBalance`;
       const saved = localStorage.getItem(key);
       if (saved !== null) setCurrentBalance(saved);
-      if (saved !== null) setCurrentBalanceRaw(formatCurrency(Number(saved), selectedCurrency, exchangeRates));
     } catch (e) {
       logError("StatisticsSummaryPage.loadCurrentBalance", e);
     }
   }, []);
+
+  useEffect(() => {
+    if (currentBalance === "") {
+      setCurrentBalanceRaw("");
+      return;
+    }
+    setCurrentBalanceRaw(formatCurrency(Number(currentBalance), selectedCurrency, exchangeRates));
+  }, [currentBalance, selectedCurrency, exchangeRates]);
 
   // Derived net-series for the monthly summary (labels, per-month net, cumulative net)
   const rowsNetSeries = useMemo(() => {
@@ -115,7 +129,6 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
     try {
       const key = `analysis:currentBalance`;
       localStorage.setItem(key, String(currentBalance || ""));
-      setCurrentBalanceRaw(formatCurrency(Number(currentBalance || 0), selectedCurrency, exchangeRates));
     } catch (e) {
       logError('StatisticsSummaryPage.saveCurrentBalance', e);
     }
@@ -134,7 +147,16 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
             <h3>{t.monthlySummaryGraphTitle || "Summary"}</h3>
 
             <div style={{ height: 300, marginTop: 12 }}>
-              {rowsWithDiff && rowsWithDiff.length > 0 ? (
+              {loadState === "loading" ? (
+                <div className="subtext">{t.loadingLabel || "Loading..."}</div>
+              ) : loadState === "error" ? (
+                <div className="error" role="alert">
+                  <p>{loadError}</p>
+                  <button type="button" className="secondary-button" onClick={loadAnnualSummary}>
+                    {t.actionRetry || "Retry"}
+                  </button>
+                </div>
+              ) : rowsWithDiff && rowsWithDiff.length > 0 ? (
                 <Bar
                   data={{
                     labels: rowsWithDiff.map((r) => r.month),

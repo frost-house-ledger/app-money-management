@@ -33,6 +33,7 @@ function defaultRange(baseMonth) {
 
 export default function App() {
   const baseMonth = thisMonth();
+  const currentYYYYMM = todayISO().slice(0, 7);
   const [selectedMonth, setSelectedMonth] = useState(baseMonth);
   const [range, setRange] = useState(defaultRange(baseMonth));
   const [dateRange, setDateRange] = useState({ fromDate: "", toDate: "" });
