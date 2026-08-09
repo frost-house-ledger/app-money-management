@@ -422,6 +422,7 @@ export const TRANSLATIONS = {
   yearLabel: { jp: "年", en: "Year", de: "Jahr", es: "Año", pt: "Ano", it: "Anno", fr: "Année", ru: "Год", tw: "年", ko: "년도", ar: "السنة" },
   annualTotalBalanceLabel: { jp: "年間収支", en: "Annual balance", de: "Jahressaldo", es: "Balance anual", pt: "Saldo anual", it: "Saldo annuo", fr: "Solde annuel", ru: "Годовой баланс", tw: "年度收支", ko: "연간 잔액", ar: "الرصيد السنوي" },
   monthComparisonLabel: { jp: "前月比", en: "vs previous month", de: "ggü. Vormonat", es: "vs mes anterior", pt: "vs mês anterior", it: "vs mese precedente", fr: "vs mois précédent", ru: "по сравнению с предыдущим месяцем", tw: "較上月", ko: "전월 대비", ar: "مقارنة بالشهر السابق" },
+  cumulativeLabel: { jp: "累計", en: "Cumulative", de: "Kumulativ", es: "Acumulado", pt: "Cumulativo", it: "Cumulativo", fr: "Cumulatif", ru: "Кумулятивный", tw: "累計", ko: "누적", ar: "تراكمي" },
   savingsSimButtonLabel: { jp: "貯金シミュレート", en: "Savings simulation", de: "Sparprognose", es: "Simulación de ahorros", pt: "Simulação de poupança", it: "Simulazione risparmi", fr: "Simulation d'épargne", ru: "Моделирование сбережений", tw: "存款模擬", ko: "저축 시뮬레이션", ar: "محاكاة المدخرات" },
   savingsSimTitle: { jp: "貯金シミュレーション", en: "Savings Simulation", de: "Sparprognose", es: "Simulación de ahorros", pt: "Simulação de poupança", it: "Simulazione risparmi", fr: "Simulation d'épargne", ru: "Симуляция сбережений", tw: "存款模擬", ko: "저축 시뮬레이션", ar: "محاكاة المدخرات" },
   savingsSimSubtext: {

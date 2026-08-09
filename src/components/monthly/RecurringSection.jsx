@@ -368,7 +368,7 @@ setPendingDeletePopup((current) => (current?.id === id ? null : current));
                           </select>
                         </td>
                         <td><input type="text" value={inlineForm.title} onChange={(e) => setInlineForm((c) => ({ ...c, title: e.target.value }))} placeholder={t.recurringTitlePlaceholder} /></td>
-                        <td style={{ textAlign: 'right' }}><input type="text" inputMode="decimal" value={formatNumericInput(inlineForm.amount)} onChange={(e) => setInlineForm((c) => ({ ...c, amount: sanitizeNumericInput(e.target.value) }))} placeholder={t.recurringAmountPlaceholder} /></td>
+                        <td style={{ textAlign: 'left' }}><input type="text" inputMode="decimal" value={formatNumericInput(inlineForm.amount)} onChange={(e) => setInlineForm((c) => ({ ...c, amount: sanitizeNumericInput(e.target.value) }))} placeholder={t.recurringAmountPlaceholder} /></td>
                         <td><input type="text" value={inlineForm.note || ''} onChange={(e) => setInlineForm((c) => ({ ...c, note: e.target.value }))} placeholder={t.dailyNotePlaceholder} /></td>
                       </>
                     ) : (
@@ -400,7 +400,7 @@ setPendingDeletePopup((current) => (current?.id === id ? null : current));
                           }
                           return `${row.categoryIcon || '🍽️'} ${display}`;
                         })() : '-'}</td>
-                        <td>{row.amount == null ? '-' : formatCurrency(row.amount, selectedCurrency, exchangeRates)}</td>
+                        <td style={{ textAlign: 'left' }}>{row.amount == null ? '-' : formatCurrency(row.amount, selectedCurrency, exchangeRates)}</td>
                         <td>{row.title}{row.type === 'income' && row.isSalary ? <span style={{ marginLeft: 6 }}>💼</span> : null}</td>
                         <td>{row.note ? (row.note.length > 40 ? row.note.slice(0,40) + '…' : row.note) : '-'}</td>
                       </>

@@ -418,94 +418,49 @@ export default function StatisticsSummaryPage({ selectedCurrency, exchangeRates,
               </div>
 
               <br />
-
-              <h3>{t.balanceGraphTitle || "Balance"}</h3>
-
-              <div style={{ height: 300}}>
-              {rowsNetSeries.labels && rowsNetSeries.labels.length > 0 ? (
-                <Bar
-                  data={{
-                    labels: rowsNetSeries.labels,
-                    datasets: [
-                      {
-                        type: 'bar',
-                        label: t.balanceOverlayLabel || `Balance (${selectedCurrency})`,
-                        data: cumulativeNetWithBaseline,
-                        backgroundColor: (cumulativeNetWithBaseline || []).map((n) => (n >= 0 ? 'rgba(34,197,94,0.28)' : 'rgba(239,68,68,0.28)')),
-                        yAxisID: 'y',
-                        order: 2,
-                      },
-                      {
-                        type: 'line',
-                        label: t.netLabel || `Net (${selectedCurrency})`,
-                        data: cumulativeNetWithBaseline,
-                        borderColor: "rgba(37,99,235,1)",
-                        backgroundColor: "rgba(37,99,235,0.08)",
-                        pointBackgroundColor: "rgba(37,99,235,1)",
-                        pointBorderColor: "#fff",
-                        tension: 0.2,
-                        fill: true,
-                        order: 1,
-                      },
-                    ],
-                  }}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: "index", intersect: false },
-                    plugins: {
-                      legend: { position: 'top', align: 'end', labels: { color: '#9fb0d0' } },
-                      tooltip: {
-                        callbacks: {
-                          label: (ctx) => {
-                            const v = ctx.parsed && (ctx.parsed.y ?? ctx.parsed);
-                            return formatCurrency(Number(v || 0), selectedCurrency, exchangeRates);
-                          }
-                        }
-                      }
-                    },
-                    scales: {
-                      x: { grid: { color: showGridlines ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0)' }, ticks: { color: '#9fb0d0' } },
-                      y: { grid: { color: showGridlines ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0)' }, ticks: { color: '#9fb0d0' } },
-                    },
-                  }}
-                />
-              ) : (
-                <div className="subtext">No data available to display.</div>
-              )}
-            </div>
             </div>
 
             <br />
 
-            <div className="annual-list-head">
-              <span>{t.monthLabel}</span>
-              <span>{t.summaryIncome}</span>
-              <span>{t.summaryFee}</span>
-              <span>{t.summaryBalance}</span>
-              <span>{t.monthComparisonLabel}</span>
-            </div>
-            <ul className="list annual-list">
-              {rowsWithDiff.map((row) => (
-                <li key={row.month} className="daily-list-item">
-                  <strong>{row.month}</strong>
-                  <span>{formatCurrency(row.income, selectedCurrency, exchangeRates)}</span>
-                  <span>{formatCurrency(row.fee, selectedCurrency, exchangeRates)}</span>
-                  <span>{formatCurrency(row.balance, selectedCurrency, exchangeRates)}</span>
-                  <span
-                    className={
-                      row.diffFromPrevious == null
-                        ? "month-diff"
-                        : row.diffFromPrevious >= 0
-                          ? "month-diff positive"
-                          : "month-diff negative"
-                    }
-                  >
-                    {row.diffFromPrevious == null ? "-" : formatDelta(row.diffFromPrevious, selectedCurrency, exchangeRates)}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <table className="app-table">
+              <thead>
+                <tr>
+                  <th>{t.monthLabel}</th>
+                  <th>{t.summaryIncome}</th>
+                  <th>{t.summaryFee}</th>
+                  <th>{t.summaryBalance}</th>
+                  <th>{t.monthComparisonLabel}</th>
+                  <th>{t.cumulativeLabel || "Cumulative"}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rowsWithDiff.map((row, index) => {
+                  const cumulative = cumulativeNetWithBaseline[index] || 0;
+                  return (
+                    <tr key={row.month}>
+                      <td><strong>{row.month}</strong></td>
+                      <td>{formatCurrency(row.income, selectedCurrency, exchangeRates)}</td>
+                      <td>{formatCurrency(row.fee, selectedCurrency, exchangeRates)}</td>
+                      <td>{formatCurrency(row.balance, selectedCurrency, exchangeRates)}</td>
+                      <td
+                        className={
+                          row.diffFromPrevious == null
+                            ? "month-diff"
+                            : row.diffFromPrevious >= 0
+                              ? "month-diff positive"
+                              : "month-diff negative"
+                        }
+                      >
+                        {row.diffFromPrevious == null ? "-" : formatDelta(row.diffFromPrevious, selectedCurrency, exchangeRates)}
+                      </td>
+                      <td className={cumulative >= 0 ? "positive" : "negative"}>
+                        {formatDelta(cumulative, selectedCurrency, exchangeRates)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
             </section>
           )}
 

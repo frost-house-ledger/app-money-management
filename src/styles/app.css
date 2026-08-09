@@ -778,11 +778,19 @@ button {
 .recurring-table th, .recurring-table td {
   vertical-align: middle;
 }
-/* Make the action (buttons) column narrow so other columns get more room */
+/* Keep the action buttons together in a comfortable column. */
 .recurring-table th:nth-child(1), .recurring-table td:nth-child(1) {
-  width: 72px;
+  width: 150px;
+  min-width: 140px;
+  max-width: 180px;
+  text-align: center;
+}
+/* The type values are short, so keep this column compact. */
+.recurring-table th:nth-child(4), .recurring-table td:nth-child(4) {
+  width: 64px;
   min-width: 64px;
-  max-width: 96px;
+  max-width: 76px;
+  text-align: center;
 }
 /* Allow start/end month columns to grow/shrink automatically */
 .recurring-table th:nth-child(2), .recurring-table td:nth-child(2),
@@ -800,7 +808,7 @@ button {
 .recurring-table th:nth-child(7), .recurring-table td:nth-child(7) {
   min-width: 100px;
   white-space: nowrap; /* keep amounts on one line so width reflects value */
-  text-align: right;
+  text-align: left;
 }
 .recurring-table th:nth-child(8), .recurring-table td:nth-child(8) {
   min-width: 140px; /* title column gets room */
@@ -819,7 +827,7 @@ button {
 .recurring-table td:first-child .inline-action {
   white-space: nowrap;
   display: inline-block;
-  max-width: 84px; /* tighter button column */
+  max-width: 110px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -1019,6 +1027,13 @@ button {
   margin-bottom: 12px;
 }
 
+.category-manager-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 .category-manager-header h2 {
   margin: 0;
 }
@@ -1036,30 +1051,168 @@ button {
 
 .category-create-row {
   display: grid;
-  grid-template-columns: 1fr 180px auto;
+  grid-template-columns: minmax(180px, 280px) minmax(110px, 150px);
   gap: 8px;
+}
+
+.category-create-row input {
+  min-width: 0;
+  padding: 6px 8px;
+  font-size: 0.88rem;
+}
+
+.category-manager-launcher {
+  display: flex;
+  justify-content: flex-end;
+  margin: 12px 0;
+}
+
+.category-manager-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(5, 13, 24, 0.72);
+}
+
+.category-manager-modal {
+  width: min(760px, 100%);
+  max-height: min(720px, calc(100vh - 40px));
+  overflow: auto;
+}
+
+.category-manager-modal .category-manager-card {
+  margin: 0;
+}
+
+.category-table-wrapper {
+  overflow-x: auto;
+}
+
+.category-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+  border: 1px solid rgba(188, 212, 238, 0.22);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.category-table thead th {
+  padding: 9px 12px;
+  background: linear-gradient(135deg, #116ba9, #0d568b);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.category-table tbody tr {
+  background: rgba(255, 255, 255, 0.035);
+  transition: background-color 140ms ease;
+}
+
+.category-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.065);
+}
+
+.category-table tbody tr:hover {
+  background: rgba(91, 168, 232, 0.14);
+}
+
+.category-table tbody td {
+  padding: 9px 12px;
+  border-bottom: 1px solid rgba(188, 212, 238, 0.12);
+}
+
+.category-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.category-table th:first-child,
+.category-table td:first-child {
+  width: 18%;
+  text-align: center;
+}
+
+.category-table th:nth-child(2),
+.category-table td:nth-child(2) {
+  width: 22%;
+  min-width: 0;
+  text-align: center;
+}
+
+.category-table th:nth-child(3),
+.category-table td:nth-child(3) {
+  width: 60%;
+  text-align: center;
+}
+
+.category-table-icon {
+  font-size: 1.1rem;
+}
+
+.category-table-name {
+  font-weight: 700;
+}
+
+.category-status {
+  display: inline-flex;
+  align-items: center;
+  min-width: 68px;
+  justify-content: center;
+  padding: 3px 8px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.category-status.is-active {
+  color: #b9f1dd;
+  background: rgba(47, 188, 157, 0.16);
+  border-color: rgba(47, 188, 157, 0.35);
+}
+
+.category-status.is-inactive {
+  color: #f7c8bd;
+  background: rgba(249, 127, 105, 0.14);
+  border-color: rgba(249, 127, 105, 0.3);
+}
+
+.category-table-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  margin-inline: auto;
+  text-align: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.category-table-actions .inline-action {
+  min-width: 48px;
+  height: 36px;
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-size: 0.86rem;
+}
+
+.category-table-actions .inline-action:first-child,
+.category-table-actions .inline-action:nth-child(2) {
+  min-width: 44px;
+  padding-inline: 12px;
 }
 
 .category-ratio-list li {
   grid-template-columns: 1fr 120px 160px;
 }
 
-.annual-list li {
-  grid-template-columns: 110px 1fr 1fr 1fr 1fr;
-}
-
 .annual-header-card {
   display: grid;
   gap: 8px;
-}
-
-.annual-list-head {
-  display: grid;
-  grid-template-columns: 110px 1fr 1fr 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 8px;
-  color: var(--ink-soft);
-  font-size: 0.85rem;
 }
 
 .month-diff {
@@ -1320,5 +1473,21 @@ button {
 
   .category-create-row {
     grid-template-columns: 1fr;
+  }
+
+  .category-manager-launcher {
+    justify-content: stretch;
+  }
+
+  .category-manager-launcher button {
+    width: 100%;
+  }
+
+  .category-manager-modal-backdrop {
+    padding: 10px;
+  }
+
+  .category-manager-modal {
+    max-height: calc(100vh - 20px);
   }
 }

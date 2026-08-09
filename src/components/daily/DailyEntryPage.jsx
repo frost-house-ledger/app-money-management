@@ -28,6 +28,19 @@ export default function DailyEntryPage({
   selectedMonth,
   t
 }) {
+  const [categoryManagerOpen, setCategoryManagerOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!categoryManagerOpen) return undefined;
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape") setCategoryManagerOpen(false);
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [categoryManagerOpen]);
+
   return (
     <>
       <section className="forms-grid">
@@ -43,16 +56,36 @@ export default function DailyEntryPage({
         />
       </section>
 
-      <CategoryManagerSection
-        categories={categories}
-        locale={locale}
-        onCreateCategory={onCreateCategory}
-        onUpdateCategory={onUpdateCategory}
-        onDeleteCategory={onDeleteCategory}
-        onReorderCategories={onReorderCategories}
-        onResetCategories={onResetCategories}
-        t={t}
-      />
+      <section className="category-manager-launcher" aria-label={t.categoryManagerTitle}>
+        <button type="button" align="left" onClick={() => setCategoryManagerOpen(true)}>
+          {t.categoryManagerTitle}
+        </button>
+      </section>
+
+      {categoryManagerOpen && (
+        <div
+          className="category-manager-modal-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setCategoryManagerOpen(false);
+          }}
+        >
+          <div className="category-manager-modal" role="dialog" aria-modal="true" aria-labelledby="category-manager-title">
+            <CategoryManagerSection
+              categories={categories}
+              locale={locale}
+              onCreateCategory={onCreateCategory}
+              onUpdateCategory={onUpdateCategory}
+              onDeleteCategory={onDeleteCategory}
+              onReorderCategories={onReorderCategories}
+              onResetCategories={onResetCategories}
+              onClose={() => setCategoryManagerOpen(false)}
+              titleId="category-manager-title"
+              t={t}
+            />
+          </div>
+        </div>
+      )}
 
       <section className="lists-grid">
         <DailyListSection

@@ -18,5 +18,6 @@
   { "id": "travel", "name": "Travel", "icon": "✈️" },
   { "id": "subscription", "name": "Subscription", "icon": "🔁" },
   { "id": "insurance", "name": "Insurance", "icon": "🛡️" },
+  { "id": "taxes", "name": "Taxes", "icon": "💰" },
   { "id": "other", "name": "Other", "icon": "📦" }
 ]

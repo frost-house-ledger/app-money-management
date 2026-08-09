@@ -427,7 +427,7 @@ setPendingDeletePopup((current) => (current?.id === id ? null : current));
             <th>{t.typeLabel}</th>
             <th>{t.categoryLabel}</th>
             <th>{t.titleLabel}</th>
-            <th style={{ textAlign: 'right' }}>{t.amountLabel}</th>
+            <th style={{ textAlign: 'left' }}>{t.amountLabel}</th>
             <th>{t.noteLabel}</th>
           </tr>
         </thead>
@@ -466,7 +466,7 @@ setPendingDeletePopup((current) => (current?.id === id ? null : current));
                     return `${row.categoryIcon || '🍽️'} ${row.categoryDisplay}`;
                   })() : '-'}</td>
                   <td>{row.title}</td>
-                  <td style={{ textAlign: 'right' }}>{formatCurrency(row.amount, selectedCurrency, exchangeRates)}</td>
+                  <td style={{ textAlign: 'left' }}>{formatCurrency(row.amount, selectedCurrency, exchangeRates)}</td>
                   <td>{row.note || '-'}</td>
                 </>
               </tr>

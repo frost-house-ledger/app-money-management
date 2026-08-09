@@ -123,6 +123,8 @@ export default function CategoryManagerSection({
   onDeleteCategory,
   onReorderCategories,
   onResetCategories,
+  onClose,
+  titleId = "category-manager-title",
   t
 }) {
   const safeLocale = locale || "jp";
@@ -136,7 +138,8 @@ export default function CategoryManagerSection({
   const [editingId, setEditingId] = React.useState("");
   const [editingName, setEditingName] = React.useState("");
   const [editingIcon, setEditingIcon] = React.useState("");
-  const [listOpen, setListOpen] = React.useState(false);
+  const [listOpen, setListOpen] = React.useState(true);
+  const [createFormOpen, setCreateFormOpen] = React.useState(false);
   const [managerError, setManagerError] = React.useState("");
   
   const safeCategories = Array.isArray(categories) ? categories : [];
@@ -172,6 +175,7 @@ export default function CategoryManagerSection({
       await onCreateCategory(payload);
       setNewCategoryName("");
       setNewCategoryIcon("");
+      setCreateFormOpen(false);
       setListOpen(true);
     } catch (err) {
       console.error("[submitNewCategory] Error:", err);
@@ -274,107 +278,146 @@ export default function CategoryManagerSection({
     <section className="card category-manager-card">
       <div className="category-manager-header">
         <div>
-          <h2>{t.categoryManagerTitle}</h2>
+          <h2 id={titleId}>{t.categoryManagerTitle}</h2>
           <p className="subtext">{t.categoryManagerSubtext}</p>
         </div>
         <div className="category-manager-actions">
-          <button
-            type="button"
-            className="inline-action"
-            onClick={() => setListOpen((v) => !v)}
-          >
-            {listOpen ? t.categoryHideListButton ?? "▲ Close" : t.categoryShowListButton ?? "▼ Show List"}
-          </button>
-          <button
-            type="button"
-            className="inline-action danger-action"
-            onClick={safeResetCategories}
-          >
-            {t.categoryResetButton ?? "Reset to Default"}
-          </button>
+          {!createFormOpen && onClose && (
+            <button type="button" className="inline-action" onClick={onClose}>
+              {t.categoryCloseButton ?? "Close"}
+            </button>
+          )}
+          {createFormOpen ? (
+            <>
+              <button
+                type="button"
+                className="inline-action"
+                onClick={() => {
+                  setCreateFormOpen(false);
+                  setListOpen(true);
+                  setManagerError("");
+                }}
+              >
+                {t.cancelEditButton ?? "Cancel"}
+              </button>
+              <button type="button" className="inline-action" onClick={submitNewCategory}>
+                {t.addCategoryButton}
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                className="inline-action"
+                onClick={() => {
+                  setCreateFormOpen(true);
+                  setListOpen(false);
+                  setManagerError("");
+                }}
+              >
+                {t.addCategoryButton}
+              </button>
+              <button
+                type="button"
+                className="inline-action danger-action"
+                onClick={safeResetCategories}
+              >
+                {t.categoryResetButton ?? "Reset to Default"}
+              </button>
+            </>
+          )}
         </div>
       </div>
 
-      <div className="category-create">
-        <div className="category-create-row">
-          <input
-            type="text"
-            value={newCategoryName}
-            onChange={(e) => setNewCategoryName(e.target.value)}
-            placeholder={getLanguageDisplayName(primaryLangCode, safeLocale)}
-          />
-          <input
-            type="text"
-            value={newCategoryIcon}
-            onChange={(e) => setNewCategoryIcon(e.target.value)}
-            placeholder={t.addCategoryIconPlaceholder}
-          />
-          <button type="button" className="inline-action" onClick={submitNewCategory}>
-            {t.addCategoryButton}
-          </button>
+      {createFormOpen && (
+        <div className="category-create">
+          <div className="category-create-row">
+            <input
+              type="text"
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              placeholder={getLanguageDisplayName(primaryLangCode, safeLocale)}
+            />
+            <input
+              type="text"
+              value={newCategoryIcon}
+              onChange={(e) => setNewCategoryIcon(e.target.value)}
+              placeholder={t.addCategoryIconPlaceholder}
+            />
+          </div>
+          {managerError && <p className="error">{managerError}</p>}
         </div>
-        {managerError && <p className="error">{managerError}</p>}
-      </div>
+      )}
 
       {listOpen && (
-        <ul className="list category-list">
-          {safeCategories.map((category) => {
-            const isEditing = editingId === category.id;
-            const isActive = Number(category.isActive) === 1;
-            return (
-              <li key={category.id} className="category-row" style={{ opacity: isActive ? 1 : 0.65 }}>
-                <span>{category.icon || "\uD83C\uDFF7\uFE0F"}</span>
-                <span>{displayName(category, safeLocale)}</span>
-                {!isActive && <span style={{ fontSize: "0.78rem", color: "var(--ink-soft)" }}>({t.categoryInactiveLabel || "inactive"})</span>}
-                {isEditing ? (
-                  <div className="category-edit-form">
-                    <div className="category-edit-row">
-                      <input
-                        type="text"
-                        value={editingName}
-                        onChange={(e) => setEditingName(e.target.value)}
-                        placeholder={getLanguageDisplayName(primaryLangCode, safeLocale)}
-                      />
-                      <input
-                        type="text"
-                        value={editingIcon}
-                        onChange={(e) => setEditingIcon(e.target.value)}
-                        placeholder="Icon"
-                      />
-                    </div>
-                    <div className="category-edit-actions">
-                      <button type="button" className="inline-action" onClick={saveEdit}>{t.saveButton}</button>
-                      <button type="button" className="inline-action" onClick={cancelEdit}>{t.cancelEditButton}</button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <button type="button" className="inline-action" onClick={() => moveCategory(category.id, -1)}>↑</button>
-                    <button type="button" className="inline-action" onClick={() => moveCategory(category.id, 1)}>↓</button>
-                    <button type="button" className="inline-action" onClick={() => startEdit(category)}>{t.editRecurringButton}</button>
-                    {!isActive && (
-                      <button
-                        type="button"
-                        className="inline-action"
-                        onClick={() => restoreCategory(category.id)}
-                      >
-                        {t.restoreButton || "Restore"}
-                      </button>
+        <div className="category-table-wrapper">
+          <table className="app-table category-table">
+            <thead>
+              <tr>
+                <th>Icon</th>
+                <th>{t.categoryLabel}</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {safeCategories.map((category) => {
+                const isEditing = editingId === category.id;
+                const isActive = Number(category.isActive) === 1;
+                return (
+                  <tr key={category.id} style={{ opacity: isActive ? 1 : 0.65 }}>
+                    {isEditing ? (
+                      <td colSpan="4">
+                        <div className="category-edit-form">
+                          <div className="category-edit-row">
+                            <input
+                              type="text"
+                              value={editingName}
+                              onChange={(e) => setEditingName(e.target.value)}
+                              placeholder={getLanguageDisplayName(primaryLangCode, safeLocale)}
+                            />
+                            <input
+                              type="text"
+                              value={editingIcon}
+                              onChange={(e) => setEditingIcon(e.target.value)}
+                              placeholder="Icon"
+                            />
+                          </div>
+                          <div className="category-edit-actions">
+                            <button type="button" className="inline-action" onClick={saveEdit}>{t.saveButton}</button>
+                            <button type="button" className="inline-action" onClick={cancelEdit}>{t.cancelEditButton}</button>
+                          </div>
+                        </div>
+                      </td>
+                    ) : (
+                      <>
+                        <td className="category-table-icon">{category.icon || "\uD83C\uDFF7\uFE0F"}</td>
+                        <td className="category-table-name">{displayName(category, safeLocale)}</td>
+                        <td className="category-table-actions">
+                          <button type="button" className="inline-action" onClick={() => moveCategory(category.id, -1)}>↑</button>
+                          <button type="button" className="inline-action" onClick={() => moveCategory(category.id, 1)}>↓</button>
+                          <button type="button" className="inline-action" onClick={() => startEdit(category)}>{t.editRecurringButton}</button>
+                          {!isActive && (
+                            <button type="button" className="inline-action" onClick={() => restoreCategory(category.id)}>
+                              {t.restoreButton || "Restore"}
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            className="inline-action"
+                            onClick={() => safeDeleteCategory(category.id)}
+                            disabled={category.id === "other" || !isActive}
+                          >
+                            {t.deleteButton}
+                          </button>
+                        </td>
+                      </>
                     )}
-                    <button
-                      type="button"
-                      className="inline-action"
-                      onClick={() => safeDeleteCategory(category.id)}
-                      disabled={category.id === "other" || !isActive}
-                    >
-                      {t.deleteButton}
-                    </button>
-                  </>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </section>
   );
