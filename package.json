@@ -1,6 +1,6 @@
 {
   "name": "house-ledger",
-  "version": "0.1.0",
+  "version": "1.3.0",
   "description": "Electron + React personal money management app",
   "author": "Frost",
   "main": "Desktop/electron/main.js",
@@ -15,11 +15,11 @@
     "react:build": "vite build",
     "start": "electron .",
     "dev": "concurrently \"npm run react:start\" \"wait-on tcp:5173 && electron .\"",
-    "move:exe": "node --input-type=commonjs -e \"const fs=require('fs');const path=require('path');const root=process.cwd();const release=path.join(root,'release');if(!fs.existsSync(release)) process.exit(0);for(const name of ['AMM-Setup-x64.exe','AMM-Setup-ia32.exe']){const target=path.join(root,name);if(fs.existsSync(target)) fs.rmSync(target,{force:true});}const files=fs.readdirSync(release);for(const f of files){const m=f.match(/^AMM-Setup-.*-(x64|ia32)\\.exe$/i);if(m){const dest=path.join(root,'AMM-Setup-'+m[1]+'.exe');fs.copyFileSync(path.join(release,f),dest);console.log('Copied release/'+f+' -> '+path.basename(dest));}}console.log('Portable app folders are available in release/win-unpacked and release/win-ia32-unpacked');\"",
+    "move:exe": "node ./scripts/move-exe.cjs",
     "bring:exe": "npm run move:exe",
     "generate:icons": "node ./scripts/generate-icons.cjs",
     "kill-running": "node ./scripts/kill-running.cjs",
-
+    "release": "node ./scripts/release.cjs",
     "predist:win": "npm run test && npm run generate:icons && npm run kill-running",
     "dist:win": "npm run react:build && electron-builder --publish never --win nsis --x64 && npm run move:exe",
     "predist:win32": "npm run test && npm run generate:icons && npm run kill-running",
@@ -28,7 +28,6 @@
     "dist:win:all": "npm run react:build && electron-builder --publish never --win nsis --x64 --ia32 && npm run move:exe",
     "dist:win:all:fast": "npm run react:build && electron-builder --publish never --win nsis --x64 --ia32 && npm run move:exe",
     "test": "jest",
-    
     "predist:mac": "npm run test && npm run generate:icons && npm run kill-running",
     "dist:mac": "npm run react:build && electron-builder --publish never --mac --x64",
     "predist:mac:arm64": "npm run test && npm run generate:icons && npm run kill-running",
@@ -36,10 +35,8 @@
     "predist:mac:all": "npm run test && npm run generate:icons && npm run kill-running",
     "dist:mac:all": "npm run react:build && electron-builder --publish never --mac --x64 --arm64",
     "predist:dir": "npm run test && npm run generate:icons && npm run kill-running",
-    
     "dist:all": "npm run dist:win:all && echo macOS release files are built in GitHub Actions or on a macOS machine with npm run dist:mac:all",
     "dist:dir": "npm run react:build && electron-builder --dir",
-    
     "android:build": "npm run react:build && npx cap copy android && npx cap open android",
     "android:sync": "npm run react:build && npx cap sync android",
     "android:studio": "npm run android:sync && npx cap open android",
@@ -52,13 +49,13 @@
     "@capacitor-community/sqlite": "^8.1.0",
     "@capacitor/android": "^8.4.2",
     "@capacitor/core": "^8.3.3",
-    "better-sqlite3": "^12.11.1",
+    "better-sqlite3": "^13.0.3",
     "chart.js": "^4.5.1",
     "i18next": "^26.3.6",
     "mongodb": "^7.5.0",
     "react": "^19.2.7",
     "react-chartjs-2": "^5.3.1",
-    "react-dom": "^19.2.7",
+    "react-dom": "^19.2.8",
     "react-i18next": "^17.0.10"
   },
   "devDependencies": {
@@ -66,21 +63,21 @@
     "@babel/preset-env": "^8.0.2",
     "@babel/preset-react": "^8.0.1",
     "@capacitor/cli": "^8.4.2",
-    "@electron/rebuild": "^3.7.0",
+    "@electron/rebuild": "^4.2.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
-    "@vitejs/plugin-react": "^6.0.3",
+    "@vitejs/plugin-react": "^6.0.4",
     "babel-jest": "^30.4.1",
-    "concurrently": "^10.0.3",
-    "electron": "^43.1.1",
+    "concurrently": "^10.0.4",
+    "electron": "^43.3.0",
     "electron-builder": "^26.15.3",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
-    "tar": ">=7.5.16",
+    "tar": ">=7.5.22",
     "typescript": "^7.0.2",
     "vite": "^8.1.5",
-    "wait-on": "^9.0.10"
+    "wait-on": "^9.1.0"
   },
   "overrides": {
     "@babel/core": "8.0.1"

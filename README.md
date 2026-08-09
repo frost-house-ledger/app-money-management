@@ -89,6 +89,14 @@ npm install
 npm run dev
 ```
 
+Release from `master`:
+
+```bash
+npm run release -- -v 0.2.0
+```
+
+The command updates `package.json` and `package-lock.json`, creates the matching `v0.2.0` tag, and pushes `master` plus the tag. GitHub Actions then builds and publishes the Windows installers. Use `--dry-run` to check the release without changing Git.
+
 ## Use on Android (Capacitor)
 
 1. Install Android Studio (with SDK/Platform Tools).
