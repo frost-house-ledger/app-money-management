@@ -17,9 +17,9 @@ export const TRANSLATIONS = {
     ar: "بمجرد تسجيل الرسوم الثابتة الشهرية والدخل، يتم تطبيقها تلقائيًا على الأشهر التالية. تنعكس النفقات والإيرادات اليومية على الفور في الرسوم البيانية والقوائم."
   },
   todayLabel: { jp: "今日", en: "Today", de: "Heute", es: "Hoy", pt: "Hoje", it: "Oggi", fr: "Aujourd'hui", ru: "Сегодня", tw: "今天", ko: "오늘", ar: "اليوم" },
-  thisMonthExpenseLabel: { jp: "今月の費用", en: "This month expense", de: "Ausgaben diesen Monat", es: "Gastos de este mes", pt: "Despesas deste mês", it: "Spese di questo mese", fr: "Dépenses de ce mois", ru: "Расходы за этот месяц", tw: "本月支出", ko: "이번달 지출", ar: "مصاريف هذا الشهر" },
-  thisMonthIncomeLabel: { jp: "今月の収入", en: "This month income", de: "Einnahmen diesen Monat", es: "Ingresos de este mes", pt: "Rendimento deste mês", it: "Entrate di questo mese", fr: "Revenus de ce mois", ru: "Доход за этот месяц", tw: "本月收入", ko: "이번달 수입", ar: "دخل هذا الشهر" },
-  thisMonthInvestmentLabel: { jp: "今月の投資", en: "This month investment", de: "Investitionen diesen Monat", es: "Inversión de este mes", pt: "Investimento deste mês", it: "Investimenti di questo mese", fr: "Investissements de ce mois", ru: "Инвестиции в этом месяце", tw: "本月投資", ko: "이번달 투자", ar: "الاستثمار لهذا الشهر" },
+  thisMonthExpenseLabel: { jp: "{month}の費用", en: "{month} expense", de: "Ausgaben: {month}", es: "Gastos de {month}", pt: "Despesas de {month}", it: "Spese di {month}", fr: "Dépenses de {month}", ru: "Расходы за {month}", tw: "{month}支出", ko: "{month} 지출", ar: "مصاريف {month}" },
+  thisMonthIncomeLabel: { jp: "{month}の収入", en: "{month} income", de: "Einnahmen: {month}", es: "Ingresos de {month}", pt: "Rendimento de {month}", it: "Entrate di {month}", fr: "Revenus de {month}", ru: "Доход за {month}", tw: "{month}收入", ko: "{month} 수입", ar: "دخل {month}" },
+  thisMonthInvestmentLabel: { jp: "{month}の投資", en: "{month} investment", de: "Investitionen: {month}", es: "Inversión de {month}", pt: "Investimento de {month}", it: "Investimenti di {month}", fr: "Investissements de {month}", ru: "Инвестиции за {month}", tw: "{month}投資", ko: "{month} 투자", ar: "استثمار {month}" },
 
   // -------------------------
   // Page Tabs
