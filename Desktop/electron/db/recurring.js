@@ -6,6 +6,18 @@ function ensureJsonFile(filePath, fallback) {
   }
 }
 
+// Resolve categoryId based on type
+function resolveCategoryId(type, categoryId) {
+  if (type === "fee") {
+    return String(categoryId || "other");
+  } else if (type === "income") {
+    return "salary";
+  } else if (type === "investment") {
+    return "investment";
+  }
+  return null;
+}
+
 export function createRecurringStore({
   db,
   recurringJsonPath,
@@ -28,7 +40,7 @@ export function createRecurringStore({
     }
     validateMonth(endMonth);
     if (startMonth > endMonth) {
-      throw new Error("開始月は終了月以下にしてください。");
+      throw new Error("Please ensure that the start month is less than or equal to the end month.");
     }
   }
 
@@ -74,7 +86,7 @@ export function createRecurringStore({
           id: String(item.id),
           endMonth: item.endMonth || null,
           frequency: "monthly",
-          categoryId: item.type === "fee" ? String(item.categoryId || "other") : null
+          categoryId: resolveCategoryId(item.type, item.categoryId)
         }))
       );
     }
@@ -131,7 +143,7 @@ export function createRecurringStore({
     const item = {
       id: globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
       type: input.type,
-      categoryId: input.type === "fee" ? String(input.categoryId || "other") : null,
+      categoryId: resolveCategoryId(input.type, input.categoryId),
       title,
       amount: input.amount,
       startMonth: input.startMonth,
@@ -176,7 +188,7 @@ export function createRecurringStore({
       return {
         ...item,
         type: input.type,
-        categoryId: input.type === "fee" ? String(input.categoryId || "other") : null,
+        categoryId: resolveCategoryId(input.type, input.categoryId),
         title,
         amount: input.amount,
         startMonth: input.startMonth,

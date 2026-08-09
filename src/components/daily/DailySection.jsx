@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import {
   formatBaseAmountForInput,
   formatCurrency,
@@ -51,12 +52,13 @@ export default function DailySection({
             setDailyForm((curr) => ({
               ...curr,
               type: nextType,
-              categoryId: nextType === "fee" ? curr.categoryId || dailyCategoryOptions[0]?.id || "food" : ""
+              categoryId: nextType === "fee" ? curr.categoryId || dailyCategoryOptions[0]?.id || "food" : nextType === "investment" ? "investment" : nextType === "income" ? "salary" : ""
             }));
           }}
         >
           <option value="fee">{t.typeFee}</option>
           <option value="income">{t.typeIncome}</option>
+          <option value="investment">{t.typeInvestment}</option>
         </select>
       </label>
 
@@ -68,11 +70,17 @@ export default function DailySection({
           onChange={(e) => setDailyForm((curr) => ({ ...curr, categoryId: e.target.value }))}
           disabled={dailyForm.type !== "fee"}
         >
-          {dailyCategoryOptions.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.icon || "🍽️"} {category.label}
-            </option>
-          ))}
+          {dailyForm.type === "investment" ? (
+            <option value="investment">📊 {t.typeInvestment}</option>
+          ) : dailyForm.type === "income" ? (
+            <option value="salary">💼 {t.typeIncome}</option>
+          ) : (
+            dailyCategoryOptions.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.icon || "🍽️"} {category.label}
+              </option>
+            ))
+          )}
         </select>
       </label>
       
@@ -235,7 +243,30 @@ export function DailyListSection({
   const [inlineError, setInlineError] = React.useState("");
   const [isSaving, setIsSaving] = React.useState(false);
   const [pendingDeleteIds, setPendingDeleteIds] = React.useState([]);
+  const [deleteProgress, setDeleteProgress] = React.useState({}); // { id: 0-100 }
+  const [pendingDeletePopup, setPendingDeletePopup] = React.useState(null); // { id, title }
   const pendingDeleteTimersRef = React.useRef(new Map());
+  const pendingDeleteStartTimesRef = React.useRef(new Map());
+  const DELETE_DELAY_MS = 5000;
+
+  // Update progress bar every 50ms
+  React.useEffect(() => {
+    if (Object.keys(deleteProgress).length === 0) return;
+
+    const animationFrameId = setInterval(() => {
+      setDeleteProgress((current) => {
+        const updated = { ...current };
+        pendingDeleteStartTimesRef.current.forEach((startTime, id) => {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(100, (elapsed / DELETE_DELAY_MS) * 100);
+          updated[id] = progress;
+        });
+        return updated;
+      });
+    }, 50);
+
+    return () => clearInterval(animationFrameId);
+  }, [deleteProgress]);
 
   React.useEffect(() => {
     return () => {
@@ -315,7 +346,14 @@ export function DailyListSection({
       window.clearTimeout(timerId);
       pendingDeleteTimersRef.current.delete(id);
     }
+    pendingDeleteStartTimesRef.current.delete(id);
     setPendingDeleteIds((current) => current.filter((item) => item !== id));
+    setDeleteProgress((current) => {
+      const updated = { ...current };
+      delete updated[id];
+      return updated;
+    });
+setPendingDeletePopup((current) => (current?.id === id ? null : current));
   }
 
   function requestDelete(id) {
@@ -327,7 +365,12 @@ export function DailyListSection({
       cancelInlineEdit();
     }
 
+    const row = dailyRows.find(r => r.id === id);
+    const startTime = Date.now();
+    pendingDeleteStartTimesRef.current.set(id, startTime);
+    setDeleteProgress((current) => ({ ...current, [id]: 0 }));
     setPendingDeleteIds((current) => [...current, id]);
+    setPendingDeletePopup({ id, title: row?.title || "Item" });
 
     const timerId = window.setTimeout(async () => {
       try {
@@ -337,9 +380,16 @@ export function DailyListSection({
         setInlineError(error.message || t.errorDailyDeleteFailed);
       } finally {
         pendingDeleteTimersRef.current.delete(id);
+        pendingDeleteStartTimesRef.current.delete(id);
         setPendingDeleteIds((current) => current.filter((item) => item !== id));
+        setDeleteProgress((current) => {
+          const updated = { ...current };
+          delete updated[id];
+          return updated;
+        });
+        setPendingDeletePopup(null);
       }
-    }, 30000);
+    }, DELETE_DELAY_MS);
 
     pendingDeleteTimersRef.current.set(id, timerId);
   }
@@ -356,11 +406,14 @@ export function DailyListSection({
 
   const dailyFee = filteredDailyRows.filter(row => row.type === "fee").reduce((sum, row) => sum + Number(row.amount || 0), 0);
   const dailyIncome = filteredDailyRows.filter(row => row.type === "income").reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  const dailyInvestment = filteredDailyRows.filter(row => row.type === "investment").reduce((sum, row) => sum + Number(row.amount || 0), 0);
   const recurringFee = filteredRecurringRows.filter(row => row.type === "fee").reduce((sum, row) => sum + Number(row.amount || 0), 0);
   const recurringIncome = filteredRecurringRows.filter(row => row.type === "income").reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  const recurringInvestment = filteredRecurringRows.filter(row => row.type === "investment").reduce((sum, row) => sum + Number(row.amount || 0), 0);
 
   const totalFee = dailyFee + recurringFee;
   const totalIncome = dailyIncome + recurringIncome;
+  const totalInvestment = dailyInvestment + recurringInvestment;
 
   return (
     <article className="card">
@@ -374,19 +427,28 @@ export function DailyListSection({
             <th>{t.typeLabel}</th>
             <th>{t.categoryLabel}</th>
             <th>{t.titleLabel}</th>
-            <th style={{ textAlign: 'right' }}>{t.amountLabel}</th>
+            <th style={{ textAlign: 'left' }}>{t.amountLabel}</th>
             <th>{t.noteLabel}</th>
           </tr>
         </thead>
         <tbody>
           {dailyRows.map((row) => {
             const isPendingDelete = pendingDeleteIds.includes(row.id);
+            const progress = deleteProgress[row.id] || 0;
+            const progressStyle = isPendingDelete ? {
+              background: `linear-gradient(to right, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.2) ${progress}%, transparent ${progress}%, transparent 100%)`,
+              transition: 'background 50ms linear'
+            } : {};
+
             return (
-              <tr key={`daily-${row.id}`} className={`${inlineEditId === row.id ? 'daily-list-item--editing' : ''} ${isPendingDelete ? 'daily-list-item--pending-delete' : ''}`}>
+              <tr key={`daily-${row.id}`} className={`${inlineEditId === row.id ? 'daily-list-item--editing' : ''} ${isPendingDelete ? 'daily-list-item--pending-delete' : ''}`} style={progressStyle}>
                 <>
                   <td style={{ whiteSpace: 'nowrap' }}>
                     {isPendingDelete ? (
-                      <button type="button" className="inline-action" onClick={() => cancelPendingDelete(row.id)}>{t.restoreButton}</button>
+                      <>
+                        <button type="button" className="inline-action" onClick={() => cancelPendingDelete(row.id)}>{t.restoreButton}</button>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--ink-2)', marginTop: '4px' }}>{Math.round(progress)}%</div>
+                      </>
                     ) : (
                       <>
                         <button type="button" className="inline-action" onClick={() => openFullPageEditor(row)}>{t.editDailyButton}</button>
@@ -396,9 +458,15 @@ export function DailyListSection({
                   </td>
                   <td><strong>{row.entryDate}</strong></td>
                   <td>{row.type}</td>
-                  <td>{row.categoryDisplay ? `${row.categoryIcon || '🍽️'} ${row.categoryDisplay}` : '-'}</td>
+                  <td>{row.categoryDisplay ? (() => {
+                    // Avoid double icons: if categoryDisplay already starts with an icon, don't add categoryIcon
+                    if (row.categoryDisplay.match(/^[\p{Emoji}]/u)) {
+                      return row.categoryDisplay;
+                    }
+                    return `${row.categoryIcon || '🍽️'} ${row.categoryDisplay}`;
+                  })() : '-'}</td>
                   <td>{row.title}</td>
-                  <td style={{ textAlign: 'right' }}>{formatCurrency(row.amount, selectedCurrency, exchangeRates)}</td>
+                  <td style={{ textAlign: 'left' }}>{formatCurrency(row.amount, selectedCurrency, exchangeRates)}</td>
                   <td>{row.note || '-'}</td>
                 </>
               </tr>
@@ -414,8 +482,61 @@ export function DailyListSection({
           {totalIncome > 0 && (
             <span className="daily-total-income">{t.monthlyIncomeTotal}: {formatCurrency(totalIncome, selectedCurrency, exchangeRates)}</span>
           )}
+          {totalInvestment > 0 && (
+            <>
+              <span className="daily-total-wealth">{t.totalWealth}: {formatCurrency(totalIncome - totalFee + totalInvestment, selectedCurrency, exchangeRates)}</span>
+              <span className="daily-total-investment">{t.monthlyInvestmentTotal}: {formatCurrency(totalInvestment, selectedCurrency, exchangeRates)}</span>
+            </>
+          )}
         </div>
       )}
+
+      {/* Delete pending popup */}
+      {pendingDeletePopup && createPortal(
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)',
+          borderRadius: '8px',
+          padding: '16px 20px',
+          minWidth: '320px',
+          maxWidth: '400px',
+          zIndex: 10000,
+          animation: 'notificationSlideIn 0.4s ease-out',
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
+          fontWeight: '500',
+          color: 'white',
+          fontSize: '0.95rem',
+          lineHeight: '1.4'
+        }}>
+          ⏱ {t.deleteButton}: {pendingDeletePopup.title}
+        </div>,
+        document.body
+      )}
+
+      <style>{`
+        @keyframes notificationSlideIn {
+          from {
+            transform: translateX(450px);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        @keyframes notificationSlideOut {
+          from {
+            transform: translateX(0);
+            opacity: 1;
+          }
+          to {
+            transform: translateX(450px);
+            opacity: 0;
+          }
+        }
+      `}</style>
     </article>
   );
 }

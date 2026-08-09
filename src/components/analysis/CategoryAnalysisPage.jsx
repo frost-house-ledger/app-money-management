@@ -278,36 +278,48 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
       {/* category trend graph for each month */}
       <section className="card chart-card">
         <h2>{t.categoryTrendChartTitle}({formatTrendRange(selectedMonth)})</h2>
-        <div className="chart-wrap">
-          <Bar
-            data={{
-              labels: trendData.map((d) => d.month),
-              datasets: trendKeys.map((key, idx) => ({
-                label: key,
-                data: trendData.map((d) => d[key] ?? 0),
-                backgroundColor: COLORS[idx % COLORS.length],
-                borderRadius: 4,
-                stack: "category",
-              })),
-            }}
-            options={{
-              responsive: false,
-              plugins: {
-                legend: { labels: { color: "#8fa8c8", boxWidth: 14 } },
-                tooltip: {
-                  callbacks: {
-                    label: (ctx) => ` ${ctx.dataset.label}: ${formatCurrency(ctx.parsed.y, selectedCurrency, exchangeRates)}`,
+        <div className="chart-wrap" style={{ display: "flex", alignItems: "flex-start", gap: 20 }}>
+          <div>
+            <Bar
+              data={{
+                labels: trendData.map((d) => d.month),
+                datasets: trendKeys.map((key, idx) => ({
+                  label: key,
+                  data: trendData.map((d) => d[key] ?? 0),
+                  backgroundColor: COLORS[idx % COLORS.length],
+                  borderRadius: 4,
+                  stack: "category",
+                })),
+              }}
+              options={{
+                responsive: false,
+                plugins: {
+                  legend: { 
+                    display: false,
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: (ctx) => ` ${ctx.dataset.label}: ${formatCurrency(ctx.parsed.y, selectedCurrency, exchangeRates)}`,
+                    },
                   },
                 },
-              },
-              scales: {
-                x: { stacked: true, grid: { color: "rgba(255,255,255,0.07)" }, ticks: { color: "#8fa8c8" } },
-                y: { stacked: true, grid: { color: "rgba(255,255,255,0.07)" }, ticks: { color: "#8fa8c8" } },
-              },
-            }}
-            width={680}
-            height={300}
-          />
+                scales: {
+                  x: { stacked: true, grid: { color: "rgba(255,255,255,0.07)" }, ticks: { color: "#8fa8c8" } },
+                  y: { stacked: true, grid: { color: "rgba(255,255,255,0.07)" }, ticks: { color: "#8fa8c8" } },
+                },
+              }}
+              width={680}
+              height={300}
+            />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 10, maxHeight: 300, overflowY: "auto", minWidth: 120 }}>
+            {trendKeys.map((key, idx) => (
+              <div key={key} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.875rem", flexShrink: 0 }}>
+                <div style={{ width: 14, height: 14, backgroundColor: COLORS[idx % COLORS.length], borderRadius: 2, flexShrink: 0 }}></div>
+                <span style={{ color: "#8fa8c8", whiteSpace: "nowrap" }}>{key}</span>
+              </div>
+            ))}
+          </div>
         </div>
           </section>
         </>

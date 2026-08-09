@@ -82,6 +82,7 @@ export default function App() {
 
   const [errorText, setErrorText] = useState("");
   const [toastText, setToastText] = useState("");
+  const [deleteCompletionPopup, setDeleteCompletionPopup] = useState(null); // { title, type }
   const [editingRecurringId, setEditingRecurringId] = useState(null);
   const [editingDailyId, setEditingDailyId] = useState(null);
   const t = useMemo(() => getMessages(locale), [locale]);
@@ -102,6 +103,13 @@ export default function App() {
     setToastText(message);
     window.setTimeout(() => {
       setToastText("");
+    }, 2200);
+  }
+
+  function showDeleteCompletionPopup(title, type = "daily") {
+    setDeleteCompletionPopup({ title, type });
+    window.setTimeout(() => {
+      setDeleteCompletionPopup(null);
     }, 2200);
   }
 
@@ -155,7 +163,7 @@ export default function App() {
 
   async function loadCategories() {
     try {
-      const rows = await api.category.list();
+      const rows = await api.category.list({ includeInactive: true });
       setCategories(rows);
     } catch (error) {
       logError("loadCategories", error);
@@ -408,18 +416,26 @@ export default function App() {
             if (it && typeof it === 'object') {
               // Prefer Japanese when locale explicitly Japanese; otherwise prefer English.
               if ((base === 'jp') && it.nameJp) return it.nameJp;
-              if ((base === 'en' || rawLocale === 'en') && it.nameEn) return it.nameEn;
-              if (it.nameEn) return it.nameEn;
-              if (it.nameJp) return it.nameJp;
+              if (base !== 'jp' && it.nameEn) return it.nameEn;
             }
             // built-in fallback to translations map
-            return getCategoryName(it && it.id ? String(it.id).toLowerCase() : it, locale);
+            const categoryId = it && it.id ? String(it.id).toLowerCase() : it;
+            return getCategoryName(categoryId, locale) || it?.nameJp || it?.nameEn || categoryId;
           })(item)
         }
       ])
     );
     return recurringRows.map((row) => {
-      const categoryId = row.type === "fee" ? (row.categoryId || "food") : null;
+      // Handle category based on type
+      let categoryId = null;
+      if (row.type === "fee") {
+        categoryId = row.categoryId || "food";
+      } else if (row.type === "income") {
+        categoryId = "salary";
+      } else if (row.type === "investment") {
+        categoryId = "investment";
+      }
+      
       const category = categoryId ? categoryMap.get(String(categoryId).toLowerCase()) : null;
       return {
         ...row,
@@ -453,7 +469,7 @@ export default function App() {
         if (base === 'jp' || rawLocale === 'ja') {
           label = item.nameJp || item.nameEn || getCategoryName(key, locale);
         } else {
-          label = item.nameEn || item.nameJp || getCategoryName(key, locale);
+          label = item.nameEn || getCategoryName(key, locale) || item.nameJp;
         }
         map.set(key, {
           id: key,
@@ -475,12 +491,17 @@ export default function App() {
   async function onCreateCategory(payload) {
     setErrorText("");
     try {
+      console.log("[onCreateCategory] Received payload:", payload);
       const created = await api.category.add(payload);
+      console.log("[onCreateCategory] Created:", created);
       await loadCategories();
       setDailyForm((current) => ({ ...current, categoryId: String(created.id || "").toLowerCase() }));
       showToast(t.toastCategoryAdded);
+      return created;
     } catch (error) {
+      console.error("[onCreateCategory] Error:", error);
       setErrorText(error.message || t.errorCategoryRequired);
+      throw error;
     }
   }
 
@@ -491,6 +512,7 @@ export default function App() {
       await loadCategories();
     } catch (error) {
       setErrorText(error.message || t.errorCategoryRequired);
+      throw error;
     }
   }
 
@@ -513,6 +535,7 @@ export default function App() {
       }));
     } catch (error) {
       setErrorText(error.message || t.errorCategoryRequired);
+      throw error;
     }
   }
 
@@ -523,6 +546,7 @@ export default function App() {
       await loadCategories();
     } catch (error) {
       setErrorText(error.message || t.errorCategoryRequired);
+      throw error;
     }
   }
 
@@ -531,9 +555,10 @@ export default function App() {
     try {
       await api.category.reset();
       await loadCategories();
-      showToast("カテゴリをデフォルトに戻しました");
+      showToast("Reset categories to default.");
     } catch (error) {
       setErrorText(error.message || t.errorCategoryRequired);
+      throw error;
     }
   }
 
@@ -626,12 +651,14 @@ export default function App() {
   async function onDeleteRecurring(id) {
     setErrorText("");
     try {
+      const deletedRow = recurringRows.find((r) => String(r.id) === String(id));
+      const title = deletedRow?.title || "Item";
       await api.recurring.delete({ id });
       if (editingRecurringId === id) {
         onCancelRecurringEdit();
       }
       await refreshAll();
-      showToast(t.toastRecurringDeleted);
+      showDeleteCompletionPopup(title, "recurring");
     } catch (error) {
       setErrorText(error.message || t.errorRecurringDeleteFailed);
       throw error;
@@ -750,9 +777,11 @@ export default function App() {
   async function onDeleteDaily(id) {
     setErrorText("");
     try {
+      const deletedRow = dailyRows.find((r) => String(r.id) === String(id));
+      const title = deletedRow?.title || "Item";
       await api.entry.delete({ id });
       await refreshAll(selectedMonth, range);
-      showToast(t.toastDailyDeleted);
+      showDeleteCompletionPopup(title, "daily");
     } catch (error) {
       setErrorText(error.message || t.errorDailyDeleteFailed);
     }
@@ -793,7 +822,17 @@ export default function App() {
 
   const editorCategoryOptions = (categories || [])
     .filter((item) => Number(item.isActive) === 1)
-    .map((item) => ({ id: item.id, label: getCategoryName(item.id, locale), icon: item.icon }));
+    .map((item) => {
+      const rawLocale = String(locale || "").toLowerCase();
+      const baseLocale = rawLocale.split("-")[0];
+      const categoryId = String(item.id || "").toLowerCase();
+      const localizedLabel = getCategoryName(categoryId, locale);
+      const label = baseLocale === "jp" || baseLocale === "ja"
+        ? item.nameJp || localizedLabel || item.nameEn || categoryId
+        : item.nameEn || localizedLabel || item.nameJp || categoryId;
+
+      return { id: item.id, label, icon: item.icon };
+    });
 
   if (route === 'daily-edit') {
     return (
@@ -852,6 +891,40 @@ export default function App() {
 
       <div className={`toast ${toastText ? "show" : ""}`}>{toastText}</div>
 
+      {/* Delete completion popup - matches daily toast style */}
+      {deleteCompletionPopup && (
+        <div className="toast show">
+          ✓ {deleteCompletionPopup.type === 'recurring' ? t.toastRecurringDeleted : t.toastDailyDeleted}: {deleteCompletionPopup.title}
+        </div>
+      )}
+
+      <style>{`
+        @keyframes notificationSlideIn {
+          from {
+            transform: translateX(450px);
+            opacity: 0;
+          }
+          to {
+            const rows = await api.category.list({ includeInactive: true });
+            logError("loadCategories.count", {
+              total: Array.isArray(rows) ? rows.length : 0,
+              active: Array.isArray(rows) ? rows.filter((item) => Number(item?.isActive) === 1).length : 0
+            });
+            opacity: 1;
+          }
+        }
+        @keyframes notificationSlideOut {
+          from {
+            transform: translateX(0);
+            opacity: 1;
+          }
+          to {
+            transform: translateX(450px);
+            opacity: 0;
+          }
+        }
+      `}</style>
+
       {/* Today's date and current month income/expense snapshot */}
       <section className="card main-snapshot">
         <div className="snapshot-item">
@@ -865,6 +938,10 @@ export default function App() {
         <div className="snapshot-item">
           <span>{t.thisMonthIncomeLabel}</span>
           <strong>{formatCurrency(currentMonthSnapshot?.income || 0, selectedCurrency, exchangeRates)}</strong>
+        </div>
+        <div className="snapshot-item">
+          <span>{t.thisMonthInvestmentLabel}</span>
+          <strong>{formatCurrency(currentMonthSnapshot?.investment || 0, selectedCurrency, exchangeRates)}</strong>
         </div>
       </section>
 
@@ -967,7 +1044,7 @@ export default function App() {
           onCancelDailyEdit={onCancelDailyEdit}
           onDeleteDaily={onDeleteDaily}
           dailyCategoryOptions={dailyCategoryOptions}
-          categories={categories.filter((item) => Number(item.isActive) === 1)}
+          categories={categories}
           onCreateCategory={onCreateCategory}
           onUpdateCategory={onUpdateCategory}
           onDeleteCategory={onDeleteCategory}

@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import {
   formatBaseAmountForInput,
   formatCurrency,
@@ -36,12 +37,13 @@ export default function RecurringSection({
                 setRecurringForm((curr) => ({
                   ...curr,
                   type: nextType,
-                  categoryId: nextType === "fee" ? curr.categoryId || safeDailyCategoryOptions[0]?.id || "food" : "🍽️"
+                  categoryId: nextType === "fee" ? curr.categoryId || safeDailyCategoryOptions[0]?.id || "food" : nextType === "investment" ? "investment" : nextType === "income" ? "salary" : ""
                 }));
               }}
             >
               <option value="fee">{t.typeFee}</option>
               <option value="income">{t.typeIncome}</option>
+              <option value="investment">{t.typeInvestment}</option>
             </select>
           </label>
 
@@ -63,11 +65,17 @@ export default function RecurringSection({
               onChange={(e) => setRecurringForm((curr) => ({ ...curr, categoryId: e.target.value }))}
               disabled={rf.type !== "fee"}
             >
-              {safeDailyCategoryOptions.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.icon || "🍽️"} {category.label}
-                </option>
-              ))}
+              {rf.type === "investment" ? (
+                <option value="investment">📊 {t.typeInvestment}</option>
+              ) : rf.type === "income" ? (
+                <option value="salary">💼 {t.typeIncome}</option>
+              ) : (
+                safeDailyCategoryOptions.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.icon || "🍽️"} {category.label}
+                  </option>
+                ))
+              )}
             </select>
           </label>
 
@@ -171,11 +179,34 @@ export default function RecurringSection({
     const [inlineError, setInlineError] = React.useState("");
     const [isSaving, setIsSaving] = React.useState(false);
     const [pendingDeleteIds, setPendingDeleteIds] = React.useState([]);
+    const [deleteProgress, setDeleteProgress] = React.useState({}); // { id: 0-100 }
+    const [pendingDeletePopup, setPendingDeletePopup] = React.useState(null); // { id, title }
     const pendingDeleteTimersRef = React.useRef(new Map());
+    const pendingDeleteStartTimesRef = React.useRef(new Map());
+    const DELETE_DELAY_MS = 5000;
     const currentMonth = React.useMemo(() => thisMonth(), []);
     const safeFilteredRecurring = Array.isArray(filteredRecurring) ? filteredRecurring : [];
     const safeDailyCategoryOptions = Array.isArray(dailyCategoryOptions) ? dailyCategoryOptions : [];
     const visibleRecurring = safeFilteredRecurring;
+
+    // Update progress bar every 50ms
+    React.useEffect(() => {
+      if (Object.keys(deleteProgress).length === 0) return;
+
+      const animationFrameId = setInterval(() => {
+        setDeleteProgress((current) => {
+          const updated = { ...current };
+          pendingDeleteStartTimesRef.current.forEach((startTime, id) => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(100, (elapsed / DELETE_DELAY_MS) * 100);
+            updated[id] = progress;
+          });
+          return updated;
+        });
+      }, 50);
+
+      return () => clearInterval(animationFrameId);
+    }, [deleteProgress]);
 
     function isExpiredRecurring(row) {
       return Boolean(row.endMonth) && row.endMonth < currentMonth;
@@ -214,7 +245,14 @@ export default function RecurringSection({
         window.clearTimeout(timerId);
         pendingDeleteTimersRef.current.delete(id);
       }
+      pendingDeleteStartTimesRef.current.delete(id);
       setPendingDeleteIds((current) => current.filter((item) => item !== id));
+      setDeleteProgress((current) => {
+        const updated = { ...current };
+        delete updated[id];
+        return updated;
+      });
+setPendingDeletePopup((current) => (current?.id === id ? null : current));
     }
 
     function requestDelete(id) {
@@ -222,7 +260,12 @@ export default function RecurringSection({
         return;
       }
 
+      const row = safeFilteredRecurring.find(r => r.id === id);
+      const startTime = Date.now();
+      pendingDeleteStartTimesRef.current.set(id, startTime);
+      setDeleteProgress((current) => ({ ...current, [id]: 0 }));
       setPendingDeleteIds((current) => [...current, id]);
+      setPendingDeletePopup({ id, title: row?.title || "Item" });
 
       const timerId = window.setTimeout(async () => {
         try {
@@ -232,9 +275,16 @@ export default function RecurringSection({
           setInlineError(error.message || t.errorRecurringDeleteFailed);
         } finally {
           pendingDeleteTimersRef.current.delete(id);
+          pendingDeleteStartTimesRef.current.delete(id);
           setPendingDeleteIds((current) => current.filter((item) => item !== id));
+          setDeleteProgress((current) => {
+            const updated = { ...current };
+            delete updated[id];
+            return updated;
+          });
+          setPendingDeletePopup(null);
         }
-      }, 30000);
+      }, DELETE_DELAY_MS);
 
       pendingDeleteTimersRef.current.set(id, timerId);
     }
@@ -264,14 +314,24 @@ export default function RecurringSection({
               {visibleRecurring.map((row) => {
                 const isPendingDelete = pendingDeleteIds.includes(row.id);
                 const isExpired = isExpiredRecurring(row);
+                const progress = deleteProgress[row.id] || 0;
+                const progressStyle = isPendingDelete ? {
+                  background: `linear-gradient(to right, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.2) ${progress}%, transparent ${progress}%, transparent 100%)`,
+                  transition: 'background 50ms linear'
+                } : {};
+
                 return (
                   <tr
                     key={`rec-${row.id}`}
                     className={`${inlineEditId === row.id ? "recurring-list-item--editing" : ""} ${isPendingDelete ? "recurring-list-item--pending-delete" : ""} ${isExpired ? "recurring-list-item--expired" : ""}`}
+                    style={progressStyle}
                   >
                     <td style={{ whiteSpace: 'nowrap' }}>
                       {isPendingDelete ? (
-                        <button className="inline-action" onClick={() => cancelPendingDelete(row.id)}>{t.restoreButton}</button>
+                        <>
+                          <button className="inline-action" onClick={() => cancelPendingDelete(row.id)}>{t.restoreButton}</button>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--ink-2)', marginTop: '4px' }}>{Math.round(progress)}%</div>
+                        </>
                       ) : (
                         <>
                           <button className="inline-action" onClick={() => openFullPageEditor(row)}>{t.editRecurringButton}</button>
@@ -284,9 +344,10 @@ export default function RecurringSection({
                         <td><input type="month" value={inlineForm.startMonth} onChange={(e) => setInlineForm((c) => ({ ...c, startMonth: e.target.value }))} /></td>
                         <td><input type="month" value={inlineForm.endMonth || ""} onChange={(e) => setInlineForm((c) => ({ ...c, endMonth: e.target.value }))} /></td>
                         <td>
-                          <select value={inlineForm.type} onChange={(e) => { const next = e.target.value; setInlineForm((c) => ({ ...c, type: next, categoryId: next === 'fee' ? c.categoryId || dailyCategoryOptions[0]?.id || 'food' : '' })); }}>
+                          <select value={inlineForm.type} onChange={(e) => { const next = e.target.value; setInlineForm((c) => ({ ...c, type: next, categoryId: next === 'fee' ? c.categoryId || dailyCategoryOptions[0]?.id || 'food' : next === 'investment' ? 'investment' : next === 'income' ? 'salary' : '' })); }}>
                             <option value="fee">{t.typeFee}</option>
                             <option value="income">{t.typeIncome}</option>
+                            <option value="investment">{t.typeInvestment}</option>
                           </select>
                         </td>
                         <td>
@@ -297,11 +358,17 @@ export default function RecurringSection({
                         </td>
                         <td>
                           <select value={inlineForm.categoryId || ''} onChange={(e) => setInlineForm((c) => ({ ...c, categoryId: e.target.value }))} disabled={inlineForm.type !== 'fee'}>
-                            {dailyCategoryOptions.map((cat) => <option key={cat.id} value={cat.id}>{cat.icon || '🏷️'} {cat.label}</option>)}
+                            {inlineForm.type === 'investment' ? (
+                              <option value="investment">📊 {t.typeInvestment}</option>
+                            ) : inlineForm.type === 'income' ? (
+                              <option value="salary">💼 {t.typeIncome}</option>
+                            ) : (
+                              dailyCategoryOptions.map((cat) => <option key={cat.id} value={cat.id}>{cat.icon || '🏷️'} {cat.label}</option>)
+                            )}
                           </select>
                         </td>
                         <td><input type="text" value={inlineForm.title} onChange={(e) => setInlineForm((c) => ({ ...c, title: e.target.value }))} placeholder={t.recurringTitlePlaceholder} /></td>
-                        <td style={{ textAlign: 'right' }}><input type="text" inputMode="decimal" value={formatNumericInput(inlineForm.amount)} onChange={(e) => setInlineForm((c) => ({ ...c, amount: sanitizeNumericInput(e.target.value) }))} placeholder={t.recurringAmountPlaceholder} /></td>
+                        <td style={{ textAlign: 'left' }}><input type="text" inputMode="decimal" value={formatNumericInput(inlineForm.amount)} onChange={(e) => setInlineForm((c) => ({ ...c, amount: sanitizeNumericInput(e.target.value) }))} placeholder={t.recurringAmountPlaceholder} /></td>
                         <td><input type="text" value={inlineForm.note || ''} onChange={(e) => setInlineForm((c) => ({ ...c, note: e.target.value }))} placeholder={t.dailyNotePlaceholder} /></td>
                       </>
                     ) : (
@@ -325,8 +392,15 @@ export default function RecurringSection({
                           })()}
                         </td>
 
-                        <td>{row.type === 'fee' ? `${row.categoryIcon || '🍽️'} ${row.categoryDisplay || '-'}` : '-'}</td>
-                        <td>{row.amount == null ? '-' : formatCurrency(row.amount, selectedCurrency, exchangeRates)}</td>
+                        <td>{row.type === 'fee' ? (() => {
+                          // Avoid double icons: if categoryDisplay already starts with an icon, don't add categoryIcon
+                          const display = row.categoryDisplay || '-';
+                          if (display !== '-' && display.match(/^[\p{Emoji}]/u)) {
+                            return display;
+                          }
+                          return `${row.categoryIcon || '🍽️'} ${display}`;
+                        })() : '-'}</td>
+                        <td style={{ textAlign: 'left' }}>{row.amount == null ? '-' : formatCurrency(row.amount, selectedCurrency, exchangeRates)}</td>
                         <td>{row.title}{row.type === 'income' && row.isSalary ? <span style={{ marginLeft: 6 }}>💼</span> : null}</td>
                         <td>{row.note ? (row.note.length > 40 ? row.note.slice(0,40) + '…' : row.note) : '-'}</td>
                       </>
@@ -336,6 +410,43 @@ export default function RecurringSection({
               })}
             </tbody>
           </table>
+
+          {/* Delete pending popup */}
+          {pendingDeletePopup && createPortal(
+            <div style={{
+              position: 'fixed',
+              top: '20px',
+              right: '20px',
+              background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)',
+              borderRadius: '8px',
+              padding: '16px 20px',
+              minWidth: '320px',
+              maxWidth: '400px',
+              zIndex: 10000,
+              animation: 'notificationSlideIn 0.4s ease-out',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
+              fontWeight: '500',
+              color: 'white',
+              fontSize: '0.95rem',
+              lineHeight: '1.4'
+            }}>
+              ⏱ {t.deleteButton}: {pendingDeletePopup.title}
+            </div>,
+            document.body
+          )}
+
+          <style>{`
+            @keyframes notificationSlideIn {
+              from {
+                transform: translateX(450px);
+                opacity: 0;
+              }
+              to {
+                transform: translateX(0);
+                opacity: 1;
+              }
+            }
+          `}</style>
         </article>
       );
     } catch (err) {

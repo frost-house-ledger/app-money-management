@@ -113,3 +113,10 @@ All app data is stored locally in the user's app data folder.
 - Improved Android UI and offline resilience
 - More locales and translation polish
 - CSV import/export improvements (mapping, category matching)
+
+## License
+
+Free for personal and commercial use.
+However, you need to contact the author and developer for commercial use.
+
+Please see the [LICENSE](LICENSE) file for more details.

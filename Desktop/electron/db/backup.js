@@ -196,7 +196,7 @@ export function createBackupService({
         id: categoryId,
         nameJp: String(row.category_name_jp || row.category_name_en || categoryId).trim(),
         nameEn: String(row.category_name_en || row.category_name_jp || categoryId).trim(),
-        icon: String(row.category_icon || "🏷️").trim() || "🏷️",
+        icon: String(row.category_icon || "🍽️").trim() || "🍽️",
         sortOrder: categoryMap.get(categoryId)?.sortOrder || (categoryMap.size + 1) * 10,
         isActive: 1,
         updatedAt: String(row.updated_at || row.created_at || now)
@@ -214,17 +214,21 @@ export function createBackupService({
     const seenRecurringContentKeys = new Set();
     const importedRecurring = rows
       .filter((row) => String(row.record_scope || row.scope || "").trim().toLowerCase() === "monthly")
-      .map((row) => ({
-        id: String(row.id || createSyncId()),
-        type: String(row.type || "fee").trim() === "income" ? "income" : "fee",
-        title: String(row.title || "").trim(),
-        amount: Number(row.amount || 0),
-        startMonth: String(row.start_month || "").trim(),
-        endMonth: String(row.end_month || "").trim() || null,
-        categoryId: String(row.type || "fee").trim() === "fee" ? String(row.category_id || "other").trim() || "other" : null,
-        createdAt: String(row.created_at || row.updated_at || now),
-        updatedAt: String(row.updated_at || row.created_at || now)
-      }))
+      .map((row) => {
+        const rowType = String(row.type || "fee").trim();
+        const type = ["income", "investment"].includes(rowType) ? rowType : "fee";
+        return {
+          id: String(row.id || createSyncId()),
+          type,
+          title: String(row.title || "").trim(),
+          amount: Number(row.amount || 0),
+          startMonth: String(row.start_month || "").trim(),
+          endMonth: String(row.end_month || "").trim() || null,
+          categoryId: type === "fee" ? String(row.category_id || "other").trim() || "other" : null,
+          createdAt: String(row.created_at || row.updated_at || now),
+          updatedAt: String(row.updated_at || row.created_at || now)
+        };
+      })
       .filter((item) => {
         if (!item.title || !item.startMonth) {
           return false;
@@ -256,19 +260,24 @@ export function createBackupService({
 
     const importedDailyEntries = rows
       .filter((row) => String(row.record_scope || row.scope || "").trim().toLowerCase() === "daily")
-      .map((row, index) => ({
-        id: Number.isInteger(Number(row.id)) ? Number(row.id) : currentDailyEntries.length + index + 1,
-        syncId: String(row.sync_id || "").trim() || null,
-        type: String(row.type || "fee").trim() === "income" ? "income" : "fee",
-        title: String(row.title || "").trim(),
-        amount: Number(row.amount || 0),
-        entryDate: String(row.entry_date || "").trim(),
-        categoryId: String(row.type || "fee").trim() === "fee" ? String(row.category_id || "other").trim() || "other" : null,
-        category: String(row.type || "fee").trim() === "fee" ? String(row.category_name_en || row.category_name_jp || row.category_name_de || row.category_id || "Other") : null,
-        note: String(row.note || "").trim() || null,
-        createdAt: String(row.created_at || row.updated_at || now),
-        updatedAt: String(row.updated_at || row.created_at || now)
-      }))
+      .map((row, index) => {
+        const rowType = String(row.type || "fee").trim();
+        const type = ["income", "investment"].includes(rowType) ? rowType : "fee";
+        return {
+          id: Number.isInteger(Number(row.id)) ? Number(row.id) : currentDailyEntries.length + index + 1,
+          syncId: String(row.sync_id || "").trim() || null,
+          type,
+          title: String(row.title || "").trim(),
+          amount: Number(row.amount || 0),
+          entryDate: String(row.entry_date || "").trim(),
+          categoryId: type === "fee" ? String(row.category_id || "other").trim() || "other" : null,
+          category: type === "fee" ? String(row.category_name_en || row.category_name_jp || row.category_name_de || row.category_id || "Other") : null,
+          note: String(row.note || "").trim() || null,
+          createdAt: String(row.created_at || row.updated_at || now),
+          updatedAt: String(row.updated_at || row.created_at || now)
+        };
+      })
+      
       .filter((item) => {
         if (!item.title || !item.entryDate) {
           return false;
