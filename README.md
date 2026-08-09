@@ -89,13 +89,7 @@ npm install
 npm run dev
 ```
 
-Release from `master`:
-
-```bash
-npm run release -- -v 0.2.0
-```
-
-The command updates `package.json` and `package-lock.json`, creates the matching `v0.2.0` tag, and pushes `master` plus the tag. GitHub Actions then builds and publishes the Windows installers. Use `--dry-run` to check the release without changing Git.
+For the complete release procedure, including dry runs, branch requirements, and Windows installer names, see the [Release Guide](docs/RELEASE.md).
 
 ## Use on Android (Capacitor)
 
@@ -104,6 +98,13 @@ The command updates `package.json` and `package-lock.json`, creates the matching
 3. Sync web assets and open Android Studio: `npm run android:studio`.
 
 Output (debug APK): `android/app/build/outputs/apk/debug/houseledger-debug.apk`
+
+## Documentation
+
+- [Backup and restore](docs/DATA_BACKUP.md) — backup methods, restore steps, storage locations, CSV scope, and LAN sync precautions.
+- [Architecture](docs/ARCHITECTURE.md) — React, Electron, SQLite, Capacitor, API adapters, and LAN sync responsibilities.
+- [Release Guide](docs/RELEASE.md) — release commands, dry runs, branch requirements, and x64/x86 installer names.
+- [Security Policy](SECURITY.md) — vulnerability reporting and security guidance.
 
 ## Data storage
 
