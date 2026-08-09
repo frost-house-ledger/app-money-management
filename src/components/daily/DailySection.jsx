@@ -7,6 +7,7 @@ import {
   sanitizeNumericInput
 } from "../../lib/currency.js";
 import { logError } from "../../lib/logger.js";
+import { matchesEntryFilter } from "../../lib/entryFilters.js";
 
 // This section includes both the form and the list, as they are closely related and likely to be used together. The form state is lifted up to avoid unnecessary re-renders of the list when the form state changes.
 export default function DailySection({
@@ -229,6 +230,7 @@ export function DailyListSection({
   onUpdateDailyInline,
   onDeleteDaily,
   selectedMonth,
+  entryFilter,
   t
 }) {
   const [inlineEditId, setInlineEditId] = React.useState(null);
@@ -399,10 +401,10 @@ setPendingDeletePopup((current) => (current?.id === id ? null : current));
   const monthPrefix = selectedMonth || (new Date().toISOString().slice(0, 7));
   const filteredDailyRows = dailyRows.filter(row =>
     row.entryDate && row.entryDate.startsWith(monthPrefix)
-  );
+  ).filter((row) => matchesEntryFilter(row, entryFilter));
   const filteredRecurringRows = (filteredRecurring || []).filter(row =>
     row.startMonth <= monthPrefix && (!row.endMonth || monthPrefix <= row.endMonth)
-  );
+  ).filter((row) => matchesEntryFilter(row, entryFilter));
 
   const dailyFee = filteredDailyRows.filter(row => row.type === "fee").reduce((sum, row) => sum + Number(row.amount || 0), 0);
   const dailyIncome = filteredDailyRows.filter(row => row.type === "income").reduce((sum, row) => sum + Number(row.amount || 0), 0);

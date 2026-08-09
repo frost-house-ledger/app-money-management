@@ -10,6 +10,7 @@ export default function MonthlyEntryPage({
   onCancelRecurringEdit,
   dailyCategoryOptions,
   filteredRecurring,
+  entryFilter,
   selectedCurrency,
   exchangeRates,
   onEditRecurring,
@@ -35,6 +36,7 @@ export default function MonthlyEntryPage({
       <section className="lists-grid">
         <RecurringListSection
           filteredRecurring={filteredRecurring}
+          entryFilter={entryFilter}
           recurringTitle={t.recurringListTitle}
           dailyCategoryOptions={dailyCategoryOptions}
           selectedCurrency={selectedCurrency}

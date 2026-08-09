@@ -196,6 +196,18 @@ export const TRANSLATIONS = {
 
   // history
   historyTitle: { jp: "入力履歴", en: "Input history", de: "Eingabeverlauf", es: "Historial de entradas", pt: "Histórico de entradas", it: "Cronologia inserimenti", fr: "Historique des entrées", ru: "История вводов", tw: "輸入歷史", ko: "입력 기록", ar: "سجل الإدخالات" },
+  entryFilterTitle: { jp: "検索・フィルター", en: "Search and filters" },
+  searchButtonLabel: { jp: "検索", en: "Search" },
+  collapseFiltersLabel: { jp: "折りたたむ", en: "Collapse" },
+  expandFiltersLabel: { jp: "展開", en: "Expand" },
+  entrySearchLabel: { jp: "キーワード", en: "Keyword" },
+  entrySearchPlaceholder: { jp: "タイトルまたはメモ", en: "Title or note" },
+  allLabel: { jp: "すべて", en: "All" },
+  minimumAmountLabel: { jp: "金額（下限）", en: "Min amount" },
+  maximumAmountLabel: { jp: "金額（上限）", en: "Max amount" },
+  fromDateLabel: { jp: "期間（開始）", en: "From" },
+  toDateLabel: { jp: "期間（終了）", en: "To" },
+  clearFiltersLabel: { jp: "条件をクリア", en: "Clear filters" },
   historySubtext: {
     jp: "monthly と daily の保存履歴を時系列で表示します。",
     en: "Shows saved monthly and daily records in chronological order.",
@@ -408,6 +420,8 @@ export const TRANSLATIONS = {
   categoryRatioChartTitle: { jp: "カテゴリ割合", en: "Category ratio", de: "Kategorieanteil", es: "Proporción por categoría", pt: "Proporção por categoria", it: "Rapporto per categoria", fr: "Répartition par catégorie", ru: "Доля по категориям", tw: "分類比例", ko: "카테고리 비율", ar: "نسبة الفئة" },
   categoryTrendChartTitle: { jp: "カテゴリ推移", en: "Category trend", de: "Kategorietrend", es: "Tendencia por categoría", pt: "Tendência por categoria", it: "Trend per categoria", fr: "Tendance par catégorie", ru: "Тенденция по категориям", tw: "分類趨勢", ko: "카테고리 추세", ar: "اتجاه الفئة" },
   monthlyTargetLabel: { jp: "月間目標", en: "Monthly target", de: "Monatliches Ziel", es: "Objetivo mensual", pt: "Meta mensal", it: "Obiettivo mensile", fr: "Objectif mensuel", ru: "Ежемесячная цель", tw: "月目標", ko: "월간 목표", ar: "الهدف الشهري" },
+  budgetUsageLabel: { jp: "予算消化率", en: "Budget usage", de: "Budgetverbrauch", es: "Uso del presupuesto", pt: "Uso do orçamento", it: "Utilizzo del budget", fr: "Utilisation du budget", ru: "Использование бюджета", tw: "預算使用率", ko: "예산 사용률", ar: "استخدام الميزانية" },
+  budgetExceededLabel: { jp: "予算超過", en: "Over budget", de: "Budget überschritten", es: "Presupuesto excedido", pt: "Orçamento excedido", it: "Budget superato", fr: "Budget dépassé", ru: "Превышение бюджета", tw: "超出預算", ko: "예산 초과", ar: "تجاوز الميزانية" },
   balanceTrendTitle: { jp: "残高推移グラフ", en: "Balance trend graph", de: "Saldoentwicklung", es: "Gráfico de tendencia de saldo", pt: "Gráfico de tendência de saldo", it: "Grafico dell'andamento del saldo", fr: "Graphique de tendance du solde", ru: "График изменения баланса", tw: "餘額趨勢圖", ko: "잔액 추세 그래프", ar: "رسم بياني لاتجاه الرصيد" },
   balanceTrendSubtext: {
     jp: "月別残高を確認できます。",
@@ -523,6 +537,10 @@ export const TRANSLATIONS = {
     ko: "반복 항목 저장에 실패했습니다.",
     ar: "فشل حفظ العنصر المتكرر."
   },
+  errorRecurringMonthRange: { jp: "終了月は開始月より前にできません。", en: "The end month must not be earlier than the start month.", de: "Der Endmonat darf nicht vor dem Startmonat liegen.", es: "El mes final no puede ser anterior al mes inicial.", pt: "O mês final não pode ser anterior ao mês inicial.", it: "Il mese finale non può precedere il mese iniziale.", fr: "Le mois de fin ne peut pas précéder le mois de début.", ru: "Месяц окончания не может быть раньше месяца начала.", tw: "結束月份不可早於開始月份。", ko: "종료 월은 시작 월보다 빠를 수 없습니다.", ar: "لا يمكن أن يكون شهر الانتهاء قبل شهر البدء." },
+  warningDuplicateEntry: { jp: "同じ内容の日次項目がすでにあります。登録を続けますか？", en: "A similar daily entry already exists. Add it anyway?", de: "Ein ähnlicher Tageseintrag existiert bereits. Trotzdem hinzufügen?", es: "Ya existe una entrada diaria similar. ¿Añadirla de todos modos?", pt: "Já existe uma entrada diária semelhante. Adicioná-la mesmo assim?", it: "Esiste già una voce giornaliera simile. Aggiungerla comunque?", fr: "Une entrée quotidienne similaire existe déjà. L'ajouter quand même ?", ru: "Похожая ежедневная запись уже существует. Всё равно добавить?", tw: "已有相似的日次項目。仍要新增嗎？", ko: "유사한 일일 항목이 이미 있습니다. 그래도 추가하시겠습니까?", ar: "يوجد إدخال يومي مشابه بالفعل. هل تريد إضافته؟" },
+  warningDuplicateRecurring: { jp: "同じ内容の月次項目がすでにあります。登録を続けますか？", en: "A similar recurring item already exists. Add it anyway?", de: "Ein ähnlicher wiederkehrender Eintrag existiert bereits. Trotzdem hinzufügen?", es: "Ya existe un elemento recurrente similar. ¿Añadirlo de todos modos?", pt: "Já existe um item recorrente semelhante. Adicioná-lo mesmo assim?", it: "Esiste già un elemento ricorrente simile. Aggiungerlo comunque?", fr: "Un élément récurrent similaire existe déjà. L'ajouter quand même ?", ru: "Похожий повторяющийся элемент уже существует. Всё равно добавить?", tw: "已有相似的月次項目。仍要新增嗎？", ko: "유사한 월별 항목이 이미 있습니다. 그래도 추가하시겠습니까?", ar: "يوجد عنصر متكرر مشابه بالفعل. هل تريد إضافته؟" },
+  warningLargeAmount: { jp: "金額が非常に大きくなっています。登録を続けますか？", en: "This amount is unusually large. Continue?", de: "Dieser Betrag ist ungewöhnlich hoch. Fortfahren?", es: "Esta cantidad es inusualmente grande. ¿Continuar?", pt: "Este valor é excepcionalmente grande. Continuar?", it: "Questo importo è insolitamente elevato. Continuare?", fr: "Ce montant est inhabituellement élevé. Continuer ?", ru: "Эта сумма необычно велика. Продолжить?", tw: "此金額異常地大。仍要繼續嗎？", ko: "금액이 비정상적으로 큽니다. 계속하시겠습니까?", ar: "هذا المبلغ كبير بشكل غير معتاد. هل تريد المتابعة؟" },
   errorRecurringDeleteFailed: {
     jp: "固定項目の削除に失敗しました。",
     en: "Failed to delete recurring item.",
@@ -766,17 +784,25 @@ export const TRANSLATIONS = {
 // Category name translations — map category id -> localized labels
 TRANSLATIONS.categoryNames = {
   food: { jp: "食費", en: "Food", de: "Essen", fr: "Nourriture", es: "Comida", pt: "Alimentação", it: "Cibo", ru: "Питание", tw: "食費", ko: "식비", ar: "الطعام" },
+  groceries: { jp: "日用品", en: "Groceries", de: "Lebensmittel", fr: "Épicerie", es: "Comestibles", pt: "Mercearia", it: "Generi alimentari", ru: "Продукты", tw: "日用品", ko: "식료품", ar: "البقالة" },
   beverage: { jp: "飲料", en: "Beverage", de: "Getränke", fr: "Boisson", es: "Bebida", pt: "Bebida", it: "Bevanda", ru: "Напитки", tw: "飲料", ko: "음료", ar: "مشروبات" },
   transport: { jp: "交通", en: "Transport", de: "Verkehr", fr: "Transport", es: "Transporte", pt: "Transporte", it: "Trasporto", ru: "Транспорт", tw: "交通", ko: "교통", ar: "المواصلات" },
   housing: { jp: "住居", en: "Housing", de: "Wohnen", fr: "Logement", es: "Vivienda", pt: "Habitação", it: "Alloggio", ru: "Жилье", tw: "住居", ko: "주거", ar: "السكن" },
+  home_maintenance: { jp: "住宅維持費", en: "Home Maintenance", de: "Hauswartung", fr: "Entretien de la maison", es: "Mantenimiento del hogar", pt: "Manutenção da casa", it: "Manutenzione della casa", ru: "Обслуживание дома", tw: "住宅維護", ko: "주택 유지보수", ar: "صيانة المنزل" },
   utilities: { jp: "光熱費", en: "Utilities", de: "Nebenkosten", fr: "Services", es: "Servicios", pt: "Utilidades", it: "Utenze", ru: "Коммунальные услуги", tw: "水電費", ko: "공과금", ar: "المرافق" },
   medical: { jp: "医療", en: "Medical", de: "Medizin", fr: "Médical", es: "Médico", pt: "Médico", it: "Medico", ru: "Медицина", tw: "醫療", ko: "의료", ar: "طبي" },
+  pets: { jp: "ペット", en: "Pets", de: "Haustiere", fr: "Animaux de compagnie", es: "Mascotas", pt: "Animais de estimação", it: "Animali domestici", ru: "Домашние животные", tw: "寵物", ko: "반려동물", ar: "الحيوانات الأليفة" },
+  beauty: { jp: "美容", en: "Beauty", de: "Schönheit", fr: "Beauté", es: "Belleza", pt: "Beleza", it: "Bellezza", ru: "Красота", tw: "美容", ko: "뷰티", ar: "الجمال" },
+  clothing: { jp: "衣服", en: "Clothing", de: "Kleidung", fr: "Vêtements", es: "Ropa", pt: "Roupas", it: "Abbigliamento", ru: "Одежда", tw: "衣服", ko: "의류", ar: "ملابس" },
+  electronics: { jp: "家電", en: "Electronics", de: "Elektronik", fr: "Électronique", es: "Electrónica", pt: "Eletrônicos", it: "Elettronica", ru: "Электроника", tw: "電子產品", ko: "전자제품", ar: "إلكترونيات" },
   education: { jp: "教育", en: "Education", de: "Bildung", fr: "Éducation", es: "Educación", pt: "Educação", it: "Istruzione", ru: "Образование", tw: "教育", ko: "교육", ar: "التعليم" },
   entertainment: { jp: "娯楽", en: "Entertainment", de: "Unterhaltung", fr: "Divertissement", es: "Entretenimiento", pt: "Entretenimento", it: "Intrattenimento", ru: "Развлечения", tw: "娛樂", ko: "여가", ar: "ترفيه" },
+  hobbies: { jp: "趣味", en: "Hobbies", de: "Hobbys", fr: "Passe-temps", es: "Aficiones", pt: "Passatempos", it: "Hobby", ru: "Хобби", tw: "嗜好", ko: "취미", ar: "الهوايات" },
+  gifts: { jp: "贈答・寄付", en: "Gifts/Donations", de: "Geschenke/Spenden", fr: "Cadeaux/Donations", es: "Regalos/Donaciones", pt: "Presentes/Doações", it: "Regali/Donazioni", ru: "Подарки/Пожертвования", tw: "禮物/捐款", ko: "선물/기부", ar: "الهدايا / التبرعات" },
   travel: { jp: "旅行", en: "Travel", de: "Reisen", fr: "Voyage", es: "Viajar", pt: "Viagem", it: "Viaggio", ru: "Путешествия", tw: "旅行", ko: "여행", ar: "السفر" },
-  shopping: { jp: "買い物", en: "Shopping", de: "Einkauf", fr: "Shopping", es: "Compras", pt: "Compras", it: "Shopping", ru: "Покупки", tw: "購物", ko: "쇼핑", ar: "تسوق" },
   subscription: { jp: "サブスク", en: "Subscription", de: "Abo", fr: "Abonnement", es: "Suscripción", pt: "Assinatura", it: "Abbonamento", ru: "Подписка", tw: "訂閱", ko: "구독", ar: "اشتراك" },
   insurance: { jp: "保険", en: "Insurance", de: "Versicherung", fr: "Assurance", es: "Seguro", pt: "Seguro", it: "Assicurazione", ru: "Страхование", tw: "保險", ko: "보험", ar: "تأمين" },
+  taxes: { jp: "税金", en: "Taxes", de: "Steuern", fr: "Impôts", es: "Impuestos", pt: "Impostos", it: "Tasse", ru: "Налоги", tw: "稅金", ko: "세금", ar: "الضرائب" },
   other: { jp: "その他", en: "Other", de: "Sonstiges", fr: "Autre", es: "Otro", pt: "Outro", it: "Altro", ru: "Другое", tw: "其他", ko: "기타", ar: "أخرى" }
 };
 

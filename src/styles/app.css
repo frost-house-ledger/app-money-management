@@ -281,6 +281,53 @@ html[lang="ru"] .hero p {
 .form-actions { display: flex; align-items: center; }
 .primary-button.compact { padding: 6px 8px; font-size: 0.92rem; }
 
+.entry-filter-bar {
+  display: grid;
+  gap: 12px;
+}
+
+.entry-filter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.entry-filter-header h2 {
+  margin: 0;
+}
+
+.entry-filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.entry-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.entry-filter-grid label {
+  display: grid;
+  gap: 6px;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.entry-filter-grid input,
+.entry-filter-grid select {
+  width: 100%;
+  min-width: 0;
+}
+
+.entry-filter-reset {
+  align-self: end;
+}
+
 .toolbar {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

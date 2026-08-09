@@ -1,6 +1,7 @@
 import React from "react";
 import { logError } from "../../lib/logger.js";
 import { formatCurrency } from "../../lib/currency.js";
+import { matchesEntryFilter } from "../../lib/entryFilters.js";
 
 function parsePayload(payloadJson) {
   try {
@@ -39,8 +40,21 @@ function ActionBadge({ action, t }) {
   return <span className={cls}>{label}</span>;
 }
 
-export default function HistoryPage({ historyRows, selectedCurrency, exchangeRates, t }) {
+export default function HistoryPage({ historyRows, selectedCurrency, exchangeRates, entryFilter, t }) {
   const safeHistoryRows = Array.isArray(historyRows) ? historyRows : [];
+  const visibleHistoryRows = safeHistoryRows.filter((row) => {
+    const payload = parsePayload(row.payloadJson);
+    const current = payload.after || payload.before || row;
+    return matchesEntryFilter({
+      ...row,
+      ...current,
+      entryDate: current.entryDate || row.targetDate,
+      categoryId: current.categoryId || row.categoryId,
+      amount: current.amount ?? row.amount,
+      title: current.title || row.title,
+      note: current.note || row.note
+    }, entryFilter);
+  });
 
   try {
     return (
@@ -48,11 +62,11 @@ export default function HistoryPage({ historyRows, selectedCurrency, exchangeRat
         <article className="card">
           <h2>{t.historyTitle}</h2>
           <p className="subtext">{t.historySubtext}</p>
-          {safeHistoryRows.length === 0 ? (
+          {visibleHistoryRows.length === 0 ? (
             <p>{t.historyEmpty}</p>
           ) : (
             <ul className="list history-list">
-              {safeHistoryRows.map((row) => {
+              {visibleHistoryRows.map((row) => {
                 const payload = parsePayload(row.payloadJson);
                 const before = payload.before;
                 const after = payload.after;
