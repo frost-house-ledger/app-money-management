@@ -57,7 +57,7 @@ export default function DailyEntryPage({
       </section>
 
       <section className="category-manager-launcher" aria-label={t.categoryManagerTitle}>
-        <button type="button" align="left" onClick={() => setCategoryManagerOpen(true)}>
+        <button type="button" onClick={() => setCategoryManagerOpen(true)}>
           {t.categoryManagerTitle}
         </button>
       </section>

@@ -1,5 +1,6 @@
 import React from "react";
 import { logError } from "../../lib/logger.js";
+import { getCategoryName } from "../../i18n/translations.js";
 import languagesData from "../../../json/languages.json";
 
 /**
@@ -111,7 +112,9 @@ function displayName(category, locale) {
     return category[nameField];
   }
   
-  // Fallback: try other common fields in priority order
+  // Keep non-Japanese locales from falling back to the Japanese name first.
+  const categoryLabel = getCategoryName(category.id, locale);
+  if (categoryLabel && categoryLabel !== category.id) return categoryLabel;
   return category.nameJp || category.nameJa || category.nameEn || category.name || category.id || "";
 }
 

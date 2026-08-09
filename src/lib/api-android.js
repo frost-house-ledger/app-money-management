@@ -177,12 +177,13 @@ function normalizeCategoryId(name) {
 }
 
 function pickCategoryLabel(category, locale) {
+  const baseLocale = String(locale || "").toLowerCase().split("-")[0];
   if (!category) {
     // Show Japanese only for Japanese locale; otherwise show English
-    return locale === "jp" || locale === "ja" ? "その他" : "Other";
+    return baseLocale === "jp" || baseLocale === "ja" ? "その他" : "Other";
   }
   // Prefer Japanese when explicitly Japanese; otherwise prefer English.
-  if (locale === "jp" || locale === "ja") {
+  if (baseLocale === "jp" || baseLocale === "ja") {
     return category.nameJp || category.nameEn || category.id;
   }
   return category.nameEn || category.nameJp || category.id;

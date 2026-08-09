@@ -164,6 +164,9 @@ export const TRANSLATIONS = {
     ar: "إدارة أسماء الفئات والرموز"
   },
   addCategoryLabel: { jp: "カテゴリ追加", en: "Add category", de: "Kategorie hinzufuegen", es: "Agregar categoría", pt: "Adicionar categoria", it: "Aggiungi categoria", fr: "Ajouter une catégorie", ru: "Добавить категорию", tw: "新增分類", ko: "카테고리 추가", ar: "إضافة فئة" },
+  categoryCloseButton: { jp: "閉じる", en: "Close", de: "Schließen", es: "Cerrar", pt: "Fechar", it: "Chiudi", fr: "Fermer", ru: "Закрыть", tw: "關閉", ko: "닫기", ar: "إغلاق" },
+  categoryResetButton: { jp: "リセット", en: "Reset", de: "Zuruecksetzen", es: "Reiniciar", pt: "Redefinir", it: "Reimposta", fr: "Réinitialiser", ru: "Сбросить", tw: "重設", ko: "재설정", ar: "إعادة تعيين" },
+
   addCategoryNamePlaceholder: { jp: "カテゴリ名", en: "Category name", de: "Kategoriename", es: "Nombre de categoría", pt: "Nome da categoria", it: "Nome categoria", fr: "Nom de la catégorie", ru: "Название категории", tw: "分類名稱", ko: "카테고리 이름", ar: "اسم الفئة" },
   categoryNameJpPlaceholder: { jp: "日本語名", en: "Japanese name", de: "Japanischer Name", es: "Nombre en japonés", pt: "Nome em japonês", it: "Nome giapponese", fr: "Nom japonais", ru: "Название на японском", tw: "日文名稱", ko: "일본어 이름", ar: "الاسم باليابانية" },
   categoryNameEnPlaceholder: { jp: "英語名", en: "English name", de: "Englischer Name", es: "Nombre en inglés", pt: "Nome em inglês", it: "Nome in inglese", fr: "Nom anglais", ru: "Название на английском", tw: "英文名稱", ko: "영어 이름", ar: "الاسم بالإنجليزية" },

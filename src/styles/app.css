@@ -1063,7 +1063,7 @@ button {
 
 .category-manager-launcher {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
   margin: 12px 0;
 }
 

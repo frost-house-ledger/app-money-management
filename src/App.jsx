@@ -416,12 +416,11 @@ export default function App() {
             if (it && typeof it === 'object') {
               // Prefer Japanese when locale explicitly Japanese; otherwise prefer English.
               if ((base === 'jp') && it.nameJp) return it.nameJp;
-              if ((base === 'en' || rawLocale === 'en') && it.nameEn) return it.nameEn;
-              if (it.nameEn) return it.nameEn;
-              if (it.nameJp) return it.nameJp;
+              if (base !== 'jp' && it.nameEn) return it.nameEn;
             }
             // built-in fallback to translations map
-            return getCategoryName(it && it.id ? String(it.id).toLowerCase() : it, locale);
+            const categoryId = it && it.id ? String(it.id).toLowerCase() : it;
+            return getCategoryName(categoryId, locale) || it?.nameJp || it?.nameEn || categoryId;
           })(item)
         }
       ])
@@ -470,7 +469,7 @@ export default function App() {
         if (base === 'jp' || rawLocale === 'ja') {
           label = item.nameJp || item.nameEn || getCategoryName(key, locale);
         } else {
-          label = item.nameEn || item.nameJp || getCategoryName(key, locale);
+          label = item.nameEn || getCategoryName(key, locale) || item.nameJp;
         }
         map.set(key, {
           id: key,
@@ -823,7 +822,17 @@ export default function App() {
 
   const editorCategoryOptions = (categories || [])
     .filter((item) => Number(item.isActive) === 1)
-    .map((item) => ({ id: item.id, label: getCategoryName(item.id, locale), icon: item.icon }));
+    .map((item) => {
+      const rawLocale = String(locale || "").toLowerCase();
+      const baseLocale = rawLocale.split("-")[0];
+      const categoryId = String(item.id || "").toLowerCase();
+      const localizedLabel = getCategoryName(categoryId, locale);
+      const label = baseLocale === "jp" || baseLocale === "ja"
+        ? item.nameJp || localizedLabel || item.nameEn || categoryId
+        : item.nameEn || localizedLabel || item.nameJp || categoryId;
+
+      return { id: item.id, label, icon: item.icon };
+    });
 
   if (route === 'daily-edit') {
     return (
