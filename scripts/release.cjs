@@ -1,11 +1,13 @@
 const { execFileSync } = require('node:child_process');
 
 function run(command, args, options = {}) {
-  return execFileSync(command, args, {
+  const output = execFileSync(command, args, {
     cwd: process.cwd(),
     encoding: 'utf8',
     stdio: options.stdio || 'pipe',
-  }).trim();
+    shell: options.shell || false,
+  });
+  return typeof output === 'string' ? output.trim() : '';
 }
 
 function fail(message) {
@@ -46,7 +48,7 @@ if (dryRun) {
   process.exit(0);
 }
 
-run('npm.cmd', ['version', version, '--no-git-tag-version'], { stdio: 'inherit' });
+run('npm.cmd', ['version', version, '--no-git-tag-version'], { stdio: 'inherit', shell: process.platform === 'win32' });
 run('git', ['add', 'package.json', 'package-lock.json']);
 run('git', ['commit', '-m', `chore: release ${tag}`], { stdio: 'inherit' });
 run('git', ['tag', '-a', tag, '-m', `Release ${tag}`], { stdio: 'inherit' });
