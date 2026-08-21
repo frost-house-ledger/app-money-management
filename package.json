@@ -48,6 +48,8 @@
   "dependencies": {
     "@capacitor-community/sqlite": "^8.1.1",
     "@capacitor/android": "^8.4.2",
+    "@capacitor-community/sqlite": "^8.1.0",
+    "@capacitor/android": "^8.5.0",
     "@capacitor/core": "^8.3.3",
     "better-sqlite3": "^13.0.3",
     "chart.js": "^4.5.1",
@@ -56,17 +58,17 @@
     "react": "^19.2.7",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.8",
-    "react-i18next": "^17.0.10"
+    "react-i18next": "^17.0.11"
   },
   "devDependencies": {
     "@babel/core": "8.0.1",
     "@babel/preset-env": "^8.0.2",
     "@babel/preset-react": "^8.0.1",
-    "@capacitor/cli": "^8.4.2",
+    "@capacitor/cli": "^8.5.0",
     "@electron/rebuild": "^4.2.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
-    "@vitejs/plugin-react": "^6.0.4",
+    "@vitejs/plugin-react": "^6.0.5",
     "babel-jest": "^30.4.1",
     "concurrently": "^10.0.4",
     "electron": "^43.3.0",
@@ -76,7 +78,7 @@
     "jest-environment-jsdom": "^30.4.1",
     "tar": ">=7.5.22",
     "typescript": "^7.0.2",
-    "vite": "^8.1.5",
+    "vite": "^8.2.1",
     "wait-on": "^9.1.0"
   },
   "overrides": {
