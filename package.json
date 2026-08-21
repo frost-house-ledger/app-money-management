@@ -46,6 +46,8 @@
   "keywords": [],
   "license": "ISC",
   "dependencies": {
+    "@capacitor-community/sqlite": "^8.1.1",
+    "@capacitor/android": "^8.4.2",
     "@capacitor-community/sqlite": "^8.1.0",
     "@capacitor/android": "^8.5.0",
     "@capacitor/core": "^8.3.3",
