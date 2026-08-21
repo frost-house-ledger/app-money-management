@@ -24,16 +24,22 @@ function formatDelta(value, currency, rates) {
   return `${sign}${formatCurrency(Math.abs(amount), currency, rates)}`;
 }
 
-export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency, exchangeRates, t }) {
+export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency, exchangeRates, t, currentBalance, currentBalanceDate }) {
   const fallbackYear = String(new Date().getFullYear());
   const year = /^\d{4}-\d{2}$/.test(selectedMonth || "") ? selectedMonth.slice(0, 4) : fallbackYear;
   const [rows, setRows] = useState([]);
   const [loadState, setLoadState] = useState("loading");
   const [loadError, setLoadError] = useState("");
   const [showSimulation, setShowSimulation] = useState(false);
+  const [dailyEntries, setDailyEntries] = useState([]);
+  const [recurringItems, setRecurringItems] = useState([]);
+  const [dailyLoadState, setDailyLoadState] = useState("loading");
+  const [monthlyTableOpen, setMonthlyTableOpen] = useState(true);
+  const [dailyTableOpen, setDailyTableOpen] = useState(true);
+  const standaloneBalance = currentBalance === undefined;
+  const [legacyBalance] = useState(() => localStorage.getItem("analysis:currentBalance") || "");
+  const balanceValue = standaloneBalance ? legacyBalance : currentBalance;
 
-  const [currentBalance, setCurrentBalance] = useState("");
-  const [currentBalanceRaw, setCurrentBalanceRaw] = useState("");
 
   async function loadAnnualSummary() {
     const fromMonth = `${year}-01`;
@@ -52,8 +58,34 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
     }
   }
 
+  async function loadAnnualDailyEntries() {
+    setDailyLoadState("loading");
+    if (!api?.entry?.list || !api?.recurring?.list) {
+      setDailyEntries([]);
+      setRecurringItems([]);
+      setDailyLoadState("ready");
+      return;
+    }
+    try {
+      const months = Array.from({ length: 12 }, (_, index) => `${year}-${String(index + 1).padStart(2, "0")}`);
+      const [entryResults, recurringResult] = await Promise.all([
+        Promise.all(months.map((month) => api.entry.list({ month }))),
+        api.recurring.list()
+      ]);
+      setDailyEntries(entryResults.flatMap((result) => Array.isArray(result) ? result : []));
+      setRecurringItems(Array.isArray(recurringResult) ? recurringResult : []);
+      setDailyLoadState("ready");
+    } catch (err) {
+      logError("StatisticsSummaryPage.loadDailyEntries", err);
+      setDailyEntries([]);
+      setRecurringItems([]);
+      setDailyLoadState("error");
+    }
+  }
+
   useEffect(() => {
     loadAnnualSummary();
+    loadAnnualDailyEntries();
   }, [year]);
   const safeRows = Array.isArray(rows) ? rows : [];
 
@@ -75,24 +107,6 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
     }
   }, [safeRows]);
 
-  useEffect(() => {
-    try {
-      const key = `analysis:currentBalance`;
-      const saved = localStorage.getItem(key);
-      if (saved !== null) setCurrentBalance(saved);
-    } catch (e) {
-      logError("StatisticsSummaryPage.loadCurrentBalance", e);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (currentBalance === "") {
-      setCurrentBalanceRaw("");
-      return;
-    }
-    setCurrentBalanceRaw(formatCurrency(Number(currentBalance), selectedCurrency, exchangeRates));
-  }, [currentBalance, selectedCurrency, exchangeRates]);
-
   // Derived net-series for the monthly summary (labels, per-month net, cumulative net)
   const rowsNetSeries = useMemo(() => {
     try {
@@ -111,28 +125,65 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
     }
   }, [rowsWithDiff]);
 
-  // If user provided a currentBalance in UI, treat it as the value for the first month (January)
+  // Treat the entered balance as the value at the selected date's month.
   const cumulativeNetWithBaseline = (() => {
     try {
-      const base = Number(currentBalance || 0);
+      const base = Number(balanceValue || 0);
       const cum = Array.isArray(rowsNetSeries.cumulative) ? rowsNetSeries.cumulative.slice() : [];
       const labels = Array.isArray(rowsNetSeries.labels) ? rowsNetSeries.labels : [];
       if (labels.length === 0) return [];
-      // Build series where index 0 = base (January), index i>0 = base + cumulative[i-1]
-      return labels.map((_, i) => (i === 0 ? base : base + (cum[i - 1] || 0)));
+      const baselineMonth = String(currentBalanceDate || "").slice(0, 7);
+      const baselineIndex = Math.max(0, labels.findIndex((label) => label === baselineMonth));
+      return labels.map((_, i) => {
+        if (i < baselineIndex) return 0;
+        return base + (cum[i - 1] || 0) - (cum[baselineIndex - 1] || 0);
+      });
     } catch (e) {
       return Array.isArray(rowsNetSeries.cumulative) ? rowsNetSeries.cumulative : [];
     }
   })();
 
-  function saveCurrentBalance() {
+  const dailyBalanceRows = useMemo(() => {
     try {
-      const key = `analysis:currentBalance`;
-      localStorage.setItem(key, String(currentBalance || ""));
-    } catch (e) {
-      logError('StatisticsSummaryPage.saveCurrentBalance', e);
+      const baselineDate = String(currentBalanceDate || "");
+      const yearStart = `${year}-01-01`;
+      const yearEnd = `${year}-12-31`;
+      const startDate = baselineDate >= yearStart && baselineDate <= yearEnd ? baselineDate : yearStart;
+      const entriesByDate = new Map();
+      for (const entry of dailyEntries) {
+        const date = String(entry.entryDate || "");
+        if (date < startDate || date > yearEnd) continue;
+        const net = entry.type === "income" ? Number(entry.amount || 0) : entry.type === "fee" ? -Number(entry.amount || 0) : 0;
+        entriesByDate.set(date, (entriesByDate.get(date) || 0) + net);
+      }
+
+      const recurringByMonth = new Map();
+      for (let monthIndex = 1; monthIndex <= 12; monthIndex += 1) {
+        const month = `${year}-${String(monthIndex).padStart(2, "0")}`;
+        const monthTotal = recurringItems
+          .filter((item) => item.startMonth <= month && (!item.endMonth || month <= item.endMonth))
+          .reduce((total, item) => {
+            const net = item.type === "income" ? Number(item.amount || 0) : item.type === "fee" ? -Number(item.amount || 0) : 0;
+            return total + net;
+          }, 0);
+        recurringByMonth.set(month, monthTotal);
+      }
+
+      const rowsForDays = [];
+      let running = Number(balanceValue || 0);
+      for (let date = new Date(`${startDate}T00:00:00`); date <= new Date(`${yearEnd}T00:00:00`); date.setDate(date.getDate() + 1)) {
+        const isoDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+        const month = isoDate.slice(0, 7);
+        const net = (date.getDate() === 1 ? recurringByMonth.get(month) || 0 : 0) + (entriesByDate.get(isoDate) || 0);
+        running += net;
+        rowsForDays.push({ date: isoDate, net, balance: running });
+      }
+      return rowsForDays;
+    } catch (err) {
+      logError("StatisticsSummaryPage.dailyBalanceRows", err);
+      return [];
     }
-  }
+  }, [balanceValue, currentBalanceDate, dailyEntries, recurringItems, year]);
 
   try {
     return (
@@ -144,7 +195,13 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
         <section className="chart-dashboard-page">
 
           {/* Statistics summary when simulation is not shown */}
-            <h3>{t.monthlySummaryGraphTitle || "Summary"}</h3>
+            <button type="button" className="statistics-collapse-button" onClick={() => setMonthlyTableOpen((open) => !open)}>
+              {monthlyTableOpen ? "-" : "+"} {t.monthlySummaryGraphTitle || "Monthly summary"}
+            </button>
+            {standaloneBalance && legacyBalance && (
+              <div className="saved-balance-value">Saved value: {formatCurrency(Number(legacyBalance), selectedCurrency, exchangeRates)}</div>
+            )}
+            {monthlyTableOpen && <>
 
             <div style={{ height: 300, marginTop: 12 }}>
               {loadState === "loading" ? (
@@ -205,38 +262,6 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
 
             <br />
 
-            {/* Net-only chart (balance) */}
-            <div style={{ marginTop: 8 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 12 }}>
-                <label style={{ color: '#9fb0d0', fontSize: '0.95rem', fontWeight: 500 }}>
-                  Opening balance — January {year}
-                </label>
-                
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <label style={{ color: '#9fb0d0', minWidth: '80px' }}>Amount:</label>
-                  <input
-                    type="number"
-                    value={currentBalance}
-                    onChange={(e) => setCurrentBalance(e.target.value)}
-                    placeholder="0"
-                    style={{ padding: '6px 8px', borderRadius: 4, border: '1px solid #ccc' }}
-                  />
-                </div>
-
-                <button type="button" className="secondary-button" onClick={saveCurrentBalance} style={{ alignSelf: 'flex-start' }}>
-                  {t.saveLabel || 'Save balance'}
-                </button>
-
-                {currentBalanceRaw && (
-                <div style={{ color: '#9fb0d0', fontSize: '0.9rem' }}>
-                  Saved value: {currentBalanceRaw}
-                </div>
-                )}
-              </div>
-
-              <br />
-            </div>
-
             <br />
 
             <table className="app-table">
@@ -278,6 +303,37 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
                 })}
               </tbody>
             </table>
+            </>}
+
+            <button type="button" className="statistics-collapse-button" onClick={() => setDailyTableOpen((open) => !open)}>
+              {dailyTableOpen ? "-" : "+"} {t.dailyBalanceTrendTitle || "Daily balance trend"}
+            </button>
+            {dailyTableOpen && (
+              dailyLoadState === "loading" ? (
+                <div className="subtext">{t.loadingLabel || "Loading..."}</div>
+              ) : dailyLoadState === "error" ? (
+                <div className="error" role="alert">{t.errorLoadFailed || "Failed to load daily statistics."}</div>
+              ) : (
+                <table className="app-table">
+                  <thead>
+                    <tr>
+                      <th>{t.dateLabel || "Date"}</th>
+                      <th>{t.summaryBalance || "Balance"}</th>
+                      <th>{t.cumulativeLabel || "Cumulative"}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dailyBalanceRows.map((row) => (
+                      <tr key={row.date}>
+                        <td><strong>{row.date}</strong></td>
+                        <td className={row.net >= 0 ? "positive" : "negative"}>{formatDelta(row.net, selectedCurrency, exchangeRates)}</td>
+                        <td className={row.balance >= 0 ? "positive" : "negative"}>{formatCurrency(row.balance, selectedCurrency, exchangeRates)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )
+            )}
             </section>
           )}
 

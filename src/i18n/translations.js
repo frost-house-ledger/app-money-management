@@ -36,6 +36,7 @@ export const TRANSLATIONS = {
   switchLanguage: { jp: "English", en: "日本語", de: "日本語", es: "日本語", pt: "日本語", it: "日本語", fr: "日本語", ru: "日本語", tw: "日本語", ko: "日本語", ar: "日本語" },
   monthLabel: { jp: "表示月", en: "Month", de: "Monat", es: "Mes", pt: "Mês", it: "Mese", fr: "Mois", ru: "Месяц", tw: "月份", ko: "월", ar: "الشهر" },
   chartMonthLabel: { jp: "グラフの表示月", en: "Chart month", de: "Diagramm-Monat", es: "Mes del gráfico", pt: "Mês do gráfico", it: "Mese del grafico", fr: "Mois du graphique", ru: "Месяц графика", tw: "圖表月份", ko: "차트 월", ar: "شهر الرسم البياني" },
+  dailyBalanceTrendTitle: { jp: "日ごとの残額推移", en: "Daily balance trend" },
   applySelectedMonthToAllTabsButton: {
     jp: "この表示月を全タブへ反映",
     en: "Apply this month to all tabs",

@@ -37,6 +37,9 @@ export default function App() {
   const baseMonth = thisMonth();
   const currentYYYYMM = todayISO().slice(0, 7);
   const [selectedMonth, setSelectedMonth] = useState(baseMonth);
+  const [currentBalance, setCurrentBalance] = useState(() => localStorage.getItem("analysis:currentBalance") || "");
+  const [currentBalanceDate, setCurrentBalanceDate] = useState(() => localStorage.getItem("analysis:currentBalanceDate") || `${baseMonth}-01`);
+  const [savedCurrentBalance, setSavedCurrentBalance] = useState(() => localStorage.getItem("analysis:currentBalance") || "");
   const [range, setRange] = useState(defaultRange(baseMonth));
   const [dateRange, setDateRange] = useState({ fromDate: "", toDate: "" });
   const [activePage, setActivePage] = useState("daily");
@@ -130,6 +133,16 @@ export default function App() {
     const next = new Date(year, month - 1 + offset, 1);
     const nextMonth = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}`;
     setSelectedMonth(nextMonth);
+  }
+
+  function saveCurrentBalance() {
+    try {
+      localStorage.setItem("analysis:currentBalance", String(currentBalance || ""));
+      localStorage.setItem("analysis:currentBalanceDate", currentBalanceDate);
+      setSavedCurrentBalance(currentBalance || "");
+    } catch (error) {
+      logError("App.saveCurrentBalance", error);
+    }
   }
 
   async function loadChartMonthSummary(month) {
@@ -1062,6 +1075,37 @@ export default function App() {
             </button>
           </div>
         </label>
+
+        {/* for saving the balance on a specific date */}
+        <div className="balance-toolbar-controls">
+          <label>
+            <span>{t.dateLabel || "Date"}:</span>
+            <input
+              type="date"
+              value={currentBalanceDate}
+              onChange={(e) => setCurrentBalanceDate(e.target.value)}
+            />
+          </label>
+          <label>
+            <span>{t.amountLabel || "Amount"}:</span>
+            <input
+              type="number"
+              min="0"
+              value={currentBalance}
+              onChange={(e) => setCurrentBalance(e.target.value)}
+              placeholder="0"
+            />
+          </label>
+
+          <button type="button" className="secondary-button" onClick={saveCurrentBalance}>
+            {t.saveLabel || "Save balance"}
+          </button>
+          {/* {savedCurrentBalance && (
+            <span className="saved-balance-value">
+              {formatCurrency(Number(savedCurrentBalance), selectedCurrency, exchangeRates)}
+            </span>
+          )} */}
+        </div>
       </section>
 
       {/* Page view tabs */}
@@ -1116,14 +1160,14 @@ export default function App() {
 
       </nav>
 
-      {(activePage === "daily" || activePage === "monthly" || activePage === "history") && (
+      {/* {(activePage === "daily" || activePage === "monthly" || activePage === "history") && (
         <EntryFilterBar
           filter={entryFilter}
           setFilter={setEntryFilter}
           categories={dailyCategoryOptions}
           t={t}
         />
-      )}
+      )} */}
 
       {errorText && <p className="error">{errorText}</p>}
 
@@ -1133,6 +1177,8 @@ export default function App() {
           selectedCurrency={selectedCurrency}
           exchangeRates={exchangeRates}
           t={t}
+          currentBalance={currentBalance}
+          currentBalanceDate={currentBalanceDate}
         />
       ) : activePage === "monthly" ? (
         <MonthlyEntryPage

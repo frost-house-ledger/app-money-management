@@ -427,6 +427,63 @@ html[lang="ru"] .hero p {
   min-width: 120px;
 }
 
+.balance-toolbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.balance-toolbar-controls label {
+  flex: 0 1 auto;
+}
+
+.balance-toolbar-controls input {
+  min-width: 120px;
+}
+
+.balance-toolbar-controls input[type="number"] {
+  width: 130px;
+}
+
+.saved-balance-value {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.statistics-collapse-button {
+  display: block;
+  width: 100%;
+  margin: 16px 0 10px;
+  padding: 10px 12px;
+  text-align: left;
+  color: var(--ink);
+  background: var(--input-bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+@media (max-width: 760px) {
+  .chart-month-toolbar,
+  .balance-toolbar-controls {
+    align-items: stretch;
+  }
+
+  .chart-month-toolbar {
+    flex-direction: column;
+  }
+
+  .balance-toolbar-controls label,
+  .balance-toolbar-controls input,
+  .balance-toolbar-controls button {
+    width: 100%;
+  }
+}
+
 /* Annual header controls: align balance and month selectors */
 .annual-header-card .annual-controls {
   display: flex;
