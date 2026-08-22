@@ -45,14 +45,14 @@ export default function EntryFilterBar({ filter, setFilter, categories = [], t }
           {t.entrySearchLabel || "Search"}
           <input
             type="search"
-            value={filter.query}
+            value={draftFilter.query}
             onChange={(event) => update("query", event.target.value)}
             placeholder={t.entrySearchPlaceholder || "Title or note"}
           />
         </label>
         <label>
           {t.categoryLabel}
-          <select value={filter.categoryId} onChange={(event) => update("categoryId", event.target.value)}>
+          <select value={draftFilter.categoryId} onChange={(event) => update("categoryId", event.target.value)}>
             <option value="all">{t.allLabel || "All"}</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>{category.icon || ""} {category.label}</option>
@@ -61,19 +61,19 @@ export default function EntryFilterBar({ filter, setFilter, categories = [], t }
         </label>
         <label>
           {t.minimumAmountLabel || "Min amount"}
-          <input type="number" min="0" value={filter.minAmount} onChange={(event) => update("minAmount", event.target.value)} />
+          <input type="number" min="0" value={draftFilter.minAmount} onChange={(event) => update("minAmount", event.target.value)} />
         </label>
         <label>
           {t.maximumAmountLabel || "Max amount"}
-          <input type="number" min="0" value={filter.maxAmount} onChange={(event) => update("maxAmount", event.target.value)} />
+          <input type="number" min="0" value={draftFilter.maxAmount} onChange={(event) => update("maxAmount", event.target.value)} />
         </label>
         <label>
           {t.fromDateLabel || "From"}
-          <input type="date" value={filter.fromDate} onChange={(event) => update("fromDate", event.target.value)} />
+          <input type="date" value={draftFilter.fromDate} onChange={(event) => update("fromDate", event.target.value)} />
         </label>
         <label>
           {t.toDateLabel || "To"}
-          <input type="date" value={filter.toDate} onChange={(event) => update("toDate", event.target.value)} />
+          <input type="date" value={draftFilter.toDate} onChange={(event) => update("toDate", event.target.value)} />
         </label>
         <button type="button" className="secondary-button entry-filter-reset" onClick={reset}>
           {t.clearFiltersLabel || "Clear filters"}

@@ -318,8 +318,8 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
                   <thead>
                     <tr>
                       <th>{t.dateLabel || "Date"}</th>
+                      <th>{t.monthComparisonLabel || "Change"}</th>
                       <th>{t.summaryBalance || "Balance"}</th>
-                      <th>{t.cumulativeLabel || "Cumulative"}</th>
                     </tr>
                   </thead>
                   <tbody>

@@ -48,7 +48,7 @@ export default function HistoryPage({ historyRows, selectedCurrency, exchangeRat
     return matchesEntryFilter({
       ...row,
       ...current,
-      entryDate: current.entryDate || row.targetDate,
+      entryDate: current.entryDate || row.entryDate || row.targetDate,
       categoryId: current.categoryId || row.categoryId,
       amount: current.amount ?? row.amount,
       title: current.title || row.title,

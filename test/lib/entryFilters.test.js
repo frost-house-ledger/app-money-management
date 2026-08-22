@@ -32,4 +32,15 @@ describe("matchesEntryFilter", () => {
       toDate: "2026-04-30"
     })).toBe(true);
   });
+
+  test("normalizes month-only target dates before period matching", () => {
+    expect(matchesEntryFilter({ ...row, entryDate: undefined, targetDate: "2026-04" }, {
+      fromDate: "2026-04-01",
+      toDate: "2026-04-30"
+    })).toBe(true);
+    expect(matchesEntryFilter({ ...row, entryDate: undefined, targetDate: "2026-04" }, {
+      fromDate: "2026-04-02",
+      toDate: "2026-04-30"
+    })).toBe(false);
+  });
 });

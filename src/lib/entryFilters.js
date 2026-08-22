@@ -22,7 +22,8 @@ export function matchesEntryFilter(row, filter = EMPTY_ENTRY_FILTER, options = {
     row.type
   ].map(normaliseText).join(" ");
   const amount = Number(row.amount || 0);
-  const date = String(row.entryDate || row.targetDate || (row.startMonth ? `${row.startMonth}-01` : ""));
+  const rawDate = String(row.entryDate || row.targetDate || (row.startMonth ? `${row.startMonth}-01` : ""));
+  const date = /^\d{4}-\d{2}$/.test(rawDate) ? `${rawDate}-01` : rawDate;
   const fromDate = String(filter.fromDate || "");
   const toDate = String(filter.toDate || "");
   const minAmount = filter.minAmountBase === "" || filter.minAmountBase == null
