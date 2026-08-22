@@ -7,6 +7,7 @@
  */
 import { CapacitorSQLite, SQLiteConnection } from "@capacitor-community/sqlite";
 import { logError } from "./logger.js";
+import categoriesData from "../../json/categories.json";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -14,30 +15,10 @@ const DB_NAME = "ledger";
 const LS_CATEGORIES = "android.categories";
 const LS_RECURRING = "android.recurring";
 
-const DEFAULT_CATEGORIES = [
-  { id: "food", nameJp: "食費", nameEn: "Food", icon: "🍽️", sortOrder: 10, isActive: 1 },
-  { id: "beverage", nameJp: "飲料", nameEn: "Beverage", icon: "☕", sortOrder: 15, isActive: 1 },
-  { id: "transport", nameJp: "交通", nameEn: "Transport", icon: "🚌", sortOrder: 20, isActive: 1 },
-  { id: "housing", nameJp: "住居", nameEn: "Housing", icon: "🏠", sortOrder: 30, isActive: 1 },
-  { id: "home-maintenance", nameJp: "住宅維持費", nameEn: "Home Maintenance", icon: "🔧", sortOrder: 35, isActive: 1 },
-  { id: "utilities", nameJp: "光熱費", nameEn: "Utilities", icon: "💡", sortOrder: 40, isActive: 1 },
-  { id: "medical", nameJp: "医療", nameEn: "Medical", icon: "💊", sortOrder: 50, isActive: 1 },
-  { id: "pets", nameJp: "ペット", nameEn: "Pets", icon: "🐾", sortOrder: 55, isActive: 1 },
-  { id: "beauty", nameJp: "美容", nameEn: "Beauty", icon: "💄", sortOrder: 57, isActive: 1 },
-  { id: "clothing", nameJp: "衣服", nameEn: "Clothing", icon: "👗", sortOrder: 58, isActive: 1 },
-  { id: "education", nameJp: "教育", nameEn: "Education", icon: "📚", sortOrder: 60, isActive: 1 },
-  { id: "electronics", nameJp: "電子機器", nameEn: "Electronics", icon: "📱", sortOrder: 59, isActive: 1 },
-  { id: "entertainment", nameJp: "娯楽", nameEn: "Entertainment", icon: "🎬", sortOrder: 70, isActive: 1 },
-  { id: "travel", nameJp: "旅行", nameEn: "Travel", icon: "✈️", sortOrder: 75, isActive: 1 },
-  { id: "subscription", nameJp: "サブスク", nameEn: "Subscription", icon: "🔁", sortOrder: 90, isActive: 1 },
-  { id: "hobbies", nameJp: "趣味", nameEn: "Hobbies", icon: "🎨", sortOrder: 95, isActive: 1 },
-  { id: "gifts", nameJp: "贈り物/寄付", nameEn: "Gifts/Donations", icon: "🎁", sortOrder: 96, isActive: 1 },
-  { id: "insurance", nameJp: "保険", nameEn: "Insurance", icon: "🛡️", sortOrder: 100, isActive: 1 },
-  { id: "salary", nameJp: "給与", nameEn: "Salary", icon: "💼", sortOrder: 105, isActive: 1 },
-  { id: "investment", nameJp: "投資", nameEn: "Investment", icon: "📊", sortOrder: 107, isActive: 1 },
-  { id: "taxes", nameJp: "税金", nameEn: "Taxes", icon: "💰", sortOrder: 108, isActive: 1 },
-  { id: "other", nameJp: "その他", nameEn: "Other", icon: "📦", sortOrder: 110, isActive: 1 }
-];
+const DEFAULT_CATEGORIES = (categoriesData.items || []).map((category) => ({
+  ...category,
+  isActive: 1
+}));
 
 // ─── DB initialisation ────────────────────────────────────────────────────────
 
