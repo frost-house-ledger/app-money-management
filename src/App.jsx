@@ -19,8 +19,7 @@ import {
 } from "./lib/currency.js";
 import {
   buildEntryListPayload,
-  buildSummaryMonthPayload,
-  buildSummaryRangePayload
+  buildSummaryMonthPayload
 } from "./lib/chartFilterPayloads.js";
 import { formatMessage, getMessages, getCategoryName } from "./i18n/translations.js";
 import { logError } from "./lib/logger.js";
@@ -39,7 +38,6 @@ export default function App() {
   const [selectedMonth, setSelectedMonth] = useState(baseMonth);
   const [currentBalance, setCurrentBalance] = useState(() => localStorage.getItem("analysis:currentBalance") || "");
   const [currentBalanceDate, setCurrentBalanceDate] = useState(() => localStorage.getItem("analysis:currentBalanceDate") || `${baseMonth}-01`);
-  const [savedCurrentBalance, setSavedCurrentBalance] = useState(() => localStorage.getItem("analysis:currentBalance") || "");
   const [range, setRange] = useState(defaultRange(baseMonth));
   const [dateRange, setDateRange] = useState({ fromDate: "", toDate: "" });
   const [activePage, setActivePage] = useState("daily");
@@ -60,7 +58,6 @@ export default function App() {
   const [categories, setCategories] = useState([]);
 
   const [monthlySummary, setMonthlySummary] = useState(null);
-  const [monthlyRows, setMonthlyRows] = useState([]);
   const [recurringRows, setRecurringRows] = useState([]);
   const [dailyRows, setDailyRows] = useState([]);
   const [historyRows, setHistoryRows] = useState([]);
@@ -139,7 +136,6 @@ export default function App() {
     try {
       localStorage.setItem("analysis:currentBalance", String(currentBalance || ""));
       localStorage.setItem("analysis:currentBalanceDate", currentBalanceDate);
-      setSavedCurrentBalance(currentBalance || "");
     } catch (error) {
       logError("App.saveCurrentBalance", error);
     }
@@ -153,22 +149,6 @@ export default function App() {
     } catch (error) {
       logError("loadChartMonthSummary", error);
       setErrorText(error?.message || t.errorLoadFailed || "Failed to load chart summary");
-    }
-  }
-
-  async function loadRangeData(fromMonth, toMonth) {
-    try {
-      const payload = buildSummaryRangePayload({
-        fromMonth,
-        toMonth,
-        selectedDailyCategory,
-        dateRange
-      });
-      const rows = await api.summary.range(payload);
-      setMonthlyRows(rows);
-    } catch (error) {
-      logError("loadRangeData", error);
-      setErrorText(error?.message || t.errorLoadFailed || "Failed to load range data");
     }
   }
 
@@ -212,7 +192,7 @@ export default function App() {
     try {
       const csvText = await file.text();
       const result = await api.entry.importCsv({ csvText });
-      await refreshAll(selectedMonth, range);
+      await refreshAll(selectedMonth);
       showToast(formatMessage(t.toastCsvImported, { count: result.importedCount }));
     } catch (error) {
       setErrorText(error.message || t.errorCsvImportFailed);
@@ -237,15 +217,14 @@ export default function App() {
     showToast(formatMessage(t.toastCsvExported, { count: result.rowCount }));
   }
 
-  async function refreshAll(month = selectedMonth, nextRange = range) {
+  async function refreshAll(month = selectedMonth) {
     try {
       await Promise.all([
         loadRecurring(),
         loadCategories(),
         loadHistory(),
         loadMonthData(month),
-        loadChartMonthSummary(month),
-        loadRangeData(nextRange.fromMonth, nextRange.toMonth)
+        loadChartMonthSummary(month)
       ]);
     } catch (error) {
       // If any part of refresh fails, log and surface a concise message.
@@ -255,7 +234,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    refreshAll();
+    refreshAll(selectedMonth);
   }, []);
 
   // Simple hash-based routing support. Supports: #/daily/edit?id=<id>
@@ -299,12 +278,6 @@ export default function App() {
   useEffect(() => {
     loadChartMonthSummary(selectedMonth);
   }, [selectedMonth, selectedDailyCategory, dateRange.fromDate, dateRange.toDate]);
-
-  useEffect(() => {
-    loadRangeData(range.fromMonth, range.toMonth);
-  }, [range.fromMonth, range.toMonth, selectedDailyCategory, dateRange.fromDate, dateRange.toDate]);
-
-  
 
   useEffect(() => {
     loadHistory();
@@ -382,7 +355,7 @@ export default function App() {
 
     try {
       await api.sync.syncNow({ desktopUrl: syncDesktopUrl.trim() });
-      await refreshAll(selectedMonth, range);
+      await refreshAll(selectedMonth);
       const successMessage = mode === "manual" ? t.syncStatusSuccessManual : t.syncStatusSuccessAuto;
       setSyncStatus({ state: "success", message: successMessage, lastAt: Date.now() });
       if (mode === "manual") {
@@ -548,7 +521,6 @@ export default function App() {
       await api.category.delete({ id });
       await loadCategories();
       await loadMonthData(selectedMonth);
-      await loadRangeData(range.fromMonth, range.toMonth);
       if (selectedDailyCategory === id) {
         setSelectedDailyCategory("all");
       }
@@ -792,7 +764,7 @@ export default function App() {
           categoryId: current.type === "fee" ? String(current.categoryId || "food").toLowerCase() : "food",
           note: ""
         }));
-        await refreshAll(selectedMonth, range);
+        await refreshAll(selectedMonth);
         showToast(t.toastDailyUpdated);
       } else {
         await api.entry.add({
@@ -807,7 +779,7 @@ export default function App() {
           categoryId: current.type === "fee" ? String(current.categoryId || "food").toLowerCase() : "food",
           note: ""
         }));
-        await refreshAll(selectedMonth, range);
+        await refreshAll(selectedMonth);
         showToast(t.toastDailySaved);
       }
     } catch (error) {
@@ -856,7 +828,7 @@ export default function App() {
         ...candidate
       });
       setEditingDailyId(null);
-      await refreshAll(selectedMonth, range);
+      await refreshAll(selectedMonth);
       showToast(t.toastDailyUpdated);
     } catch (error) {
       setErrorText(error.message || t.errorDailyFailed);
@@ -870,7 +842,7 @@ export default function App() {
       const deletedRow = dailyRows.find((r) => String(r.id) === String(id));
       const title = deletedRow?.title || "Item";
       await api.entry.delete({ id });
-      await refreshAll(selectedMonth, range);
+      await refreshAll(selectedMonth);
       showDeleteCompletionPopup(title, "daily");
     } catch (error) {
       setErrorText(error.message || t.errorDailyDeleteFailed);
@@ -1100,11 +1072,6 @@ export default function App() {
           <button type="button" className="secondary-button" onClick={saveCurrentBalance}>
             {t.saveLabel || "Save balance"}
           </button>
-          {/* {savedCurrentBalance && (
-            <span className="saved-balance-value">
-              {formatCurrency(Number(savedCurrentBalance), selectedCurrency, exchangeRates)}
-            </span>
-          )} */}
         </div>
       </section>
 
