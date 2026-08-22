@@ -8,6 +8,7 @@ import HistoryPage from "./components/history/HistoryPage.jsx";
 import SettingsPage from "./components/settings/SettingsPage.jsx";
 import CategoryAnalysisPage from "./components/analysis/CategoryAnalysisPage.jsx";
 import StatisticsSummaryPage from "./components/statistics/StatisticsSummaryPage.jsx";
+import EntryFilterBar from "./components/common/EntryFilterBar.jsx";
 import { api } from "./lib/api.js";
 import { addMonths, thisMonth, todayISO } from "./lib/date.js";
 import {
@@ -23,6 +24,7 @@ import {
 } from "./lib/chartFilterPayloads.js";
 import { formatMessage, getMessages, getCategoryName } from "./i18n/translations.js";
 import { logError } from "./lib/logger.js";
+import { EMPTY_ENTRY_FILTER } from "./lib/entryFilters.js";
 
 function defaultRange(baseMonth) {
   return {
@@ -35,9 +37,13 @@ export default function App() {
   const baseMonth = thisMonth();
   const currentYYYYMM = todayISO().slice(0, 7);
   const [selectedMonth, setSelectedMonth] = useState(baseMonth);
+  const [currentBalance, setCurrentBalance] = useState(() => localStorage.getItem("analysis:currentBalance") || "");
+  const [currentBalanceDate, setCurrentBalanceDate] = useState(() => localStorage.getItem("analysis:currentBalanceDate") || `${baseMonth}-01`);
+  const [savedCurrentBalance, setSavedCurrentBalance] = useState(() => localStorage.getItem("analysis:currentBalance") || "");
   const [range, setRange] = useState(defaultRange(baseMonth));
   const [dateRange, setDateRange] = useState({ fromDate: "", toDate: "" });
   const [activePage, setActivePage] = useState("daily");
+  const [entryFilter, setEntryFilter] = useState(EMPTY_ENTRY_FILTER);
   
   const [selectedDailyCategory, setSelectedDailyCategory] = useState("all");
   const [selectedCurrency, setSelectedCurrency] = useState(() => localStorage.getItem("settings.currency") || "JPY");
@@ -127,6 +133,16 @@ export default function App() {
     const next = new Date(year, month - 1 + offset, 1);
     const nextMonth = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}`;
     setSelectedMonth(nextMonth);
+  }
+
+  function saveCurrentBalance() {
+    try {
+      localStorage.setItem("analysis:currentBalance", String(currentBalance || ""));
+      localStorage.setItem("analysis:currentBalanceDate", currentBalanceDate);
+      setSavedCurrentBalance(currentBalance || "");
+    } catch (error) {
+      logError("App.saveCurrentBalance", error);
+    }
   }
 
   async function loadChartMonthSummary(month) {
@@ -572,11 +588,52 @@ export default function App() {
     }
   }
 
+  function confirmSuspiciousAmount(amount, message) {
+    const numericAmount = Number(amount);
+    if (!Number.isFinite(numericAmount) || numericAmount <= 1000000) {
+      return true;
+    }
+    return window.confirm(message);
+  }
+
+  function confirmDuplicateEntry(candidate, excludeId = null) {
+    const duplicate = dailyRows.some((row) => {
+      if (excludeId != null && String(row.id) === String(excludeId)) return false;
+      return String(row.entryDate || "") === String(candidate.entryDate || "")
+        && String(row.type || "") === String(candidate.type || "")
+        && String(row.title || "").trim().toLowerCase() === String(candidate.title || "").trim().toLowerCase()
+        && Number(row.amount || 0) === Number(candidate.amount || 0)
+        && String(row.categoryId || "") === String(candidate.categoryId || "");
+    });
+    return !duplicate || window.confirm(t.warningDuplicateEntry || "A similar entry already exists. Add it anyway?");
+  }
+
+  function validateRecurringMonths(startMonth, endMonth) {
+    if (endMonth && startMonth > endMonth) {
+      setErrorText(t.errorRecurringMonthRange || "The end month must not be earlier than the start month.");
+      return false;
+    }
+    return true;
+  }
+
+  function confirmDuplicateRecurring(candidate, excludeId = null) {
+    const duplicate = recurringRows.some((row) => {
+      if (excludeId != null && String(row.id) === String(excludeId)) return false;
+      return String(row.type || "") === String(candidate.type || "")
+        && String(row.title || "").trim().toLowerCase() === String(candidate.title || "").trim().toLowerCase()
+        && String(row.categoryId || "") === String(candidate.categoryId || "")
+        && String(row.startMonth || "") === String(candidate.startMonth || "")
+        && String(row.endMonth || "") === String(candidate.endMonth || "");
+    });
+    return !duplicate || window.confirm(t.warningDuplicateRecurring || "A similar recurring item already exists. Add it anyway?");
+  }
+
   async function onSubmitRecurring(event) {
     event.preventDefault();
     setErrorText("");
 
     try {
+      if (!validateRecurringMonths(recurringForm.startMonth, recurringForm.endMonth)) return;
       const payload = {
         ...recurringForm,
         categoryId: recurringForm.type === "fee" ? recurringForm.categoryId || "food" : null,
@@ -585,6 +642,9 @@ export default function App() {
       };
       // Ensure isSalary flag is passed as boolean
       payload.isSalary = Boolean(recurringForm.isSalary);
+
+      if (!confirmDuplicateRecurring(payload, editingRecurringId)
+        || !confirmSuspiciousAmount(payload.amount, t.warningLargeAmount || "This amount is unusually large. Continue?")) return;
 
       if (editingRecurringId) {
         await api.recurring.update({
@@ -645,9 +705,14 @@ export default function App() {
   async function onUpdateRecurringInline(payload) {
     setErrorText("");
     try {
+      if (!validateRecurringMonths(payload.startMonth, payload.endMonth)) return;
+      const amount = convertDisplayAmountToBase(payload.amount, selectedCurrency, exchangeRates);
+      const candidate = { ...payload, amount };
+      if (!confirmDuplicateRecurring(candidate, payload.id)
+        || !confirmSuspiciousAmount(amount, t.warningLargeAmount || "This amount is unusually large. Continue?")) return;
       await api.recurring.update({
         ...payload,
-        amount: convertDisplayAmountToBase(payload.amount, selectedCurrency, exchangeRates)
+        amount
       });
       setEditingRecurringId(null);
       await refreshAll();
@@ -702,13 +767,22 @@ export default function App() {
       return;
     }
 
+    const baseAmount = convertDisplayAmountToBase(dailyForm.amount, selectedCurrency, exchangeRates);
+    const candidate = {
+      ...dailyForm,
+      categoryId: dailyForm.type === "fee" ? String(dailyForm.categoryId || "food").toLowerCase() : null,
+      amount: baseAmount
+    };
+    if (!confirmDuplicateEntry(candidate, editingDailyId)
+      || !confirmSuspiciousAmount(baseAmount, t.warningLargeAmount || "This amount is unusually large. Continue?")) return;
+
     try {
       if (editingDailyId) {
         await api.entry.update({
             ...dailyForm,
             id: editingDailyId,
             categoryId: dailyForm.type === "fee" ? String(dailyForm.categoryId || "food").toLowerCase() : null,
-            amount: convertDisplayAmountToBase(dailyForm.amount, selectedCurrency, exchangeRates)
+            amount: baseAmount
           });
         setEditingDailyId(null);
         setDailyForm((current) => ({
@@ -724,7 +798,7 @@ export default function App() {
         await api.entry.add({
           ...dailyForm,
           categoryId: dailyForm.type === "fee" ? String(dailyForm.categoryId || "food").toLowerCase() : null,
-          amount: convertDisplayAmountToBase(dailyForm.amount, selectedCurrency, exchangeRates)
+          amount: baseAmount
         });
         setDailyForm((current) => ({
           ...current,
@@ -770,10 +844,16 @@ export default function App() {
     // Allow future dates for inline updates as well
 
     try {
-      await api.entry.update({
+      const baseAmount = convertDisplayAmountToBase(payload.amount, selectedCurrency, exchangeRates);
+      const candidate = {
         ...payload,
         categoryId: payload.type === "fee" ? payload.categoryId || "food" : null,
-        amount: convertDisplayAmountToBase(payload.amount, selectedCurrency, exchangeRates)
+        amount: baseAmount
+      };
+      if (!confirmDuplicateEntry(candidate, payload.id)
+        || !confirmSuspiciousAmount(baseAmount, t.warningLargeAmount || "This amount is unusually large. Continue?")) return;
+      await api.entry.update({
+        ...candidate
       });
       setEditingDailyId(null);
       await refreshAll(selectedMonth, range);
@@ -843,6 +923,16 @@ export default function App() {
 
       return { id: item.id, label, icon: item.icon };
     });
+
+  const filterForRows = {
+    ...entryFilter,
+    minAmountBase: entryFilter.minAmount === ""
+      ? ""
+      : convertDisplayAmountToBase(entryFilter.minAmount, selectedCurrency, exchangeRates),
+    maxAmountBase: entryFilter.maxAmount === ""
+      ? ""
+      : convertDisplayAmountToBase(entryFilter.maxAmount, selectedCurrency, exchangeRates)
+  };
 
   if (route === 'daily-edit') {
     return (
@@ -985,6 +1075,37 @@ export default function App() {
             </button>
           </div>
         </label>
+
+        {/* for saving the balance on a specific date */}
+        <div className="balance-toolbar-controls">
+          <label>
+            <span>{t.dateLabel || "Date"}:</span>
+            <input
+              type="date"
+              value={currentBalanceDate}
+              onChange={(e) => setCurrentBalanceDate(e.target.value)}
+            />
+          </label>
+          <label>
+            <span>{t.amountLabel || "Amount"}:</span>
+            <input
+              type="number"
+              min="0"
+              value={currentBalance}
+              onChange={(e) => setCurrentBalance(e.target.value)}
+              placeholder="0"
+            />
+          </label>
+
+          <button type="button" className="secondary-button" onClick={saveCurrentBalance}>
+            {t.saveLabel || "Save balance"}
+          </button>
+          {/* {savedCurrentBalance && (
+            <span className="saved-balance-value">
+              {formatCurrency(Number(savedCurrentBalance), selectedCurrency, exchangeRates)}
+            </span>
+          )} */}
+        </div>
       </section>
 
       {/* Page view tabs */}
@@ -1039,6 +1160,15 @@ export default function App() {
 
       </nav>
 
+      {/* {(activePage === "daily" || activePage === "monthly" || activePage === "history") && (
+        <EntryFilterBar
+          filter={entryFilter}
+          setFilter={setEntryFilter}
+          categories={dailyCategoryOptions}
+          t={t}
+        />
+      )} */}
+
       {errorText && <p className="error">{errorText}</p>}
 
       {activePage === "chart" ? (
@@ -1047,6 +1177,8 @@ export default function App() {
           selectedCurrency={selectedCurrency}
           exchangeRates={exchangeRates}
           t={t}
+          currentBalance={currentBalance}
+          currentBalanceDate={currentBalanceDate}
         />
       ) : activePage === "monthly" ? (
         <MonthlyEntryPage
@@ -1058,6 +1190,7 @@ export default function App() {
           onCancelRecurringEdit={onCancelRecurringEdit}
           dailyCategoryOptions={dailyCategoryOptions}
           filteredRecurring={filteredRecurring}
+          entryFilter={filterForRows}
           selectedCurrency={selectedCurrency}
           onEditRecurring={onEditRecurring}
           onUpdateRecurringInline={onUpdateRecurringInline}
@@ -1083,6 +1216,7 @@ export default function App() {
           onResetCategories={onResetCategories}
           dailyRows={dailyRows}
           filteredRecurring={filteredRecurring}
+          entryFilter={filterForRows}
           dailyTitle={formatMessage(t.dailyListTitle, { month: selectedMonth })}
           dailyTitleSuggestions={dailyTitleSuggestions}
           onUpdateDailyInline={onUpdateDailyInline}
@@ -1124,6 +1258,7 @@ export default function App() {
       ) : (
         <HistoryPage
           historyRows={historyRows}
+          entryFilter={filterForRows}
           selectedCurrency={selectedCurrency}
           exchangeRates={exchangeRates}
           t={t}

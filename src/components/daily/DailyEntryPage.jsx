@@ -26,6 +26,7 @@ export default function DailyEntryPage({
   exchangeRates,
   locale,
   selectedMonth,
+  entryFilter,
   t
 }) {
   const [categoryManagerOpen, setCategoryManagerOpen] = React.useState(false);
@@ -99,6 +100,7 @@ export default function DailyEntryPage({
           onUpdateDailyInline={onUpdateDailyInline}
           onDeleteDaily={onDeleteDaily}
           selectedMonth={selectedMonth}
+          entryFilter={entryFilter}
           t={t}
         />
       </section>

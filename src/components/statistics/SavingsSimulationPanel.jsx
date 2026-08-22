@@ -234,7 +234,7 @@ export default function SavingsSimulationPanel({ annualRows, selectedCurrency, e
         ))}
       </div>
 
-      {annualRows.length > 0 && (
+      {safeAnnualRows.length > 0 && (
         <button type="button" className="secondary-button savings-sim-autofill" onClick={handleAutoFill}>
           {t.savingsSimAutoFill}
         </button>

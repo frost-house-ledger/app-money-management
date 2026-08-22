@@ -239,6 +239,8 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
                 <tr>
                   <th style={{ textAlign: "left", width: "140px"}}>{t.categoryLabel}</th>
                   <th style={{ textAlign: "left", width: "140px"}}>{t.amountLabel}</th>
+                  <th style={{ textAlign: "left", width: "140px"}}>{t.targetAmountLabel}</th>
+                  <th style={{ textAlign: "left", width: "140px"}}>{t.budgetUsageLabel || "Budget usage"}</th>
                   <th style={{ textAlign: "left", width: "140px"}}>{t.percentageLabel}</th>
                 </tr>
               </thead>
@@ -250,6 +252,7 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
                   const targetVal = targets[key] === "" || targets[key] === undefined ? null : Number(targets[key]);
                   const amountVal = Number(row.total || 0);
                   const exceeded = targetVal !== null && !Number.isNaN(targetVal) && amountVal > targetVal;
+                  const usagePercentage = targetVal > 0 ? (amountVal / targetVal) * 100 : null;
                   const percentage = total > 0 ? ((amountVal / total) * 100).toFixed(1) : 0;
 
                   return (
@@ -258,7 +261,18 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
                         <strong>{row.categoryIcon} {row.categoryDisplay}</strong>
                       </td>
 
-                      <td style={{ textAlign: "left", width: "140px"}} className={`amount ${exceeded ? "exceeded" : ""}`}>{formatCurrency(row.total, selectedCurrency, exchangeRates)}</td>
+                      <td style={{ textAlign: "left", width: "140px"}} className={`amount ${exceeded ? "exceeded" : ""}`}>
+                        {formatCurrency(row.total, selectedCurrency, exchangeRates)}
+                        {exceeded && <span role="status" style={{ display: "block", fontSize: "0.8rem" }}>{t.budgetExceededLabel || "Over budget"}</span>}
+                      </td>
+                      <td style={{ textAlign: "left", width: "140px"}}>
+                        {targetVal !== null && !Number.isNaN(targetVal)
+                          ? formatCurrency(targetVal, selectedCurrency, exchangeRates)
+                          : "-"}
+                      </td>
+                      <td style={{ textAlign: "left", width: "140px" }} className={exceeded ? "exceeded" : ""}>
+                        {usagePercentage === null ? "-" : `${usagePercentage.toFixed(1)}%`}
+                      </td>
                       <td style={{ textAlign: "left", width: "140px"}}>{percentage}%</td>
                     </tr>
                   );

@@ -8,6 +8,7 @@ import {
 } from "../../lib/currency.js";
 import { thisMonth } from "../../lib/date.js";
 import { logError } from "../../lib/logger.js";
+import { matchesEntryFilter } from "../../lib/entryFilters.js";
 
 export default function RecurringSection({
   recurringForm,
@@ -163,7 +164,8 @@ export default function RecurringSection({
     onUpdateRecurringInline,
     onDeleteRecurring,
     exchangeRates,
-    t
+    t,
+    entryFilter
   }) {
     const [inlineEditId, setInlineEditId] = React.useState(null);
     const [inlineForm, setInlineForm] = React.useState({
@@ -187,7 +189,7 @@ export default function RecurringSection({
     const currentMonth = React.useMemo(() => thisMonth(), []);
     const safeFilteredRecurring = Array.isArray(filteredRecurring) ? filteredRecurring : [];
     const safeDailyCategoryOptions = Array.isArray(dailyCategoryOptions) ? dailyCategoryOptions : [];
-    const visibleRecurring = safeFilteredRecurring;
+    const visibleRecurring = safeFilteredRecurring.filter((row) => matchesEntryFilter(row, entryFilter));
 
     // Update progress bar every 50ms
     React.useEffect(() => {
