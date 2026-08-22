@@ -336,24 +336,8 @@ setPendingDeletePopup((current) => (current?.id === id ? null : current));
                         </>
                       ) : (
                         <>
-                          <button
-                            type="button"
-                            className="inline-action icon-action"
-                            onClick={() => openFullPageEditor(row)}
-                            aria-label={t.editRecurringButton || "Edit"}
-                            title={t.editRecurringButton || "Edit"}
-                          >
-                            ✏️
-                          </button>
-                          <button
-                            type="button"
-                            className="inline-action danger-action icon-action"
-                            onClick={() => requestDelete(row.id)}
-                            aria-label={t.deleteRecurringButton || "Delete"}
-                            title={t.deleteRecurringButton || "Delete"}
-                          >
-                            🗑
-                          </button>
+                          <button className="inline-action" onClick={() => openFullPageEditor(row)}>{t.editRecurringButton}</button>
+                          <button className="inline-action danger-action" onClick={() => requestDelete(row.id)}>{t.deleteRecurringButton}</button>
                         </>
                       )}
                     </td>

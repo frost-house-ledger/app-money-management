@@ -398,35 +398,19 @@ export default function CategoryManagerSection({
                         <td className="category-table-actions">
                           <button type="button" className="inline-action" onClick={() => moveCategory(category.id, -1)}>↑</button>
                           <button type="button" className="inline-action" onClick={() => moveCategory(category.id, 1)}>↓</button>
-                          <button
-                            type="button"
-                            className="inline-action icon-action"
-                            onClick={() => startEdit(category)}
-                            aria-label={t.editRecurringButton || "Edit"}
-                            title={t.editRecurringButton || "Edit"}
-                          >
-                            ✏️
-                          </button>
+                          <button type="button" className="inline-action" onClick={() => startEdit(category)}>{t.editRecurringButton}</button>
                           {!isActive && (
-                            <button
-                              type="button"
-                              className="inline-action icon-action"
-                              onClick={() => restoreCategory(category.id)}
-                              aria-label={t.restoreButton || "Restore"}
-                              title={t.restoreButton || "Restore"}
-                            >
-                              ↶
+                            <button type="button" className="inline-action" onClick={() => restoreCategory(category.id)}>
+                              {t.restoreButton || "Restore"}
                             </button>
                           )}
                           <button
                             type="button"
-                            className="inline-action danger-action icon-action"
+                            className="inline-action"
                             onClick={() => safeDeleteCategory(category.id)}
                             disabled={category.id === "other" || !isActive}
-                            aria-label={t.deleteButton || "Delete"}
-                            title={t.deleteButton || "Delete"}
                           >
-                            🗑
+                            {t.deleteButton}
                           </button>
                         </td>
                       </>

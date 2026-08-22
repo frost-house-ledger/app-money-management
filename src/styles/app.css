@@ -431,16 +431,11 @@ html[lang="ru"] .hero p {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: nowrap;
-  flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .balance-toolbar-controls label {
   flex: 0 1 auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
 }
 
 .balance-toolbar-controls input {
@@ -449,10 +444,6 @@ html[lang="ru"] .hero p {
 
 .balance-toolbar-controls input[type="number"] {
   width: 130px;
-}
-
-.balance-toolbar-controls button {
-  white-space: nowrap;
 }
 
 .saved-balance-value {
@@ -483,10 +474,6 @@ html[lang="ru"] .hero p {
   }
 
   .chart-month-toolbar {
-    flex-direction: column;
-  }
-
-  .balance-toolbar-controls {
     flex-direction: column;
   }
 
@@ -1141,18 +1128,6 @@ button {
   white-space: nowrap;
 }
 
-.inline-action.icon-action {
-  width: 42px;
-  min-width: 42px;
-  height: 36px;
-  padding: 6px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.05rem;
-  line-height: 1;
-}
-
 /* Prevent very long action labels (e.g. "編集をキャンセル") from overflowing */
 .recurring-table td:first-child .inline-action {
   display: inline-block;
@@ -1354,12 +1329,6 @@ button {
 .category-table-actions .inline-action:nth-child(2) {
   min-width: 44px;
   padding-inline: 12px;
-}
-
-.category-table-actions .inline-action.icon-action {
-  width: 42px;
-  min-width: 42px;
-  padding-inline: 6px;
 }
 
 .category-ratio-list li {
