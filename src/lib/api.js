@@ -6,6 +6,10 @@
 import { createElectronApi } from "./api-electron.js";
 import { createAndroidApi } from "./api-android.js";
 
+function isTauri() {
+  return typeof window !== "undefined" && Boolean(window.__TAURI_INTERNALS__ || window.__TAURI__);
+}
+
 function isElectron() {
   return (
     typeof window !== "undefined" &&
@@ -20,6 +24,8 @@ export function getApi() {
   if (_api) return _api;
   if (isElectron()) {
     _api = createElectronApi();
+  } else if (isTauri()) {
+    _api = createAndroidApi();
   } else {
     _api = createAndroidApi();
   }

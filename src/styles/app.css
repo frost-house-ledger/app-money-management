@@ -14,6 +14,7 @@
   --item-bg: rgba(255, 255, 255, 0.06);
   --input-bg: rgba(255, 255, 255, 0.08);
   --nav-bg: rgba(255, 255, 255, 0.05);
+  --content-width: 980px;
 }
 
 * {
@@ -31,9 +32,22 @@ body {
   min-height: 100vh;
 }
 
+@media (min-width: 1440px) {
+  body {
+    zoom: 1.08;
+  }
+}
+
+@media (min-width: 1920px) {
+  body {
+    zoom: 1.16;
+  }
+}
+
+
 .page {
   /* slightly narrower layout to reduce sprawling frames */
-  max-width: 980px; /* tightened from 1200 to 980 */
+  max-width: var(--content-width);
   margin: 0 auto;
   padding: 20px 16px 40px;
   display: grid;
@@ -348,6 +362,24 @@ html[lang="ru"] .hero p {
   gap: 12px;
 }
 
+.statistics-summary-page {
+  width: 100%;
+  max-width: var(--content-width);
+  min-width: 0;
+  margin-inline: auto;
+}
+
+.statistics-summary-page > .chart-dashboard-page {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.statistics-summary-page canvas {
+  display: block;
+  max-width: 100% !important;
+}
+
 .chart-wrap {
   position: relative;
   height: 320px;
@@ -369,6 +401,9 @@ html[lang="ru"] .hero p {
 }
 
 .page-tabs-nav {
+  width: 100%;
+  max-width: var(--content-width);
+  margin-inline: auto;
   display: flex;
   gap: 8px;
   padding: 8px;
@@ -802,24 +837,13 @@ button {
   color: #f5a623;
 }
 
-/* Expired recurring row: draw a red horizontal strike-through across the whole row */
+/* Keep expired recurring rows in the normal table layout while marking their values. */
 .recurring-list-item--expired {
-  position: relative;
   opacity: 0.95;
 }
-.recurring-list-item--expired::after {
-  content: "";
-  position: absolute;
-  left: 8px;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  border-top: 2px solid rgba(255, 80, 80, 0.95); /* red line */
-  pointer-events: none;
-}
-.recurring-list-item--expired > * {
-  position: relative; /* ensure content stays above line */
-  z-index: 2;
+.recurring-list-item--expired > td:not(:first-child) {
+  text-decoration: line-through;
+  text-decoration-color: rgba(255, 80, 80, 0.95);
 }
 
 .daily-list-item--pending-delete > strong,
@@ -877,8 +901,7 @@ button {
   /* card padding is 14px — expand table to cover that padding for a full-bleed look */
   width: calc(100% + 28px);
   margin: 0 -14px 8px;
-  /* Allow automatic table layout so columns can flex based on content (amounts will grow as needed) */
-  table-layout: auto;
+  table-layout: fixed;
 }
 
 .recurring-table thead th,
@@ -950,6 +973,13 @@ button {
 }
 .recurring-table th:nth-child(8), .recurring-table td:nth-child(8) {
   min-width: 140px; /* title column gets room */
+}
+.recurring-table th:nth-child(9), .recurring-table td:nth-child(9) {
+  width: 150px;
+  max-width: 150px;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* Ensure inputs/selects inside table cells don't expand beyond cell */
@@ -1369,6 +1399,48 @@ button {
 .annual-header-card {
   display: grid;
   gap: 8px;
+}
+
+@media (max-width: 760px) {
+  .recurring-table {
+    width: calc(100% + 20px);
+    margin-left: -10px;
+    margin-right: -10px;
+    font-size: 0.68rem;
+  }
+
+  .recurring-table th,
+  .recurring-table td {
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    padding: 5px 2px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .recurring-table th:nth-child(1), .recurring-table td:nth-child(1) { width: 12% !important; }
+  .recurring-table th:nth-child(2), .recurring-table td:nth-child(2),
+  .recurring-table th:nth-child(3), .recurring-table td:nth-child(3) { width: 9% !important; }
+  .recurring-table th:nth-child(4), .recurring-table td:nth-child(4) { width: 8% !important; }
+  .recurring-table th:nth-child(5), .recurring-table td:nth-child(5) { width: 9% !important; }
+  .recurring-table th:nth-child(6), .recurring-table td:nth-child(6) { width: 15% !important; }
+  .recurring-table th:nth-child(7), .recurring-table td:nth-child(7) { width: 11% !important; }
+  .recurring-table th:nth-child(8), .recurring-table td:nth-child(8) { width: 14% !important; }
+  .recurring-table th:nth-child(9), .recurring-table td:nth-child(9) { width: 13% !important; }
+
+  .recurring-table td:first-child .inline-action {
+    width: 22px;
+    min-width: 22px;
+    height: 26px;
+    padding: 2px;
+    font-size: 0.78rem;
+  }
+
+  .recurring-table td:first-child .inline-action + .inline-action {
+    margin-left: 1px;
+  }
 }
 
 .month-diff {

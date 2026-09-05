@@ -18,9 +18,9 @@ import { Bar } from "react-chartjs-2";
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend, BarController);
 
 
-function formatDelta(value, currency, rates) {
+function formatDelta(value, currency, rates, includePlus = true) {
   const amount = Number(value || 0);
-  const sign = amount > 0 ? "+" : amount < 0 ? "-" : "";
+  const sign = amount > 0 && includePlus ? "+" : amount < 0 ? "-" : "";
   return `${sign}${formatCurrency(Math.abs(amount), currency, rates)}`;
 }
 
@@ -135,7 +135,10 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
       const baselineMonth = String(currentBalanceDate || "").slice(0, 7);
       const baselineIndex = Math.max(0, labels.findIndex((label) => label === baselineMonth));
       return labels.map((_, i) => {
-        if (i < baselineIndex) return 0;
+        if (i === baselineIndex) return base;
+        if (i < baselineIndex) {
+          return base + (cum[baselineIndex] || 0) - (cum[i] || 0);
+        }
         return base + (cum[i - 1] || 0) - (cum[baselineIndex - 1] || 0);
       });
     } catch (e) {
@@ -188,7 +191,7 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
   try {
     return (
     /* Renders the annual summary page, including a header with the year selector, total balance, and a button to toggle the savings simulation panel. Also displays a list of monthly summaries with income, fee, balance, and difference from the previous month. */
-    <section className="chart-dashboard-page">
+    <section className="chart-dashboard-page statistics-summary-page">
 
       {/* Statistics summary when simulation is not shown */}
       {!showSimulation && (
@@ -271,7 +274,7 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
                   <th>{t.summaryIncome}</th>
                   <th>{t.summaryFee}</th>
                   <th>{t.summaryBalance}</th>
-                  <th>{t.monthComparisonLabel}</th>
+                  {/* <th>{t.monthComparisonLabel}</th> */}
                   <th>{t.cumulativeLabel || "Cumulative"}</th>
                 </tr>
               </thead>
@@ -284,7 +287,7 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
                       <td>{formatCurrency(row.income, selectedCurrency, exchangeRates)}</td>
                       <td>{formatCurrency(row.fee, selectedCurrency, exchangeRates)}</td>
                       <td>{formatCurrency(row.balance, selectedCurrency, exchangeRates)}</td>
-                      <td
+                      {/* <td
                         className={
                           row.diffFromPrevious == null
                             ? "month-diff"
@@ -294,9 +297,9 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
                         }
                       >
                         {row.diffFromPrevious == null ? "-" : formatDelta(row.diffFromPrevious, selectedCurrency, exchangeRates)}
-                      </td>
+                      </td> */}
                       <td className={cumulative >= 0 ? "positive" : "negative"}>
-                        {formatDelta(cumulative, selectedCurrency, exchangeRates)}
+                        {formatDelta(cumulative, selectedCurrency, exchangeRates, false)}
                       </td>
                     </tr>
                   );
@@ -305,6 +308,7 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
             </table>
             </>}
 
+            {/* Daily balance trend section */}
             <button type="button" className="statistics-collapse-button" onClick={() => setDailyTableOpen((open) => !open)}>
               {dailyTableOpen ? "-" : "+"} {t.dailyBalanceTrendTitle || "Daily balance trend"}
             </button>
