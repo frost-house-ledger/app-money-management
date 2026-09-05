@@ -58,7 +58,7 @@
     "@tauri-apps/plugin-sql": "^2",
     "better-sqlite3": "^13.0.3",
     "chart.js": "^4.5.1",
-    "i18next": "^26.3.6",
+    "i18next": "^26.4.0",
     "mongodb": "^7.5.0",
     "react": "^19.2.7",
     "react-chartjs-2": "^5.3.1",
