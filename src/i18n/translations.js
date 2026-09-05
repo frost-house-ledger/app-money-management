@@ -2,7 +2,6 @@ export const TRANSLATIONS = {
   // -------------------------
   // General
   // -------------------------
-  appTitle: { jp: "Life Ledger", en: "Life Ledger", de: "Life Ledger", es: "Life Ledger", pt: "Life Ledger", it: "Life Ledger", fr: "Life Ledger", ru: "Life Ledger", tw: "Life Ledger", ko: "Life Ledger", ar: "لايف ليدجر" },
   appDescription: {
     jp: "月次の固定費/固定収入を一度登録すると、それ以降の月に自動で反映されます。さらに日々の支出や収入を追加するとグラフと一覧に即時反映されます。",
     en: "Once you register monthly fixed fees and income, they are automatically applied to future months. Daily expenses and income are reflected instantly in the chart and lists.",
