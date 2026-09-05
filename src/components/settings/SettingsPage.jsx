@@ -6,6 +6,7 @@ import currenciesData from "../../../json/currency.json";
 import LanguageVisibilityModal from "./LanguageVisibilityModal.jsx";
 import CurrencyVisibilityModal from "./CurrencyVisibilityModal.jsx";
 import "../../styles/app.css";
+import { open as openExternal } from "@tauri-apps/plugin-shell";
 
 export default function SettingsPage({
   locale,
@@ -295,13 +296,14 @@ export default function SettingsPage({
         <br />
 
         If you find this app useful, please consider supporting its development. 
-        <p>Your support helps maintain and improve the app.</p>
-          <p>Support: <a
-            href="https://github.com/sponsors/KFrost-Sponsor"
-            onClick={(e) => { e.preventDefault(); openExternalUrl('https://github.com/sponsors/KFrost-Sponsor'); }}
-            rel="noopener noreferrer"
-            style={{ color: 'inherit', textDecoration: 'underline', cursor: 'pointer' }}
-          >GitHub Sponsors</a></p>
+        <br />
+        Your support helps maintain and improve the app.
+        <p>Support: <a
+          href="https://github.com/sponsors/KFrost-Sponsor"
+          onClick={(e) => { e.preventDefault(); openExternalUrl('https://github.com/sponsors/KFrost-Sponsor'); }}
+          rel="noopener noreferrer"
+          style={{ color: 'inherit', textDecoration: 'underline', cursor: 'pointer' }}
+        >GitHub Sponsors</a></p>
       </section>
     );
   } catch (err) {
@@ -317,7 +319,15 @@ export default function SettingsPage({
   }
 }
 
-function openExternalUrl(url) {
+async function openExternalUrl(url) {
+  if (typeof window !== "undefined" && (window.__TAURI_INTERNALS__ || window.__TAURI__)) {
+    try {
+      await openExternal(url);
+      return;
+    } catch (error) {
+      logError("SettingsPage.openExternalUrl", error);
+    }
+  }
   try {
     // If running inside Electron, use IPC to open in system default browser
     if (typeof window !== 'undefined' && window.shellApi?.openExternal) {

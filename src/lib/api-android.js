@@ -6,6 +6,7 @@
  * Database schema mirrors Desktop/electron/db/schema-input.js.
  */
 import { CapacitorSQLite, SQLiteConnection } from "@capacitor-community/sqlite";
+import Database from "@tauri-apps/plugin-sql";
 import { logError } from "./logger.js";
 import categoriesData from "../../json/categories.json";
 
@@ -27,6 +28,62 @@ let _sqlite = null;
 
 async function getDb() {
   if (_db) return _db;
+  if (typeof window !== "undefined" && (window.__TAURI_INTERNALS__ || window.__TAURI__)) {
+    const connection = await Database.load("sqlite:ledger.db");
+    _db = {
+      execute: (statement, values = []) => connection.execute(statement, values),
+      query: async (statement, values = []) => {
+        const rows = await connection.select(statement, values);
+        return { values: Array.isArray(rows) ? rows : (rows?.values || []) };
+      },
+      run: async (statement, values = []) => {
+        const result = await connection.execute(statement, values);
+        return {
+          changes: {
+            changes: result.rowsAffected || 0,
+            lastId: result.lastInsertId
+          }
+        };
+      }
+    };
+    const schemaStatements = [
+      `CREATE TABLE IF NOT EXISTS daily_entries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        type TEXT NOT NULL CHECK(type IN ('fee','income')),
+        title TEXT NOT NULL,
+        amount REAL NOT NULL CHECK(amount >= 0),
+        entry_date TEXT NOT NULL,
+        category_id TEXT,
+        note TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+        sync_id TEXT
+      )`,
+      `CREATE TABLE IF NOT EXISTS input_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        source TEXT NOT NULL,
+        action TEXT NOT NULL DEFAULT 'add',
+        type TEXT NOT NULL,
+        title TEXT NOT NULL,
+        amount REAL NOT NULL,
+        target_date TEXT NOT NULL,
+        category_id TEXT,
+        note TEXT,
+        logged_at TEXT NOT NULL DEFAULT (datetime('now'))
+      )`,
+      `CREATE TABLE IF NOT EXISTS category_targets (
+        month TEXT NOT NULL,
+        category_id TEXT NOT NULL,
+        amount REAL NOT NULL DEFAULT 0,
+        updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+        PRIMARY KEY (month, category_id)
+      )`
+    ];
+    for (const statement of schemaStatements) {
+      await _db.execute(statement);
+    }
+    return _db;
+  }
   _sqlite = new SQLiteConnection(CapacitorSQLite);
   const ret = await _sqlite.checkConnectionsConsistency();
   const isConn = (await _sqlite.isConnection(DB_NAME, false)).result;
@@ -601,40 +658,109 @@ export function createAndroidApi() {
         let importedCount = 0;
         const categories = readCategories();
         const catMap = Object.fromEntries(categories.map((c) => [c.id, c]));
+        const recurringItems = readRecurring();
+        const recurringKeys = new Set(recurringItems.map((item) => [
+          item.type,
+          item.title,
+          Number(item.amount || 0),
+          item.startMonth,
+          item.endMonth || "",
+          item.categoryId || ""
+        ].join("::")));
+        const scopedRows = rows.some((row) => String(row.record_scope || row.scope || "").trim());
 
         for (let i = 0; i < rows.length; i++) {
           const row = rows[i];
-          const entryDate = String(row.date || "").trim();
-          if (!/^\d{4}-\d{2}-\d{2}$/.test(entryDate)) throw new Error(`Row ${i + 1}: invalid date "${entryDate}"`);
-
           const rawType = String(row.type || "").toLowerCase().trim();
           const type = rawType === "income" ? "income" : "fee";
           const title = String(row.title || "").trim();
           if (!title) throw new Error(`Row ${i + 1}: title is required`);
 
-          const amount = Number((row.price || row.amount || "0").replace(/,/g, ""));
+          const amountText = String(row.price ?? row.amount ?? "0").replace(/[，,\s￥¥$]/g, "");
+          const amount = Number(amountText);
           if (!Number.isFinite(amount) || amount < 0) throw new Error(`Row ${i + 1}: invalid amount`);
 
-          const categoryName = String(row.category || "other").trim();
-          let categoryId = normalizeCategoryId(categoryName) || "other";
-          if (!catMap[categoryId]) {
+          const categoryIdFromFile = String(row.category_id || row.categoryId || "").trim();
+          const categoryName = String(
+            row.category || row.category_name_en || row.category_name_jp || categoryIdFromFile || "other"
+          ).trim();
+          let categoryId = categoryIdFromFile || normalizeCategoryId(categoryName) || "other";
+          if (type === "income") categoryId = null;
+          if (categoryId && !catMap[categoryId]) {
             const newCat = {
-              id: categoryId, nameJp: categoryName, nameEn: categoryName, nameDe: categoryName,
-              icon: "🏷️", sortOrder: (categories.length + 1) * 10, isActive: 1, updatedAt: nowIso()
+              id: categoryId,
+              nameJp: String(row.category_name_jp || categoryName),
+              nameEn: String(row.category_name_en || categoryName),
+              nameDe: String(row.category_name_de || categoryName),
+              icon: String(row.category_icon || "🏷️"),
+              sortOrder: (categories.length + 1) * 10,
+              isActive: 1,
+              updatedAt: nowIso()
             };
             categories.push(newCat);
             catMap[categoryId] = newCat;
           }
 
+          const scope = String(row.record_scope || row.scope || "").trim().toLowerCase();
+          const isMonthly = scope === "monthly" || (!scopedRows && Boolean(row.start_month || row.startMonth));
+          if (isMonthly) {
+            const startMonth = String(row.start_month || row.startMonth || row.entry_date || "").trim();
+            const endMonth = String(row.end_month || row.endMonth || "").trim() || null;
+            if (!/^\d{4}-\d{2}$/.test(startMonth)) {
+              throw new Error(`Row ${i + 1}: invalid start month "${startMonth}"`);
+            }
+            if (endMonth && !/^\d{4}-\d{2}$/.test(endMonth)) {
+              throw new Error(`Row ${i + 1}: invalid end month "${endMonth}"`);
+            }
+            if (endMonth && startMonth > endMonth) {
+              throw new Error(`Row ${i + 1}: start month is after end month`);
+            }
+            const recurringType = type;
+            const recurringKey = [
+              recurringType,
+              title,
+              amount,
+              startMonth,
+              endMonth || "",
+              categoryId || ""
+            ].join("::");
+            if (!recurringKeys.has(recurringKey)) {
+              const timestamp = String(row.created_at || row.createdAt || row.updated_at || nowIso()).trim();
+              recurringItems.push({
+                id: String(row.id || `r-${Date.now()}-${i}`),
+                type: recurringType,
+                categoryId: recurringType === "fee" ? (categoryId || "other") : null,
+                title,
+                amount,
+                note: String(row.note || row.description || ""),
+                startMonth,
+                endMonth,
+                isSalary: false,
+                createdAt: timestamp,
+                updatedAt: String(row.updated_at || row.updatedAt || timestamp).trim()
+              });
+              recurringKeys.add(recurringKey);
+              importedCount++;
+            }
+            continue;
+          }
+
+          const entryDate = String(row.entry_date || row.date || row.entryDate || "").trim();
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(entryDate)) throw new Error(`Row ${i + 1}: invalid date "${entryDate}"`);
+
+          const syncId = String(row.sync_id || row.syncId || createSyncId()).trim();
+          const createdAt = String(row.created_at || row.createdAt || nowIso()).trim();
+          const updatedAt = String(row.updated_at || row.updatedAt || createdAt).trim();
           await db.run(
             `INSERT INTO daily_entries(sync_id, type, title, amount, entry_date, category_id, note, created_at, updated_at)
              VALUES (?,?,?,?,?,?,?,?,?)`,
-            [createSyncId(), type, title, amount, entryDate, type === "fee" ? categoryId : null, row.description || row.note || "", nowIso(), nowIso()]
+            [syncId, type, title, amount, entryDate, type === "fee" ? categoryId : null, row.description || row.note || "", createdAt, updatedAt]
           );
           importedCount++;
         }
 
         writeCategories(categories);
+        writeRecurring(recurringItems);
         return { importedCount };
       }
     },
