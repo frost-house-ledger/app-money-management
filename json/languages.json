@@ -4,7 +4,6 @@
     { "code": "jp", "name": "日本語 (Japanese)", "flag": "🇯🇵", "nameJa": "日本語", "nameEn": "Japanese", "region": "Asia", "hidden": false },
     { "code": "tw", "name": "中文 (Chinese - TW)", "flag": "🇹🇼", "nameJa": "中国語（繁体）", "nameEn": "Chinese (Traditional)", "region": "Asia", "hidden": false },
     { "code": "ko", "name": "한국어 (Korean)", "flag": "🇰🇷", "nameJa": "韓国語", "nameEn": "Korean", "region": "Asia", "hidden": false },
-    { "code": "zh", "name": "中文 (Chinese - CN)", "flag": "🇨🇳", "nameJa": "中国語", "nameEn": "Chinese", "region": "Asia", "hidden": false },
     { "code": "vi", "name": "Tiếng Việt (Vietnamese)", "flag": "🇻🇳", "nameJa": "ベトナム語", "nameEn": "Vietnamese", "region": "Asia", "hidden": true },
     { "code": "id", "name": "Bahasa Indonesia (Indonesian)", "flag": "🇮🇩", "nameJa": "インドネシア語", "nameEn": "Indonesian", "region": "Asia", "hidden": true },
     { "code": "hi", "name": "हिन्दी (Hindi)", "flag": "🇮🇳", "nameJa": "ヒンディー語", "nameEn": "Hindi", "region": "Asia", "hidden": true },
