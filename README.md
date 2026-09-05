@@ -134,4 +134,9 @@ All app data is stored locally in the user's app data folder.
 Free for personal and commercial use.
 However, you need to contact the author and developer for commercial use.
 
-Please see the [LICENSE](LICENSE) file for more details.
+### Support
+
+If you find this app useful, please consider supporting its development. 
+Your support helps maintain and improve the app.
+
+Support: <a href="https://github.com/sponsors/KFrost-Sponsor" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; cursor: pointer;">GitHub Sponsors</a>

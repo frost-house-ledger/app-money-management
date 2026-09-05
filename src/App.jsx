@@ -956,9 +956,15 @@ export default function App() {
     <main className="page">
       <section className="hero">
         <div className="hero-head">
-          <h1>{t.appTitle}</h1>
+          <div>
+            <h1 className="brand-title">
+              <span className="brand-title-icon" aria-hidden="true">❄</span>
+              <span>Frosty House Ledger</span>
+            </h1>
+
+            <p>{t.appDescription}</p>
+          </div>
         </div>
-        <p>{t.appDescription}</p>
       </section>
 
       <div className={`toast ${toastText ? "show" : ""}`}>{toastText}</div>
@@ -995,6 +1001,56 @@ export default function App() {
             opacity: 0;
           }
         }
+          
+        .hero {
+          padding: 22px;
+        }
+
+        .hero-head,
+        .panel-head,
+        .status-strip,
+        .clip-summary,
+        .export-meta,
+        .timeline-item,
+        .action-row {
+          display: flex;
+          gap: 12px;
+        }
+
+        .hero-head,
+        .panel-head,
+        .timeline-item {
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .hero-head {
+          gap: 16px;
+        }
+
+        .hero h1,
+        .panel h2 {
+          margin: 0;
+          font-family: "Space Grotesk", sans-serif;
+          letter-spacing: 0.01em;
+        }
+
+        .hero h1 {
+          font-size: clamp(2rem, 3.2vw, 3.4rem);
+        }
+        .brand-title {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.28em;
+        }
+
+        .brand-title-icon {
+          color: #8be9fd;
+          font-size: 0.72em;
+          filter: drop-shadow(0 0 10px rgba(139, 233, 253, 0.75));
+          transform: translateY(-0.06em);
+        }
+
       `}</style>
 
       {/* Today's date and current month income/expense snapshot */}

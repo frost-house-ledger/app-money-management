@@ -14,6 +14,7 @@
   --item-bg: rgba(255, 255, 255, 0.06);
   --input-bg: rgba(255, 255, 255, 0.08);
   --nav-bg: rgba(255, 255, 255, 0.05);
+  --content-width: 980px;
 }
 
 * {
@@ -31,9 +32,22 @@ body {
   min-height: 100vh;
 }
 
+@media (min-width: 1440px) {
+  body {
+    zoom: 1.08;
+  }
+}
+
+@media (min-width: 1920px) {
+  body {
+    zoom: 1.16;
+  }
+}
+
+
 .page {
   /* slightly narrower layout to reduce sprawling frames */
-  max-width: 980px; /* tightened from 1200 to 980 */
+  max-width: var(--content-width);
   margin: 0 auto;
   padding: 20px 16px 40px;
   display: grid;
@@ -348,6 +362,12 @@ html[lang="ru"] .hero p {
   gap: 12px;
 }
 
+.statistics-summary-page {
+  width: 100%;
+  max-width: var(--content-width);
+  margin-inline: auto;
+}
+
 .chart-wrap {
   position: relative;
   height: 320px;
@@ -369,6 +389,9 @@ html[lang="ru"] .hero p {
 }
 
 .page-tabs-nav {
+  width: 100%;
+  max-width: var(--content-width);
+  margin-inline: auto;
   display: flex;
   gap: 8px;
   padding: 8px;
