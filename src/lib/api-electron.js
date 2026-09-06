@@ -8,6 +8,7 @@ export function createElectronApi() {
       add: (payload) => window.ledgerApi.entry.add(payload),
       update: (payload) => window.ledgerApi.entry.update(payload),
       delete: (payload) => window.ledgerApi.entry.delete(payload),
+      deleteAllData: (payload) => window.ledgerApi.entry.deleteAllData(payload),
       list: (payload) => window.ledgerApi.entry.list(payload),
       importCsv: (payload) => window.ledgerApi.entry.importCsv(payload),
       exportCsv: (payload) => window.ledgerApi.entry.exportCsv(payload)

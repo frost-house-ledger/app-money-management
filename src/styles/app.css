@@ -1136,6 +1136,23 @@ button {
   color: #fff;
 }
 
+.settings-danger-zone {
+  margin-top: 24px;
+  padding: 16px;
+  border: 1px solid rgba(192, 57, 43, 0.7);
+  border-radius: 8px;
+  background: rgba(192, 57, 43, 0.08);
+}
+
+.settings-danger-zone .settings-subtitle {
+  margin-top: 0;
+  color: #e57368;
+}
+
+.settings-danger-warning {
+  margin: 0 0 12px;
+}
+
 .daily-totals {
   display: flex;
   gap: 20px;

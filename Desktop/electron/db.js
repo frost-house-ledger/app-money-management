@@ -291,8 +291,27 @@ export function createLedgerStore(dataDir) {
       categoryStore.ensureCategoryForImport(categoryName);
     });
 
+    const dailyContentKey = (row) => [
+      row.type || "",
+      row.title || "",
+      Number(row.amount || 0),
+      row.entryDate || "",
+      row.categoryId || "",
+      row.note || ""
+    ].join("::");
+    const existingDailyContentKeys = new Set(db.prepare(`
+      SELECT type, title, amount, entry_date AS entryDate, category_id AS categoryId, note
+      FROM daily_entries
+    `).all().map(dailyContentKey));
+    const rowsToImport = normalizedRows.filter((row) => {
+      const key = dailyContentKey(row);
+      if (existingDailyContentKeys.has(key)) return false;
+      existingDailyContentKeys.add(key);
+      return true;
+    });
+
     const tx = db.transaction(() => {
-      normalizedRows.forEach((row) => {
+      rowsToImport.forEach((row) => {
         persistDailyEntry(row, {
           logHistory: true,
           logAction: "add",
@@ -308,7 +327,11 @@ export function createLedgerStore(dataDir) {
     tx();
 
     const cachePath = rebuildMonthlyJsonCache();
-    return { importedCount: normalizedRows.length, cachePath };
+    return {
+      importedCount: rowsToImport.length,
+      skippedCount: normalizedRows.length - rowsToImport.length,
+      cachePath
+    };
   }
 
   function deleteDaily(input) {
@@ -347,6 +370,21 @@ export function createLedgerStore(dataDir) {
     }
     deleteDailyStmt.run({ id });
     rebuildMonthlyJsonCache();
+  }
+
+  function deleteAllData(input = {}) {
+    authGuard.ensureAuthorized(input?.authToken);
+    const tx = db.transaction(() => {
+      db.exec("DELETE FROM input_logs");
+      db.exec("DELETE FROM daily_entries");
+      db.exec("DELETE FROM category_targets");
+    });
+    tx();
+    recurringStore.replaceRecurringItemsForSync([]);
+    categoryStore.resetCategories();
+    db.exec("DELETE FROM sqlite_sequence WHERE name IN ('daily_entries', 'input_logs')");
+    const cachePath = rebuildMonthlyJsonCache();
+    return { ok: true, cachePath };
   }
 
   function updateDaily(input) {
@@ -761,6 +799,7 @@ export function createLedgerStore(dataDir) {
     addDailyEntry,
     importDailyCsv,
     deleteDaily,
+    deleteAllData,
     updateDaily,
     listRecurring: recurringStore.listRecurring,
     listDaily,

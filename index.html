@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" 
-      content="House Ledger App - A privacy-first and local-first house ledger application
+      content="Frosty House Ledger - A privacy-first and local-first house ledger application
       Developed by KFrost." 
     />
-    <title>House Ledger App - Frosty Brand</title>
+    <title>Frosty House Ledger</title>
   </head>
   <body>
     <div id="root"></div>
@@ -15,6 +15,9 @@
   </body>
 
   <footer>
-    © 2026 House Ledger App - Frosty Brand. All rights reserved.
+    © <span id="copyright-year"></span> Frosty House Ledger. All rights reserved.
   </footer>
+  <script>
+    document.getElementById("copyright-year").textContent = new Date().getFullYear();
+  </script>
 </html>
