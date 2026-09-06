@@ -24,6 +24,21 @@ function formatDelta(value, currency, rates, includePlus = true) {
   return `${sign}${formatCurrency(Math.abs(amount), currency, rates)}`;
 }
 
+function getMonthlyNet(row) {
+  return Number(row?.income || 0) - Number(row?.fee || 0);
+}
+
+function addDays(isoDate, amount) {
+  const date = new Date(`${isoDate}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + amount);
+  return date.toISOString().slice(0, 10);
+}
+
+function endOfMonth(month) {
+  const [year, monthNumber] = month.split("-").map(Number);
+  return `${month}-${String(new Date(Date.UTC(year, monthNumber, 0)).getUTCDate()).padStart(2, "0")}`;
+}
+
 export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency, exchangeRates, t, currentBalance, currentBalanceDate }) {
   const fallbackYear = String(new Date().getFullYear());
   const year = /^\d{4}-\d{2}$/.test(selectedMonth || "") ? selectedMonth.slice(0, 4) : fallbackYear;
@@ -98,7 +113,7 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
         const prev = safeRows[index - 1];
         return {
           ...row,
-          diffFromPrevious: Number(row.balance || 0) - Number(prev.balance || 0)
+          diffFromPrevious: getMonthlyNet(row) - getMonthlyNet(prev)
         };
       });
     } catch (err) {
@@ -111,7 +126,7 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
   const rowsNetSeries = useMemo(() => {
     try {
       const labels = (rowsWithDiff || []).map((r) => r.month || "");
-      const net = (rowsWithDiff || []).map((r) => Number(r.income || 0) - Number(r.fee || 0));
+      const net = (rowsWithDiff || []).map(getMonthlyNet);
       const cumulative = [];
       let running = 0;
       for (const n of net) {
@@ -126,25 +141,58 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
   }, [rowsWithDiff]);
 
   // Treat the entered balance as the value at the selected date's month.
-  const cumulativeNetWithBaseline = (() => {
+  const cumulativeNetWithBaseline = useMemo(() => {
     try {
       const base = Number(balanceValue || 0);
-      const cum = Array.isArray(rowsNetSeries.cumulative) ? rowsNetSeries.cumulative.slice() : [];
       const labels = Array.isArray(rowsNetSeries.labels) ? rowsNetSeries.labels : [];
       if (labels.length === 0) return [];
-      const baselineMonth = String(currentBalanceDate || "").slice(0, 7);
-      const baselineIndex = Math.max(0, labels.findIndex((label) => label === baselineMonth));
-      return labels.map((_, i) => {
-        if (i === baselineIndex) return base;
-        if (i < baselineIndex) {
-          return base + (cum[baselineIndex] || 0) - (cum[i] || 0);
+      const baselineDate = String(currentBalanceDate || "");
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(baselineDate)) return labels.map(() => base);
+
+      const dailyNetByDate = new Map();
+      for (const entry of dailyEntries) {
+        const date = String(entry.entryDate || "");
+        if (!date) continue;
+        const net = entry.type === "income" ? Number(entry.amount || 0) : entry.type === "fee" ? -Number(entry.amount || 0) : 0;
+        dailyNetByDate.set(date, (dailyNetByDate.get(date) || 0) + net);
+      }
+
+      function netBetween(fromDate, toDate) {
+        if (fromDate > toDate) return 0;
+        let total = 0;
+        for (const [date, net] of dailyNetByDate) {
+          if (date >= fromDate && date <= toDate) total += net;
         }
-        return base + (cum[i - 1] || 0) - (cum[baselineIndex - 1] || 0);
+        for (const item of recurringItems) {
+          const startMonth = String(item.startMonth || "");
+          const endMonth = String(item.endMonth || "9999-12");
+          if (startMonth > toDate.slice(0, 7) || endMonth < fromDate.slice(0, 7)) continue;
+          const firstOfMonth = `${fromDate.slice(0, 4)}-${fromDate.slice(5, 7)}-01`;
+          let cursor = firstOfMonth;
+          while (cursor <= toDate) {
+            const month = cursor.slice(0, 7);
+            if (month >= startMonth && month <= endMonth && cursor >= fromDate && cursor <= toDate) {
+              total += item.type === "income" ? Number(item.amount || 0) : item.type === "fee" ? -Number(item.amount || 0) : 0;
+            }
+            const nextMonth = new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 1));
+            cursor = nextMonth.toISOString().slice(0, 10);
+          }
+        }
+        return total;
+      }
+
+      return labels.map((month) => {
+        const monthEndDate = endOfMonth(month);
+        if (monthEndDate < baselineDate) {
+          return base - netBetween(addDays(monthEndDate, 1), baselineDate);
+        }
+        return base + netBetween(baselineDate, monthEndDate);
       });
     } catch (e) {
-      return Array.isArray(rowsNetSeries.cumulative) ? rowsNetSeries.cumulative : [];
+      logError("StatisticsSummaryPage.cumulativeNetWithBaseline", e);
+      return [];
     }
-  })();
+  }, [balanceValue, currentBalanceDate, dailyEntries, recurringItems, rowsNetSeries.labels]);
 
   const dailyBalanceRows = useMemo(() => {
     try {
@@ -286,7 +334,7 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
                       <td><strong>{row.month}</strong></td>
                       <td>{formatCurrency(row.income, selectedCurrency, exchangeRates)}</td>
                       <td>{formatCurrency(row.fee, selectedCurrency, exchangeRates)}</td>
-                      <td>{formatCurrency(row.balance, selectedCurrency, exchangeRates)}</td>
+                      <td>{formatCurrency(getMonthlyNet(row), selectedCurrency, exchangeRates)}</td>
                       {/* <td
                         className={
                           row.diffFromPrevious == null

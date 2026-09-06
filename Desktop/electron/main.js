@@ -94,6 +94,10 @@ async function createMainWindow(ledger) {
     return ledger.deleteDaily(payload);
   });
 
+  ipcMain.handle("entry:deleteAllData", async (_event, payload) => {
+    return ledger.deleteAllData(payload || {});
+  });
+
   ipcMain.handle("entry:update", async (_event, payload) => {
     return ledger.updateDaily(payload);
   });

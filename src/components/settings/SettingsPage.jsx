@@ -25,6 +25,7 @@ export default function SettingsPage({
   onImportCsv,
   onExportCsv,
   canExportCsv,
+  onDeleteAllData,
   t
 }) {
   const [showLanguageVisibilityModal, setShowLanguageVisibilityModal] = React.useState(false);
@@ -226,6 +227,25 @@ export default function SettingsPage({
           ) : null}
 
           <p className="subtext">{t.csvImportSubtext}</p>
+
+          <section className="settings-danger-zone" aria-labelledby="delete-all-data-title">
+            <h3 id="delete-all-data-title" className="settings-subtitle">{t.deleteAllDataTitle}</h3>
+            <p className="subtext settings-danger-warning">{t.deleteAllDataWarning}</p>
+            <button
+              type="button"
+              className="danger-action"
+              onClick={async () => {
+                if (!window.confirm(t.deleteAllDataConfirm)) return;
+                try {
+                  await onDeleteAllData();
+                } catch (err) {
+                  logError("SettingsPage.onDeleteAllData", err);
+                }
+              }}
+            >
+              {t.deleteAllDataButton}
+            </button>
+          </section>
 
           <hr className="settings-divider" />
 

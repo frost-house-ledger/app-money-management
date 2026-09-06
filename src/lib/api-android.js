@@ -249,6 +249,24 @@ function writeRecurring(items) {
   localStorage.setItem(LS_RECURRING, JSON.stringify({ updatedAt: new Date().toISOString(), items }));
 }
 
+function escapeCsvCell(value) {
+  const text = String(value ?? "");
+  return /[\,\"\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+function buildBackupCsv(rows) {
+  const headers = [
+    "record_scope", "id", "sync_id", "type", "title", "amount", "entry_date",
+    "start_month", "end_month", "category_id", "category_name_jp", "category_name_en",
+    "category_name_de", "category_icon", "note", "created_at", "updated_at"
+  ];
+  const lines = [headers.join(",")];
+  rows.forEach((row) => {
+    lines.push(headers.map((header) => escapeCsvCell(row[header])).join(","));
+  });
+  return `${lines.join("\r\n")}\r\n`;
+}
+
 function sumRecurringByType(month, type, categoryId = null) {
   return readRecurring()
     .filter((item) => {
@@ -619,6 +637,16 @@ export function createAndroidApi() {
         return { id };
       },
 
+      async deleteAllData() {
+        const db = await getDb();
+        await db.run("DELETE FROM input_logs");
+        await db.run("DELETE FROM daily_entries");
+        await db.run("DELETE FROM category_targets");
+        writeRecurring([]);
+        writeCategories(DEFAULT_CATEGORIES.map((category) => ({ ...category })));
+        return { ok: true };
+      },
+
       async list({ month, filterType, categoryId, fromDate, toDate } = {}) {
         const db = await getDb();
         const conditions = [];
@@ -667,6 +695,18 @@ export function createAndroidApi() {
           item.endMonth || "",
           item.categoryId || ""
         ].join("::")));
+        const dailyContentKey = (item) => [
+          item.type || "",
+          item.title || "",
+          Number(item.amount || 0),
+          item.entryDate || "",
+          item.categoryId || "",
+          item.note || ""
+        ].join("::");
+        const existingDailyContentKeys = new Set((await db.query(
+          `SELECT type, title, amount, entry_date AS entryDate, category_id AS categoryId, note
+           FROM daily_entries`
+        )).values?.map(dailyContentKey) || []);
         const scopedRows = rows.some((row) => String(row.record_scope || row.scope || "").trim());
 
         for (let i = 0; i < rows.length; i++) {
@@ -748,13 +788,25 @@ export function createAndroidApi() {
           const entryDate = String(row.entry_date || row.date || row.entryDate || "").trim();
           if (!/^\d{4}-\d{2}-\d{2}$/.test(entryDate)) throw new Error(`Row ${i + 1}: invalid date "${entryDate}"`);
 
+          const note = row.description || row.note || "";
+          const dailyKey = dailyContentKey({
+            type,
+            title,
+            amount,
+            entryDate,
+            categoryId: type === "fee" ? categoryId : null,
+            note
+          });
+          if (existingDailyContentKeys.has(dailyKey)) continue;
+          existingDailyContentKeys.add(dailyKey);
+
           const syncId = String(row.sync_id || row.syncId || createSyncId()).trim();
           const createdAt = String(row.created_at || row.createdAt || nowIso()).trim();
           const updatedAt = String(row.updated_at || row.updatedAt || createdAt).trim();
           await db.run(
             `INSERT INTO daily_entries(sync_id, type, title, amount, entry_date, category_id, note, created_at, updated_at)
              VALUES (?,?,?,?,?,?,?,?,?)`,
-            [syncId, type, title, amount, entryDate, type === "fee" ? categoryId : null, row.description || row.note || "", createdAt, updatedAt]
+            [syncId, type, title, amount, entryDate, type === "fee" ? categoryId : null, note, createdAt, updatedAt]
           );
           importedCount++;
         }
@@ -762,6 +814,63 @@ export function createAndroidApi() {
         writeCategories(categories);
         writeRecurring(recurringItems);
         return { importedCount };
+      },
+
+      async exportCsv({ scope = "all" } = {}) {
+        const selectedScope = scope === "monthly" ? "monthly" : scope === "daily" ? "daily" : "all";
+        const db = await getDb();
+        const categories = Object.fromEntries(readCategories().map((category) => [category.id, category]));
+        const dailyRows = selectedScope === "monthly" ? [] : (await db.query(
+          `SELECT id, sync_id AS syncId, type, title, amount, entry_date AS entryDate,
+                  category_id AS categoryId, note, created_at AS createdAt, updated_at AS updatedAt
+           FROM daily_entries ORDER BY entry_date ASC, id ASC`
+        )).values || [];
+        const recurringRows = selectedScope === "daily" ? [] : readRecurring();
+        const rows = [
+          ...dailyRows.map((item) => {
+            const category = item.categoryId ? categories[item.categoryId] : null;
+            return {
+              record_scope: "daily",
+              id: item.id,
+              sync_id: item.syncId || "",
+              type: item.type,
+              title: item.title,
+              amount: item.amount,
+              entry_date: item.entryDate,
+              category_id: item.categoryId || "",
+              category_name_jp: category?.nameJp || "",
+              category_name_en: category?.nameEn || "",
+              category_icon: category?.icon || "",
+              note: item.note || "",
+              created_at: item.createdAt || "",
+              updated_at: item.updatedAt || item.createdAt || ""
+            };
+          }),
+          ...recurringRows.map((item) => {
+            const category = item.categoryId ? categories[item.categoryId] : null;
+            return {
+              record_scope: "monthly",
+              id: item.id,
+              type: item.type,
+              title: item.title,
+              amount: item.amount,
+              start_month: item.startMonth,
+              end_month: item.endMonth || "",
+              category_id: item.categoryId || "",
+              category_name_jp: category?.nameJp || "",
+              category_name_en: category?.nameEn || "",
+              category_icon: category?.icon || "",
+              created_at: item.createdAt || "",
+              updated_at: item.updatedAt || item.createdAt || ""
+            };
+          })
+        ];
+        return {
+          scope: selectedScope,
+          rowCount: rows.length,
+          filename: `amm-${selectedScope}-backup-${todayISO()}.csv`,
+          csvText: buildBackupCsv(rows)
+        };
       }
     },
 
@@ -934,6 +1043,7 @@ export function createAndroidApi() {
           return {
             fee: dailyFee + recurringFee,
             income: salaryTotal,
+            balance: salaryTotal - (dailyFee + recurringFee),
             dailyFee,
             dailyIncome: 0,
             recurringFee,
@@ -945,6 +1055,7 @@ export function createAndroidApi() {
         return {
           fee: dailyFee + recurringFee,
           income: dailyIncome + recurringIncome,
+          balance: (dailyIncome + recurringIncome) - (dailyFee + recurringFee),
           dailyFee,
           dailyIncome,
           recurringFee,

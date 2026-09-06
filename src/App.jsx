@@ -560,6 +560,22 @@ export default function App() {
     }
   }
 
+  async function onDeleteAllData() {
+    setErrorText("");
+    try {
+      if (typeof api.entry.deleteAllData !== "function") {
+        throw new Error("全データ削除はこの環境では利用できません。");
+      }
+      await api.entry.deleteAllData();
+      await refreshAll(selectedMonth);
+      showToast(t.allDataDeletedToast);
+    } catch (error) {
+      logError("deleteAllData", error);
+      setErrorText(error.message || t.allDataDeleteFailed);
+      throw error;
+    }
+  }
+
   function confirmSuspiciousAmount(amount, message) {
     const numericAmount = Number(amount);
     if (!Number.isFinite(numericAmount) || numericAmount <= 1000000) {
@@ -1267,6 +1283,7 @@ export default function App() {
           onImportCsv={onImportCsv}
           onExportCsv={onExportCsv}
           canExportCsv={typeof api.entry.exportCsv === "function"}
+          onDeleteAllData={onDeleteAllData}
           t={t}
         />
       ) : activePage === "analysis" ? (

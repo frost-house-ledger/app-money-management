@@ -15,6 +15,13 @@ export const TRANSLATIONS = {
     ko: "월별 고정 비용 및 수입을 등록하면 이후 달에 자동으로 적용됩니다. 일일 지출 및 수입은 차트와 목록에 즉시 반영됩니다.",
     ar: "بمجرد تسجيل الرسوم الثابتة الشهرية والدخل، يتم تطبيقها تلقائيًا على الأشهر التالية. تنعكس النفقات والإيرادات اليومية على الفور في الرسوم البيانية والقوائم."
   },
+
+  deleteAllDataTitle: { jp: "危険な操作", en: "Dangerous action" },
+  deleteAllDataWarning: { jp: "日次・月次データと履歴を削除します。元に戻せません。先にCSVを保存してください。", en: "Deletes daily/monthly data and history permanently. Save a CSV first." },
+  deleteAllDataConfirm: { jp: "全データを削除します。元に戻せません。実行しますか？", en: "Delete all data permanently? This cannot be undone." },
+  deleteAllDataButton: { jp: "全データを削除", en: "Delete all data" },
+  allDataDeletedToast: { jp: "全データを削除しました。", en: "All data has been deleted." },
+  allDataDeleteFailed: { jp: "全データの削除に失敗しました。", en: "Failed to delete all data." },
   todayLabel: { jp: "今日", en: "Today", de: "Heute", es: "Hoy", pt: "Hoje", it: "Oggi", fr: "Aujourd'hui", ru: "Сегодня", tw: "今天", ko: "오늘", ar: "اليوم" },
   thisMonthExpenseLabel: { jp: "{month}の費用", en: "{month} expense", de: "Ausgaben: {month}", es: "Gastos de {month}", pt: "Despesas de {month}", it: "Spese di {month}", fr: "Dépenses de {month}", ru: "Расходы за {month}", tw: "{month}支出", ko: "{month} 지출", ar: "مصاريف {month}" },
   thisMonthIncomeLabel: { jp: "{month}の収入", en: "{month} income", de: "Einnahmen: {month}", es: "Ingresos de {month}", pt: "Rendimento de {month}", it: "Entrate di {month}", fr: "Revenus de {month}", ru: "Доход за {month}", tw: "{month}收入", ko: "{month} 수입", ar: "دخل {month}" },

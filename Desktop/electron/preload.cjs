@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld("ledgerApi", {
   entry: {
     add: (payload) => ipcRenderer.invoke("entry:add", payload),
     delete: (payload) => ipcRenderer.invoke("entry:delete", payload),
+    deleteAllData: (payload) => ipcRenderer.invoke("entry:deleteAllData", payload),
     update: (payload) => ipcRenderer.invoke("entry:update", payload),
     list: (payload) => ipcRenderer.invoke("entry:list", payload),
     importCsv: (payload) => ipcRenderer.invoke("entry:importCsv", payload),
