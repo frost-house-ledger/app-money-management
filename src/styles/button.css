@@ -1,0 +1,92 @@
+.tab-button {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  color: var(--ink) !important;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  box-shadow: none;
+}
+
+.tab-button.active {
+  background: linear-gradient(120deg, #0f6eb0, #1362a0);
+  color: #fff;
+  border: 0;
+}
+
+button {
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--input-bg);
+  color: var(--ink);
+  padding: 8px 10px;
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+  color: #fff;
+  border: 0;
+  background: linear-gradient(120deg, #0f6eb0, #1362a0);
+  font-weight: 700;
+}
+
+.primary-button {
+  background: linear-gradient(180deg, #0f6eb0, #1362a0);
+  color: #fff;
+  border: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(13, 72, 128, 0.18);
+}
+
+.primary-button.compact { padding: 6px 8px; font-size: 0.92rem; }
+
+.secondary-button {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+.secondary-button,
+.inline-action {
+  background: var(--input-bg);
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.inline-action {
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+
+.inline-action.icon-action {
+  width: 42px;
+  min-width: 42px;
+  height: 36px;
+  padding: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.danger-action {
+  background: linear-gradient(180deg, rgba(200, 60, 60, 0.12), rgba(200, 60, 60, 0.08));
+  border: 1px solid rgba(239, 68, 68, 0.18);
+  color: #ffb4aa;
+}
+
+.danger-action {
+  background: var(--input-bg);
+  color: #c0392b;
+  border: 1px solid #c0392b;
+}
+
+.danger-action:hover {
+  background: #c0392b;
+  color: #fff;
+}

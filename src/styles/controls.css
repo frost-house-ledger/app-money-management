@@ -1,0 +1,28 @@
+label {
+  display: grid;
+  gap: 6px;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  margin-bottom: 12px;
+}
+
+input,
+select,
+button {
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--input-bg);
+  color: var(--ink);
+  padding: 8px 10px;
+  font: inherit;
+}
+
+select {
+  background: #1a2638;
+  color: var(--ink);
+}
+
+select option {
+  background: #1a2638;
+  color: var(--ink);
+}

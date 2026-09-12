@@ -1,0 +1,226 @@
+.savings-sim-toggle {
+  width: fit-content;
+}
+
+.savings-sim-toggle.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.savings-sim-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.savings-sim-inputs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.savings-sim-autofill,
+.savings-sim-phase-add,
+.savings-sim-phase-remove {
+  width: fit-content;
+}
+
+.savings-sim-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.savings-sim-phase-list {
+  display: grid;
+  gap: 10px;
+}
+
+.savings-sim-phase-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.savings-sim-phase-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.savings-sim-phase-help {
+  margin: -2px 0 0;
+}
+
+.savings-sim-phase-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.savings-sim-phase-head {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 1fr) auto;
+  gap: 10px;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.savings-sim-phase-head span:last-child {
+  min-width: 92px;
+}
+
+.savings-sim-phase-cell {
+  min-width: 0;
+  margin: 0;
+}
+
+.savings-sim-empty {
+  margin: 4px 0 0;
+}
+
+.savings-sim-summary {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  padding: 6px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.savings-sim-head,
+.savings-sim-list li,
+.savings-sim-row {
+  grid-template-columns: 110px 1fr 1fr !important;
+}
+
+.savings-sim-head {
+  margin-top: 4px;
+}
+
+@media (max-width: 760px) {
+  .savings-sim-phase-head { display: none; }
+  .savings-sim-phase-row { grid-template-columns: 1fr; }
+}
+
+.positive-value {
+  color: var(--income);
+  font-weight: 600;
+}
+
+.negative-value {
+  color: var(--fee);
+  font-weight: 600;
+}
+
+.settings-page {
+  grid-template-columns: minmax(320px, 520px);
+}
+
+.settings-card {
+  display: grid;
+  gap: 10px;
+}
+
+.settings-input,
+.settings-select {
+  color: #dcecff;
+  border-color: rgba(105, 168, 232, 0.42);
+  background: linear-gradient(135deg, #1f2c3f, #121a27);
+}
+
+.settings-input { font-weight: 600; }
+.settings-select { font-weight: 700; }
+
+.settings-divider {
+  width: 100%;
+  border: 0;
+  height: 1px;
+  background: var(--line);
+  margin: 6px 0;
+}
+
+.settings-subtitle {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.sync-server-hint {
+  margin-top: -4px;
+}
+
+.sync-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sync-checkbox-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+}
+
+.sync-status {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.sync-status--idle { color: var(--ink-soft); }
+.sync-status--syncing { color: #7dc6f5; }
+.sync-status--success { color: #4fcf88; }
+.sync-status--error { color: #f5a623; }
+
+.settings-select option {
+  background: #1a2638;
+  color: #dcecff;
+  font-weight: 500;
+}
+
+.er-status {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.er-status--loading { color: var(--text-muted, #8a9ab0); }
+.er-status--live { color: #4fcf88; }
+.er-status--fallback { color: #f5a623; }
+
+.error {
+  margin: 0;
+  color: #8e1d1d;
+  font-weight: 600;
+}
+
+.toast {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(11, 92, 71, 0.25);
+  background: rgba(47, 188, 157, 0.94);
+  color: #053629;
+  font-weight: 700;
+  box-shadow: 0 10px 18px rgba(6, 36, 60, 0.2);
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 160ms ease, transform 160ms ease;
+  pointer-events: none;
+  z-index: 30;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
