@@ -66,6 +66,7 @@ export const TRANSLATIONS = {
   categoryLabel: { jp: "カテゴリ", en: "Category", de: "Kategorie", es: "Categoría", pt: "Categoria", it: "Categoria", fr: "Catégorie", ru: "Категория", tw: "分類", ko: "카테고리", ar: "الفئة" },
   amountLabel: { jp: "金額", en: "Amount", de: "Betrag", es: "Cantidad", pt: "Quantia", it: "Importo", fr: "Montant", ru: "Сумма", tw: "金額", ko: "금액", ar: "المبلغ" },
   percentageLabel: { jp: "パーセンテージ", en: "Percentage", de: "Prozentsatz", es: "Porcentaje", pt: "Percentagem", it: "Percentuale", fr: "Pourcentage", ru: "Процент", tw: "百分比", ko: "백분율", ar: "النسبة المئوية" },
+  householdShareLabel: { jp: "家計比率", en: "Household share", de: "Haushaltsanteil", es: "Parte del hogar", pt: "Parcela doméstica", it: "Quota familiare", fr: "Part du ménage", ru: "Доля расходов", tw: "家庭比例", ko: "가계 비율", ar: "حصة المنزل" },
   targetAmountLabel: { jp: "目標額", en: "Target amount", de: "Zielbetrag", es: "Cantidad objetivo", pt: "Valor alvo", it: "Importo target", fr: "Montant cible", ru: "Целевая сумма", tw: "目標金額", ko: "목표 금액", ar: "المبلغ المستهدف" },
 
   dailyCategoryLabel: { jp: "dailyカテゴリ", en: "Daily category", de: "Tageskategorie", es: "Categoría diaria", pt: "Categoria diária", it: "Categoria giornaliera", fr: "Catégorie quotidienne", ru: "Ежедневная категория", tw: "每日分類", ko: "일일 카테고리", ar: "الفئة اليومية" },
@@ -412,17 +413,17 @@ export const TRANSLATIONS = {
   // -------------------------
   categoryAnalysisTitle: { jp: "カテゴリ別分析", en: "Category analysis", de: "Kategorieanalyse", es: "Análisis por categoría", pt: "Análise por categoria", it: "Analisi per categoria", fr: "Analyse par catégorie", ru: "Анализ по категориям", tw: "分類分析", ko: "카테고리 분석", ar: "تحليل الفئات" },
   categoryAnalysisSubtext: {
-    jp: "カテゴリ別の支出割合と推移を確認できます。また、カテゴリごとに月間目標を設定できます。実際の支出が目標を超えている場合、金額が赤く表示されます。",
-    en: "View spending ratios and trends by category. You can also set monthly targets for each category. If actual spending exceeds the target, the amount is shown in red.",
-    de: "Ausgabenanteile und Trends nach Kategorien anzeigen. Sie können auch monatliche Ziele für jede Kategorie festlegen. Wenn die tatsächlichen Ausgaben das Ziel überschreiten, wird der Betrag rot angezeigt.",
-    es: "Vea las proporciones y tendencias de gasto por categoría. También puede establecer objetivos mensuales por categoría. Si el gasto real excede el objetivo, la cantidad se muestra en rojo.",
-    pt: "Ver proporções e tendências de gastos por categoria. Você também pode definir metas mensais por categoria. Se as despesas reais excederem a meta, o valor é exibido em vermelho.",
-    it: "Visualizza proporzioni e tendenze di spesa per categoria. Puoi anche impostare obiettivi mensili per ogni categoria. Se la spesa reale supera l'obiettivo, l'importo viene mostrato in rosso.",
-    fr: "Affichez les proportions et les tendances de dépenses par catégorie. Vous pouvez également définir des objectifs mensuels pour chaque catégorie. Si les dépenses réelles dépassent l'objectif, le montant est affiché en rouge.",
-    ru: "Просмотр пропорций расходов и тенденций по категориям. Вы также можете установить месячные цели для каждой категории. Если фактические расходы превышают цель, сумма отображается красным.",
-    tw: "檢視各分類的支出比例與趨勢。您也可以為每個分類設定每月目標。若實際支出超過目標，金額會以紅色顯示。",
-    ko: "카테고리별 지출 비율과 추세를 확인하세요. 각 카테고리별로 월간 목표를 설정할 수도 있습니다. 실제 지출이 목표를 초과하면 금액이 빨간색으로 표시됩니다.",
-    ar: "عرض نسب الإنفاق والاتجاهات حسب الفئة. يمكنك أيضًا تعيين أهداف شهرية لكل فئة. إذا تجاوز الإنفاق الفعلي الهدف، يتم عرض المبلغ باللون الأحمر."
+    jp: "カテゴリ別の支出割合と推移を確認できます。また、カテゴリごとに月間目標を設定できます。",
+    en: "View spending ratios and trends by category. You can also set monthly targets for each category.",
+    de: "Ausgabenanteile und Trends nach Kategorien anzeigen. Sie können auch monatliche Ziele für jede Kategorie festlegen.",
+    es: "Vea las proporciones y tendencias de gasto por categoría. También puede establecer objetivos mensuales por categoría.",
+    pt: "Ver proporções e tendências de gastos por categoria. Você também pode definir metas mensais por categoria.",
+    it: "Visualizza proporzioni e tendenze di spesa per categoria. Puoi anche impostare obiettivi mensili per ogni categoria.",
+    fr: "Affichez les proportions et les tendances de dépenses par catégorie. Vous pouvez également définir des objectifs mensuels pour chaque catégorie.",
+    ru: "Просмотр пропорций расходов и тенденций по категориям. Вы также можете установить месячные цели для каждой категории.",
+    tw: "檢視各分類的支出比例與趨勢。您也可以為每個分類設定每月目標。",
+    ko: "카테고리별 지출 비율과 추세를 확인하세요. 각 카테고리별로 월간 목표를 설정할 수도 있습니다.",
+    ar: "عرض نسب الإنفاق والاتجاهات حسب الفئة. يمكنك أيضًا تعيين أهداف شهرية لكل فئة."
   },
   categoryRatioChartTitle: { jp: "カテゴリ割合", en: "Category ratio", de: "Kategorieanteil", es: "Proporción por categoría", pt: "Proporção por categoria", it: "Rapporto per categoria", fr: "Répartition par catégorie", ru: "Доля по категориям", tw: "分類比例", ko: "카테고리 비율", ar: "نسبة الفئة" },
   categoryTrendChartTitle: { jp: "カテゴリ推移", en: "Category trend", de: "Kategorietrend", es: "Tendencia por categoría", pt: "Tendência por categoria", it: "Trend per categoria", fr: "Tendance par catégorie", ru: "Тенденция по категориям", tw: "分類趨勢", ko: "카테고리 추세", ar: "اتجاه الفئة" },
@@ -625,6 +626,18 @@ export const TRANSLATIONS = {
     tw: "目標金額設定",
     ko: "목표 금액 설정",
     ar: "إعدادات المبلغ المستهدف"
+  },
+  targetAmountForMonthButton: {
+    jp: "この月の目標額を設定", en: "Set target for this month", de: "Ziel für diesen Monat festlegen", es: "Establecer objetivo para este mes", pt: "Definir meta para este mês", it: "Imposta obiettivo per questo mese", fr: "Définir l'objectif de ce mois", ru: "Установить цель на этот месяц", tw: "設定本月目標金額", ko: "이번 달 목표 금액 설정", ar: "تعيين الهدف لهذا الشهر"
+  },
+  targetAmountEveryMonthButton: {
+    jp: "毎月の目標額を設定", en: "Set target for every month", de: "Ziel für jeden Monat festlegen", es: "Establecer objetivo para cada mes", pt: "Definir meta para todos os meses", it: "Imposta obiettivo per ogni mese", fr: "Définir l'objectif de chaque mois", ru: "Установить цель на каждый месяц", tw: "設定每月目標金額", ko: "매월 목표 금액 설정", ar: "تعيين الهدف لكل شهر"
+  },
+  targetAmountForMonthTitle: {
+    jp: "この月の目標額設定", en: "Target amount for this month", de: "Zielbetrag für diesen Monat", es: "Cantidad objetivo para este mes", pt: "Valor alvo para este mês", it: "Importo obiettivo per questo mese", fr: "Montant cible de ce mois", ru: "Целевая сумма на этот месяц", tw: "本月目標金額設定", ko: "이번 달 목표 금액 설정", ar: "المبلغ المستهدف لهذا الشهر"
+  },
+  targetAmountEveryMonthTitle: {
+    jp: "毎月の目標額設定", en: "Target amount for every month", de: "Zielbetrag für jeden Monat", es: "Cantidad objetivo para cada mes", pt: "Valor alvo para todos os meses", it: "Importo obiettivo per ogni mese", fr: "Montant cible de chaque mois", ru: "Целевая сумма на каждый месяц", tw: "每月目標金額設定", ko: "매월 목표 금액 설정", ar: "المبلغ المستهدف لكل شهر"
   },
   setTargetAmountButton: {
     jp: "目標額を設定",

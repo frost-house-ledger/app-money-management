@@ -28,6 +28,16 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const [view, setView] = useState("main"); // 'main' or 'targetSetting'
+  const [targetSettingMode, setTargetSettingMode] = useState("month");
+
+  function readLocalTargets(key) {
+    try {
+      return JSON.parse(localStorage.getItem(key) || "{}");
+    } catch (e) {
+      logError("CategoryAnalysisPage.readLocalTargets", e);
+      return {};
+    }
+  }
 
   useEffect(() => {
     async function load() {
@@ -70,20 +80,17 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
       } catch (e) {
         logError("CategoryAnalysisPage.loadTargets.db", e);
       }
-      const key = `categoryTargets:${selectedMonth}`;
-      try {
-        const saved = JSON.parse(localStorage.getItem(key) || "{}");
-        setTargets(saved);
-      } catch (e) {
-        logError("CategoryAnalysisPage.loadTargets.localStorage", e);
-        setTargets({});
-      }
+      const monthlyTargets = readLocalTargets(`categoryTargets:${selectedMonth}`);
+      const recurringTargets = readLocalTargets("categoryTargets:recurring");
+      setTargets(Object.keys(monthlyTargets).length > 0 ? monthlyTargets : recurringTargets);
     }
     loadTargets();
   }, [selectedMonth]);
 
   function handleTargetChange(categoryKey, value) {
-    const keyName = `categoryTargets:${selectedMonth}`;
+    const keyName = targetSettingMode === "recurring"
+      ? "categoryTargets:recurring"
+      : `categoryTargets:${selectedMonth}`;
     const num = value === "" ? "" : Number(value || 0);
     setTargets((prev) => {
       const next = { ...(prev || {}), [categoryKey]: num };
@@ -100,7 +107,14 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
     setSaving(true);
     setSaveMessage("");
     try {
-      await api.targets.save({ month: selectedMonth, targets });
+      if (targetSettingMode === "month" && typeof api.targets?.save === "function") {
+        await api.targets.save({ month: selectedMonth, targets });
+      } else {
+        const key = targetSettingMode === "recurring"
+          ? "categoryTargets:recurring"
+          : `categoryTargets:${selectedMonth}`;
+        localStorage.setItem(key, JSON.stringify(targets));
+      }
       setSaveMessage("Saved");
       setTimeout(() => setSaveMessage(""), 2000);
     } catch (err) {
@@ -109,6 +123,14 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
     } finally {
       setSaving(false);
     }
+  }
+
+  function openTargetSetting(mode) {
+    setTargetSettingMode(mode);
+    if (mode === "recurring") {
+      setTargets(readLocalTargets("categoryTargets:recurring"));
+    }
+    setView("targetSetting");
   }
 
 
@@ -215,6 +237,9 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
           handleSaveTargets={handleSaveTargets}
           saving={saving}
           saveMessage={saveMessage}
+          title={targetSettingMode === "recurring"
+            ? (t.targetAmountEveryMonthTitle || "Setting every month")
+            : (t.targetAmountForMonthTitle || "Setting for this month")}
           selectedCurrency={selectedCurrency}
           exchangeRates={exchangeRates}
           formatCurrency={formatCurrency}
@@ -231,7 +256,7 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
 
           {/* Top: Category table */}
           <div>
-            <div style={{ marginBottom: 12, fontSize: "0.875rem", color: "#8fa8c8" }}>
+            <div style={{ marginBottom: 12, fontSize: "1rem", color: "var(--fee)", fontWeight: 600 }}>
               {t.targetAmountNote}
             </div>
             <table className="app-table" style={{ tableLayout: "fixed", width: "100%" }}>
@@ -240,8 +265,7 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
                   <th style={{ textAlign: "left", width: "140px"}}>{t.categoryLabel}</th>
                   <th style={{ textAlign: "left", width: "140px"}}>{t.amountLabel}</th>
                   <th style={{ textAlign: "left", width: "140px"}}>{t.targetAmountLabel}</th>
-                  <th style={{ textAlign: "left", width: "140px"}}>{t.budgetUsageLabel || "Budget usage"}</th>
-                  <th style={{ textAlign: "left", width: "140px"}}>{t.percentageLabel}</th>
+                  <th style={{ textAlign: "left", width: "140px"}}>{t.householdShareLabel || t.percentageLabel}</th>
                 </tr>
               </thead>
 
@@ -252,7 +276,6 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
                   const targetVal = targets[key] === "" || targets[key] === undefined ? null : Number(targets[key]);
                   const amountVal = Number(row.total || 0);
                   const exceeded = targetVal !== null && !Number.isNaN(targetVal) && amountVal > targetVal;
-                  const usagePercentage = targetVal > 0 ? (amountVal / targetVal) * 100 : null;
                   const percentage = total > 0 ? ((amountVal / total) * 100).toFixed(1) : 0;
 
                   return (
@@ -263,15 +286,11 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
 
                       <td style={{ textAlign: "left", width: "140px"}} className={`amount ${exceeded ? "exceeded" : ""}`}>
                         {formatCurrency(row.total, selectedCurrency, exchangeRates)}
-                        {exceeded && <span role="status" style={{ display: "block", fontSize: "0.8rem" }}>{t.budgetExceededLabel || "Over budget"}</span>}
                       </td>
                       <td style={{ textAlign: "left", width: "140px"}}>
                         {targetVal !== null && !Number.isNaN(targetVal)
                           ? formatCurrency(targetVal, selectedCurrency, exchangeRates)
                           : "-"}
-                      </td>
-                      <td style={{ textAlign: "left", width: "140px" }} className={exceeded ? "exceeded" : ""}>
-                        {usagePercentage === null ? "-" : `${usagePercentage.toFixed(1)}%`}
                       </td>
                       <td style={{ textAlign: "left", width: "140px"}}>{percentage}%</td>
                     </tr>
@@ -280,9 +299,15 @@ export default function CategoryAnalysisPage({ selectedMonth, range, selectedCur
               </tbody>
             </table>
             
-            <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 8 }}>
-              <button className="secondary-button" type="button" onClick={() => setView("targetSetting")}>
-                {t.targetAmountSettingTitle}
+            {/* monthly target price setting 
+              E.g: You cannot pay more than 400 Euro for food this month.
+            */}
+            <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <button className="secondary-button" type="button" onClick={() => openTargetSetting("month")}>
+                {t.targetAmountForMonthButton || "Set monthly target"}
+              </button>
+              <button className="secondary-button" type="button" onClick={() => openTargetSetting("recurring")}>
+                {t.targetAmountEveryMonthButton || "Set recurring monthly target"}
               </button>
             </div>
           </div>
