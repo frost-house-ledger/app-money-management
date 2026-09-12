@@ -39,18 +39,19 @@ function endOfMonth(month) {
   return `${month}-${String(new Date(Date.UTC(year, monthNumber, 0)).getUTCDate()).padStart(2, "0")}`;
 }
 
-export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency, exchangeRates, t, currentBalance, currentBalanceDate }) {
+export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency, exchangeRates, t, currentBalance, currentBalanceDate, showSimulation = false, setShowSimulation = () => {} }) {
   const fallbackYear = String(new Date().getFullYear());
   const year = /^\d{4}-\d{2}$/.test(selectedMonth || "") ? selectedMonth.slice(0, 4) : fallbackYear;
   const [rows, setRows] = useState([]);
   const [loadState, setLoadState] = useState("loading");
   const [loadError, setLoadError] = useState("");
-  const [showSimulation, setShowSimulation] = useState(false);
   const [dailyEntries, setDailyEntries] = useState([]);
   const [recurringItems, setRecurringItems] = useState([]);
   const [dailyLoadState, setDailyLoadState] = useState("loading");
   const [monthlyTableOpen, setMonthlyTableOpen] = useState(true);
   const [dailyTableOpen, setDailyTableOpen] = useState(true);
+  const [dailyFromDate, setDailyFromDate] = useState("");
+  const [dailyToDate, setDailyToDate] = useState("");
   const standaloneBalance = currentBalance === undefined;
   const [legacyBalance] = useState(() => localStorage.getItem("analysis:currentBalance") || "");
   const balanceValue = standaloneBalance ? legacyBalance : currentBalance;
@@ -236,6 +237,16 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
     }
   }, [balanceValue, currentBalanceDate, dailyEntries, recurringItems, year]);
 
+  const dailyDateRangeInvalid = Boolean(dailyFromDate && dailyToDate && dailyFromDate > dailyToDate);
+  const filteredDailyBalanceRows = useMemo(() => {
+    if (dailyDateRangeInvalid) return [];
+    return dailyBalanceRows.filter((row) => {
+      if (dailyFromDate && row.date < dailyFromDate) return false;
+      if (dailyToDate && row.date > dailyToDate) return false;
+      return true;
+    });
+  }, [dailyBalanceRows, dailyDateRangeInvalid, dailyFromDate, dailyToDate]);
+
   try {
     return (
     /* Renders the annual summary page, including a header with the year selector, total balance, and a button to toggle the savings simulation panel. Also displays a list of monthly summaries with income, fee, balance, and difference from the previous month. */
@@ -361,7 +372,33 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
               {dailyTableOpen ? "-" : "+"} {t.dailyBalanceTrendTitle || "Daily balance trend"}
             </button>
             {dailyTableOpen && (
-              dailyLoadState === "loading" ? (
+              <>
+              <div className="daily-balance-filter">
+                <div className="daily-balance-filter-heading">
+                  <strong>{t.dailyBalanceFilterTitle || "Time range"}</strong>
+                  <span>{t.dailyBalanceFilterHelp || "Leave blank to show the full year."}</span>
+                </div>
+                <label>
+                  {t.dateRangeFromLabel || "From"}
+                  <input type="date" value={dailyFromDate} onChange={(event) => setDailyFromDate(event.target.value)} />
+                </label>
+                <label>
+                  {t.dateRangeToLabel || "To"}
+                  <input type="date" value={dailyToDate} onChange={(event) => setDailyToDate(event.target.value)} />
+                </label>
+                <button
+                  type="button"
+                  className="secondary-button daily-balance-filter-clear"
+                  onClick={() => {
+                    setDailyFromDate("");
+                    setDailyToDate("");
+                  }}
+                >
+                  {t.dailyBalanceFilterReset || "Clear"}
+                </button>
+              </div>
+              {dailyDateRangeInvalid && <div className="error" role="alert">{t.dateRangeInvalid || "Start date must be before end date."}</div>}
+              {dailyLoadState === "loading" ? (
                 <div className="subtext">{t.loadingLabel || "Loading..."}</div>
               ) : dailyLoadState === "error" ? (
                 <div className="error" role="alert">{t.errorLoadFailed || "Failed to load daily statistics."}</div>
@@ -375,7 +412,7 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
                     </tr>
                   </thead>
                   <tbody>
-                    {dailyBalanceRows.map((row) => (
+                    {filteredDailyBalanceRows.map((row) => (
                       <tr key={row.date}>
                         <td><strong>{row.date}</strong></td>
                         <td className={row.net >= 0 ? "positive" : "negative"}>{formatDelta(row.net, selectedCurrency, exchangeRates)}</td>
@@ -384,7 +421,8 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
                     ))}
                   </tbody>
                 </table>
-              )
+              )}
+              </>
             )}
             </section>
           )}

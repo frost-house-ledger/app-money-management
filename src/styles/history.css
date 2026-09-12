@@ -1,0 +1,102 @@
+.history-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.history-badge--add {
+  background: rgba(47, 188, 157, 0.18);
+  color: #2fbc9d;
+}
+
+.history-badge--update {
+  background: rgba(91, 168, 232, 0.18);
+  color: #5ba8e8;
+}
+
+.history-badge--delete {
+  background: rgba(249, 127, 105, 0.18);
+  color: #f97f69;
+}
+
+.history-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--item-bg);
+  border: 1px solid var(--line);
+}
+
+.history-item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.history-item-time {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  font-family: Outfit, monospace;
+}
+
+.history-item-source {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.history-item-body {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+}
+
+.history-entry-line {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.history-entry-line--faded {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+.history-arrow {
+  color: var(--ink-soft);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.history-arrow--delete {
+  color: #f97f69;
+}
+
+.daily-row-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.daily-totals {
+  display: flex;
+  gap: 20px;
+  justify-content: flex-end;
+  padding: 8px 4px 2px;
+  border-top: 1px solid var(--line);
+  margin-top: 4px;
+  font-size: 0.9rem;
+}
+
+.daily-total-fee,
+.daily-total-income {
+  color: var(--ink-soft);
+}
