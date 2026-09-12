@@ -199,6 +199,56 @@
   font-weight: 600;
 }
 
+.daily-balance-filter {
+  display: flex;
+  align-items: end;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(45, 58, 76, 0.88), rgba(31, 42, 58, 0.88));
+}
+
+.daily-balance-filter-heading {
+  display: grid;
+  gap: 3px;
+  min-width: 150px;
+  margin-right: 4px;
+}
+
+.daily-balance-filter-heading strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.daily-balance-filter-heading span {
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+}
+
+.daily-balance-filter label {
+  margin: 0;
+  min-width: 170px;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.daily-balance-filter input {
+  width: 100%;
+}
+
+.daily-balance-filter .subtext {
+  align-self: center;
+  margin: 0;
+}
+
+.daily-balance-filter-clear {
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
 @media (max-width: 760px) {
   .chart-month-toolbar,
   .balance-toolbar-controls { align-items: stretch; }
@@ -209,6 +259,9 @@
   .toolbar-field-help { font-size: 0.78rem; }
   .toolbar-field-help th,
   .toolbar-field-help td { padding: 4px 6px; }
+  .daily-balance-filter { align-items: stretch; flex-direction: column; }
+  .daily-balance-filter-heading,
+  .daily-balance-filter label { min-width: 0; }
   .balance-toolbar-controls label,
   .balance-toolbar-controls input,
   .balance-toolbar-controls button { width: 100%; }

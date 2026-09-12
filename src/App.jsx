@@ -41,6 +41,7 @@ export default function App() {
   const [range, setRange] = useState(defaultRange(baseMonth));
   const [dateRange, setDateRange] = useState({ fromDate: "", toDate: "" });
   const [activePage, setActivePage] = useState("daily");
+  const [showSimulation, setShowSimulation] = useState(false);
   const [entryFilter, setEntryFilter] = useState(EMPTY_ENTRY_FILTER);
   
   const [selectedDailyCategory, setSelectedDailyCategory] = useState("all");
@@ -88,6 +89,7 @@ export default function App() {
   const [editingRecurringId, setEditingRecurringId] = useState(null);
   const [editingDailyId, setEditingDailyId] = useState(null);
   const t = useMemo(() => getMessages(locale), [locale]);
+  const isStatisticsSimulation = activePage === "chart" && showSimulation;
   const [route, setRoute] = useState(null);
   const [routeParams, setRouteParams] = useState({});
   useEffect(() => {
@@ -1056,6 +1058,7 @@ export default function App() {
 
       `}</style>
 
+      {!isStatisticsSimulation && <>
       {/* Today's date and current month income/expense snapshot */}
       <section className="card main-snapshot">
         <div className="snapshot-item">
@@ -1177,6 +1180,7 @@ export default function App() {
         </button>
 
       </nav>
+      </>}
 
       {/* {(activePage === "daily" || activePage === "monthly" || activePage === "history") && (
         <EntryFilterBar
@@ -1197,6 +1201,8 @@ export default function App() {
           t={t}
           currentBalance={currentBalance}
           currentBalanceDate={currentBalanceDate}
+          showSimulation={showSimulation}
+          setShowSimulation={setShowSimulation}
         />
       ) : activePage === "monthly" ? (
         <MonthlyEntryPage

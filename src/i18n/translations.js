@@ -51,6 +51,10 @@ export const TRANSLATIONS = {
   inputDescriptionControl: { jp: "操作", en: "Control" },
   inputDescriptionText: { jp: "説明", en: "Description" },
   dailyBalanceTrendTitle: { jp: "日ごとの残額推移", en: "Daily balance trend" },
+  dailyBalanceFilterTitle: { jp: "期間", en: "Time range" },
+  dailyBalanceFilterHelp: { jp: "空欄なら年間全体を表示", en: "Leave blank to show the full year." },
+  dailyBalanceFilterReset: { jp: "クリア", en: "Clear" },
+  dateRangeInvalid: { jp: "開始日は終了日以前にしてください", en: "Start date must be before end date." },
   applySelectedMonthToAllTabsButton: {
     jp: "この表示月を全タブへ反映",
     en: "Apply this month to all tabs",
@@ -488,18 +492,19 @@ export const TRANSLATIONS = {
     ar: "أضف عددًا من تغييرات الراتب حسب الحاجة للأشهر القادمة."
   },
   savingsSimIncomeChangeAfterLabel: {
-    jp: "変更 {index}: 何ヶ月後から",
-    en: "Change {index}: after how many months",
-    de: "Aenderung {index}: nach wie vielen Monaten",
-    es: "Cambio {index}: después de cuántos meses",
-    pt: "Alteração {index}: após quantos meses",
-    it: "Variazione {index}: dopo quanti mesi",
-    fr: "Changement {index} : après combien de mois",
-    ru: "Изменение {index}: через сколько месяцев",
-    tw: "變更 {index}：多少個月後",
-    ko: "변경 {index}: 몇 개월 후",
-    ar: "التغيير {index}: بعد كم شهرًا"
+    jp: "変更 {index}: 何月から",
+    en: "Change {index}: starting month",
+    de: "Aenderung {index}: Startmonat",
+    es: "Cambio {index}: mes de inicio",
+    pt: "Alteração {index}: mês de início",
+    it: "Variazione {index}: mese di inizio",
+    fr: "Changement {index} : mois de début",
+    ru: "Изменение {index}: месяц начала",
+    tw: "變更 {index}：開始月份",
+    ko: "변경 {index}: 시작 월",
+    ar: "التغيير {index}: شهر البدء"
   },
+  savingsSimChangeMonthLabel: { jp: "変更月", en: "Change month" },
   savingsSimIncomeChangeAmountLabel: {
     jp: "変更後の月間収入",
     en: "Monthly income after the change",
@@ -512,6 +517,19 @@ export const TRANSLATIONS = {
     tw: "變更後的月收入",
     ko: "변경 후 월 수입",
     ar: "الدخل الشهري بعد التغيير"
+  },
+  savingsSimExpenseChangeAmountLabel: {
+    jp: "変更後の月間支出",
+    en: "Monthly expense after the change",
+    de: "Monatliche Ausgaben nach der Änderung",
+    es: "Gasto mensual después del cambio",
+    pt: "Despesa mensal após a alteração",
+    it: "Spesa mensile dopo la variazione",
+    fr: "Dépense mensuelle après le changement",
+    ru: "Ежемесячные расходы после изменения",
+    tw: "變更後的月支出",
+    ko: "변경 후 월 지출",
+    ar: "المصروف الشهري بعد التغيير"
   },
   savingsSimAddIncomeChange: { jp: "収入変更を追加", en: "Add income change", de: "Einkommensaenderung hinzufuegen", es: "Agregar cambio de ingresos", pt: "Adicionar alteração de renda", it: "Aggiungi variazione reddito", fr: "Ajouter un changement de revenu", ru: "Добавить изменение дохода", tw: "新增收入變更", ko: "수입 변경 추가", ar: "إضافة تغيير الدخل" },
   savingsSimRemoveIncomeChange: { jp: "削除", en: "Remove", de: "Entfernen", es: "Eliminar", pt: "Remover", it: "Rimuovi", fr: "Supprimer", ru: "Удалить", tw: "刪除", ko: "삭제", ar: "إزالة" },

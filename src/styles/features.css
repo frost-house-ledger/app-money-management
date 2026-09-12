@@ -25,6 +25,13 @@
   width: fit-content;
 }
 
+.savings-sim-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .savings-sim-phase-list {
   display: grid;
   gap: 10px;
@@ -40,8 +47,9 @@
 
 .savings-sim-phase-title {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 1.2rem;
   font-weight: 700;
+  color: var(--ink);
 }
 
 .savings-sim-phase-help {
@@ -50,9 +58,27 @@
 
 .savings-sim-phase-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 1fr) auto;
   gap: 10px;
   align-items: end;
+}
+
+.savings-sim-phase-head {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(180px, 1fr) auto;
+  gap: 10px;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.savings-sim-phase-head span:last-child {
+  min-width: 92px;
+}
+
+.savings-sim-phase-cell {
+  min-width: 0;
+  margin: 0;
 }
 
 .savings-sim-empty {
@@ -77,6 +103,11 @@
 
 .savings-sim-head {
   margin-top: 4px;
+}
+
+@media (max-width: 760px) {
+  .savings-sim-phase-head { display: none; }
+  .savings-sim-phase-row { grid-template-columns: 1fr; }
 }
 
 .positive-value {
