@@ -73,7 +73,7 @@
     "@electron/rebuild": "^4.2.0",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
-    "@vitejs/plugin-react": "^6.1.0",
+    "@vitejs/plugin-react": "^6.1.1",
     "@tauri-apps/cli": "^2",
     "babel-jest": "^30.4.1",
     "concurrently": "^10.0.5",
