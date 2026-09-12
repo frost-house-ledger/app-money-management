@@ -12,6 +12,7 @@ export default function TargetAmountSetting({
   selectedCurrency,
   exchangeRates,
   formatCurrency,
+  title,
   onBack,
   t
 }) {
@@ -25,7 +26,7 @@ export default function TargetAmountSetting({
     <>
       <section className="card">
         <div style={{ display: "flex", alignItems: "left", justifyContent: "space-between", marginBottom: 20 }}>
-          <h2>{t.targetAmountSettingTitle}</h2>
+          <h2>{title || t.targetAmountSettingTitle}</h2>
           <button 
             className="secondary-button" 
             type="button" 

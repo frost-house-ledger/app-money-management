@@ -10,12 +10,19 @@ function addSimMonth(yyyymm, offset) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
+function monthOffset(fromYYYYMM, toYYYYMM) {
+  const [fromYear, fromMonth] = fromYYYYMM.split("-").map(Number);
+  const [toYear, toMonth] = toYYYYMM.split("-").map(Number);
+  return (toYear - fromYear) * 12 + (toMonth - fromMonth);
+}
+
 // create a new income phase in the simulation with default values and a unique ID
 function createIncomePhase() {
   return {
     id: nextIncomePhaseId++,
-    afterMonths: "",
-    income: ""
+    month: "",
+    income: "",
+    expense: ""
   };
 }
 
@@ -65,7 +72,7 @@ export default function SavingsSimulationPanel({ annualRows, selectedCurrency, e
         phase.id === phaseId
           ? {
               ...phase,
-              [key]: key === "income" ? sanitizeNumericInput(value) : value
+              [key]: key === "income" || key === "expense" ? sanitizeNumericInput(value) : value
             }
           : phase
       )
@@ -93,35 +100,47 @@ export default function SavingsSimulationPanel({ annualRows, selectedCurrency, e
     const today = new Date();
     const startYYYYMM = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
 
-    // Normalize income phases: filter out invalid entries, convert to numbers, and sort by afterMonths.
+    // Normalize changes and sort them by the month when they start.
       const normalizedPhases = Array.from(
         incomePhases.reduce((phaseMap, phase) => {
-          if (phase.afterMonths === "" || phase.income === "") {
+          if (
+            phase.month === "" ||
+            (phase.income === "" && phase.expense === "") ||
+            !/^\d{4}-\d{2}$/.test(phase.month)
+          ) {
             return phaseMap;
           }
 
-          const afterMonths = Math.min(Math.max(0, Number(phase.afterMonths) || 0), months);
-          const phaseIncome = Number(phase.income);
+          const startMonthOffset = Math.min(Math.max(1, monthOffset(startYYYYMM, phase.month)), months);
+          const phaseIncome = phase.income === "" ? null : Number(phase.income);
+          const phaseExpense = phase.expense === "" ? null : Number(phase.expense);
 
-          if (!Number.isFinite(phaseIncome)) {
+          if (
+            (phaseIncome !== null && !Number.isFinite(phaseIncome)) ||
+            (phaseExpense !== null && !Number.isFinite(phaseExpense))
+          ) {
             return phaseMap;
           }
 
-          phaseMap.set(afterMonths, phaseIncome);
+          phaseMap.set(startMonthOffset, { income: phaseIncome, expense: phaseExpense });
           return phaseMap;
         }, new Map())
       )
-        .map(([afterMonths, phaseIncome]) => ({ afterMonths, income: phaseIncome }))
-        .sort((left, right) => left.afterMonths - right.afterMonths);
+        .map(([startMonthOffset, values]) => ({ startMonthOffset, ...values }))
+        .sort((left, right) => left.startMonthOffset - right.startMonthOffset);
     const rows = [];
+    let currentIncome = income;
+    let currentExpense = expense;
 
-    // For each month, determine the applicable income based on the defined phases, calculate the monthly balance and cumulative savings.
+    // Apply each change from its selected month, then calculate the balance.
     for (let i = 1; i <= months; i++) {
-      const targetIncome = normalizedPhases.reduce(
-        (currentIncome, phase) => (i > phase.afterMonths ? phase.income : currentIncome),
-        income
-      );
-      const monthlyBalance = targetIncome - expense;
+      normalizedPhases
+        .filter((phase) => phase.startMonthOffset === i)
+        .forEach((phase) => {
+          if (phase.income !== null) currentIncome = phase.income;
+          if (phase.expense !== null) currentExpense = phase.expense;
+        });
+      const monthlyBalance = currentIncome - currentExpense;
       const prevSavings = i === 1 ? initial : rows[i - 2].savings;
       rows.push({
         month: addSimMonth(startYYYYMM, i),
@@ -188,37 +207,51 @@ export default function SavingsSimulationPanel({ annualRows, selectedCurrency, e
         </label>
       </div>
 
+      <br />
+
       <div className="savings-sim-phase-list">
         <div className="savings-sim-phase-toolbar">
           <p className="savings-sim-phase-title">{t.savingsSimIncomeChangesLabel}</p>
-          <button type="button" className="secondary-button savings-sim-phase-add" onClick={handleAddIncomePhase}>
-            {t.savingsSimAddIncomeChange}
-          </button>
         </div>
 
         <p className="subtext savings-sim-phase-help">{t.savingsSimIncomeChangesHelp}</p>
+
+        <div className="savings-sim-phase-head" aria-hidden="true">
+          <span>{t.savingsSimChangeMonthLabel}</span>
+          <span>{t.savingsSimIncomeChangeAmountLabel}</span>
+          <span>{t.savingsSimExpenseChangeAmountLabel}</span>
+          <span>{t.actionsLabel}</span>
+        </div>
         
         {incomePhases.map((phase, index) => (
           <div key={phase.id} className="savings-sim-phase-row">
-            <label>
-              {t.savingsSimIncomeChangeAfterLabel.replace("{index}", String(index + 1))}
+            <label className="savings-sim-phase-cell">
               <input
-                type="number"
-                min="0"
-                max="120"
-                value={phase.afterMonths}
-                onChange={(e) => handleIncomePhaseChange(phase.id, "afterMonths", e.target.value)}
-                placeholder="0"
+                type="month"
+                value={phase.month}
+                aria-label={t.savingsSimIncomeChangeAfterLabel.replace("{index}", String(index + 1))}
+                onChange={(e) => handleIncomePhaseChange(phase.id, "month", e.target.value)}
               />
             </label>
 
-            <label>
-              {t.savingsSimIncomeChangeAmountLabel}
+            <label className="savings-sim-phase-cell">
               <input
                 type="text"
                 inputMode="decimal"
                 value={formatNumericInput(phase.income)}
+                aria-label={`${t.savingsSimIncomeChangeAmountLabel} ${index + 1}`}
                 onChange={(e) => handleIncomePhaseChange(phase.id, "income", e.target.value)}
+                placeholder="0"
+              />
+            </label>
+
+            <label className="savings-sim-phase-cell">
+              <input
+                type="text"
+                inputMode="decimal"
+                value={formatNumericInput(phase.expense)}
+                aria-label={`${t.savingsSimExpenseChangeAmountLabel} ${index + 1}`}
+                onChange={(e) => handleIncomePhaseChange(phase.id, "expense", e.target.value)}
                 placeholder="0"
               />
             </label>
@@ -234,34 +267,27 @@ export default function SavingsSimulationPanel({ annualRows, selectedCurrency, e
         ))}
       </div>
 
-      {safeAnnualRows.length > 0 && (
-        <button type="button" className="secondary-button savings-sim-autofill" onClick={handleAutoFill}>
-          {t.savingsSimAutoFill}
+      <div className="savings-sim-actions">
+        <button
+          type="button"
+          className="secondary-button savings-sim-phase-add"
+          onClick={handleAddIncomePhase}
+        >
+          {t.savingsSimAddIncomeChange}
         </button>
-      )}
+        {safeAnnualRows.length > 0 && (
+          <button type="button" className="secondary-button savings-sim-autofill" onClick={handleAutoFill}>
+            {t.savingsSimAutoFill}
+          </button>
+        )}
+      </div>
+
+      <br />
 
       {simResult.length === 0 ? (
         <p className="subtext savings-sim-empty">{t.savingsSimNoData}</p>
       ) : (
         <>
-          <div className="savings-sim-summary">
-            <span>
-              {t.savingsSimColMonthly}:{" "}
-              <strong
-                className={simResult[simResult.length - 1].monthlyBalance >= 0 ? "positive-value" : "negative-value"}
-              >
-                {formatCurrency(simResult[0].monthlyBalance, selectedCurrency, exchangeRates)}
-                {simResult[0].monthlyBalance !== simResult[simResult.length - 1].monthlyBalance && " -> "}
-                {simResult[0].monthlyBalance !== simResult[simResult.length - 1].monthlyBalance &&
-                  formatCurrency(simResult[simResult.length - 1].monthlyBalance, selectedCurrency, exchangeRates)}
-              </strong>
-            </span>
-            <span>
-              {simResult[simResult.length - 1].month} :{" "}
-              <strong>{formatCurrency(simResult[simResult.length - 1].savings, selectedCurrency, exchangeRates)}</strong>
-            </span>
-          </div>
-
           <div className="annual-list-head savings-sim-head">
             <span>{t.savingsSimColMonth}</span>
             <span>{t.savingsSimColMonthly}</span>
