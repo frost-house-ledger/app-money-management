@@ -1,0 +1,147 @@
+.balance-grid {
+  display: grid;
+  grid-template-columns: 360px 140px 72px;
+  gap: 8px;
+  align-items: center;
+}
+
+.form-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+
+.currency-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.currency-prefix {
+  color: var(--ink-soft);
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+
+.currency-input {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--input-bg);
+  color: var(--ink);
+  max-width: 360px;
+  font-size: 0.95rem;
+  pointer-events: auto;
+}
+
+.form-actions {
+  justify-self: start;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.saved-balances { max-width: 720px; }
+.saved-balances .list.small-list { margin-top: 8px; }
+
+.month-display {
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.saved-balances-table {
+  width: 100%;
+  table-layout: auto;
+}
+
+.saved-balances-table thead th {
+  color: var(--ink-soft);
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 6px 10px;
+}
+
+.saved-balances-table tbody tr {
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+}
+
+.saved-balances-table td { padding: 10px 12px; }
+.saved-balances-table td.action-cell { white-space: nowrap; }
+
+.month-input {
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--input-bg);
+  color: var(--ink);
+  width: 120px;
+}
+
+.negative-note { color: var(--fee); margin-top: 6px; }
+.entry-filter-bar { display: grid; gap: 12px; }
+
+.entry-filter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.entry-filter-header h2 { margin: 0; }
+
+.entry-filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.entry-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.entry-filter-grid label {
+  display: grid;
+  gap: 6px;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.entry-filter-grid input,
+.entry-filter-grid select {
+  width: 100%;
+  min-width: 0;
+}
+
+.entry-filter-reset { align-self: end; }
+
+.toolbar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.toolbar-action {
+  display: flex;
+  align-items: flex-end;
+}
+
+.toolbar-action .secondary-button { width: 100%; }
