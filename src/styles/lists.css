@@ -1,0 +1,169 @@
+.summary-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.stat h2 { margin: 0; font-size: 1rem; }
+.stat p {
+  margin: 8px 0 0;
+  font-family: Outfit, sans-serif;
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.stat.income p { color: var(--income); }
+.stat.fee p { color: var(--fee); }
+.stat.balance p { color: var(--balance); }
+
+.chart-card h2,
+.forms-grid h2,
+.lists-grid h2 {
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+}
+
+.forms-grid,
+.lists-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+}
+
+.subtext {
+  margin: -2px 0 10px;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.list li {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px;
+  background: var(--item-bg);
+  font-size: 0.9rem;
+}
+
+.recurring-list-item {
+  grid-template-columns: 110px 110px 100px 100px minmax(140px, 1fr) 36px minmax(160px, 1.6fr) 120px auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.recurring-list-head {
+  display: grid;
+  gap: 8px;
+  align-items: center;
+  color: var(--ink-soft);
+  font-weight: 700;
+  margin-bottom: 8px;
+  grid-template-columns: 110px 110px 100px 100px minmax(140px, 1fr) 36px minmax(160px, 1.6fr) 120px auto;
+}
+
+.recurring-item-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+  padding-top: 8px;
+}
+
+.recurring-item-title {
+  grid-column: 1 / -1;
+  padding-top: 6px;
+  white-space: normal;
+  overflow: visible;
+}
+
+.recurring-item-title span,
+.recurring-item-title input {
+  display: block;
+  width: 100%;
+}
+
+.recurring-list-item > *,
+.recurring-list-item--editing > *,
+.recurring-list-head > * { min-width: 0; }
+
+.recurring-list-item > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recurring-list-item--editing input,
+.recurring-list-item--editing select {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.recurring-list { overflow-x: auto; }
+
+.daily-list-item {
+  grid-template-columns: 102px 82px minmax(110px, 0.9fr) minmax(150px, 1.5fr) 110px minmax(100px, 1.1fr) auto;
+}
+
+.recurring-list-item--editing {
+  grid-template-columns: 110px 110px 100px 100px minmax(120px, 1fr) 36px minmax(140px, 1.6fr) 120px auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.daily-list-item--editing {
+  grid-template-columns: 110px 90px minmax(120px, 1fr) minmax(150px, 1.4fr) 110px minmax(120px, 1.1fr) auto;
+}
+
+.recurring-list-item--editing input,
+.recurring-list-item--editing select,
+.daily-list-item--editing input,
+.daily-list-item--editing select { width: 100%; }
+
+.daily-list-item > * { min-width: 0; }
+.daily-list-item > span:nth-child(4),
+.daily-list-item > span:nth-child(6) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.daily-list-item--pending-delete,
+.recurring-list-item--pending-delete { opacity: 0.65; }
+
+.recurring-list-item--pending-delete > strong,
+.recurring-list-item--pending-delete > span:not(.daily-row-actions),
+.daily-list-item--pending-delete > strong,
+.daily-list-item--pending-delete > span:not(.daily-row-actions) {
+  text-decoration: line-through;
+}
+
+.recurring-expired-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  font-size: 0.8rem;
+  color: #f5a623;
+}
+
+.recurring-list-item--expired { opacity: 0.95; }
+.recurring-list-item--expired > td {
+  position: relative;
+  background-image: linear-gradient(#ff3b30, #ff3b30);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100% 3px;
+}
+
+.month-diff { font-weight: 700; }
+.month-diff.positive { color: var(--income); }
+.month-diff.negative { color: var(--fee); }

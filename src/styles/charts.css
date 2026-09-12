@@ -1,0 +1,275 @@
+.chart-month-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chart-card {
+  background: linear-gradient(180deg, rgba(34, 44, 60, 0.7), rgba(20, 28, 42, 0.7));
+  border-radius: 12px;
+}
+
+.annual-header-card {
+  margin-top: 8px;
+  border-radius: 12px 12px 16px 16px;
+  box-shadow: 0 18px 36px rgba(6, 36, 60, 0.1);
+}
+
+.annual-list-head span {
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.chart-dashboard-page {
+  display: grid;
+  gap: 12px;
+}
+
+.statistics-summary-page {
+  width: 100%;
+  max-width: var(--content-width);
+  min-width: 0;
+  margin-inline: auto;
+}
+
+.statistics-summary-page > .chart-dashboard-page {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.statistics-summary-page canvas {
+  display: block;
+  max-width: 100% !important;
+}
+
+.chart-wrap {
+  position: relative;
+  height: 320px;
+  z-index: 1;
+}
+
+.chart-card h2 {
+  color: var(--ink) !important;
+  position: relative;
+  z-index: 3;
+}
+
+.chart-wrap--pie { height: 280px; }
+
+.page-tabs-nav {
+  width: 100%;
+  max-width: var(--content-width);
+  margin-inline: auto;
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--nav-bg);
+}
+
+.main-snapshot {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.snapshot-item { display: grid; gap: 4px; }
+.snapshot-item span { color: var(--ink-soft); font-size: 0.85rem; }
+.snapshot-item strong { font-family: Outfit, sans-serif; font-size: 1.15rem; }
+
+.chart-month-toolbar {
+  display: grid;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.chart-month-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  flex: 1;
+}
+
+.toolbar-field-copy {
+  display: grid;
+  gap: 2px;
+  min-width: max-content;
+}
+
+.toolbar-field-label {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.toolbar-field-copy small {
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.toolbar-field-help {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--ink-soft);
+  padding: 0 2px;
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+.toolbar-field-help th,
+.toolbar-field-help td {
+  padding: 4px 10px;
+  border-top: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.toolbar-field-help tbody th {
+  width: 18%;
+  color: var(--ink);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.toolbar-field-help tbody td:nth-child(2) {
+  width: 38%;
+}
+
+.toolbar-field-help input {
+  width: 255px;
+  max-width: 100%;
+  font-size: 0.95rem;
+}
+
+.toolbar-control-stack {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+}
+
+.toolbar-control-stack .secondary-button {
+  white-space: nowrap;
+}
+
+.chart-month-toolbar input[type="month"] { min-width: 120px; }
+
+.balance-toolbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+
+.balance-toolbar-controls label {
+  flex: 0 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.balance-toolbar-controls input { min-width: 120px; }
+.balance-toolbar-controls input[type="number"] { width: 130px; }
+.balance-toolbar-controls button { white-space: nowrap; }
+.saved-balance-value { color: var(--ink-soft); font-size: 0.9rem; white-space: nowrap; }
+
+.statistics-collapse-button {
+  display: block;
+  width: 100%;
+  margin: 16px 0 10px;
+  padding: 10px 12px;
+  text-align: left;
+  color: var(--ink);
+  background: var(--input-bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+@media (max-width: 760px) {
+  .chart-month-toolbar,
+  .balance-toolbar-controls { align-items: stretch; }
+  .chart-month-toolbar,
+  .balance-toolbar-controls { flex-direction: column; }
+  .toolbar-field-copy,
+  .toolbar-field-copy small { min-width: 0; white-space: normal; }
+  .toolbar-field-help { font-size: 0.78rem; }
+  .toolbar-field-help th,
+  .toolbar-field-help td { padding: 4px 6px; }
+  .balance-toolbar-controls label,
+  .balance-toolbar-controls input,
+  .balance-toolbar-controls button { width: 100%; }
+}
+
+.annual-header-card .annual-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.annual-header-card .current-balance-display {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--ink);
+  min-width: 140px;
+  margin-right: 8px;
+}
+
+.annual-header-card .current-balance-display .current-balance-amount {
+  font-family: Outfit, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.annual-header-card .month-range-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-left: 0;
+}
+
+.annual-header-card .month-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+.annual-header-card .month-input {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--input-bg);
+  color: var(--ink);
+  width: 160px;
+}
+
+@media (max-width: 720px) {
+  .annual-header-card .annual-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .annual-header-card .month-range-controls { justify-content: flex-start; }
+}
+
+.annual-header-card .monthly-chart {
+  margin-top: 12px;
+  width: 100%;
+}

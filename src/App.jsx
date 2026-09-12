@@ -125,13 +125,6 @@ export default function App() {
       setErrorText(error?.message || t.errorLoadFailed || "Failed to load month data");
     }
   }
-  function shiftSelectedMonth(offset) {
-    const [year, month] = String(selectedMonth || baseMonth).split("-").map(Number);
-    const next = new Date(year, month - 1 + offset, 1);
-    const nextMonth = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}`;
-    setSelectedMonth(nextMonth);
-  }
-
   function saveCurrentBalance() {
     try {
       localStorage.setItem("analysis:currentBalance", String(currentBalance || ""));
@@ -408,13 +401,7 @@ export default function App() {
         }
       ])
     );
-    return recurringRows
-      .filter((row) => {
-        const startMonth = String(row.startMonth || "");
-        const endMonth = String(row.endMonth || "");
-        return startMonth <= selectedMonth && (!endMonth || selectedMonth <= endMonth);
-      })
-      .map((row) => {
+    return recurringRows.map((row) => {
       // Handle category based on type
       let categoryId = null;
       if (row.type === "fee") {
@@ -1091,60 +1078,52 @@ export default function App() {
 
       {/* Month select for all tabs */}
       <section className="chart-month-toolbar">
-        <label>
-          <span>{t.chartMonthLabel}:</span>
-          <div className="chart-month-controls">
-            <button
-              type="button"
-              className="month-step-button"
-              onClick={() => shiftSelectedMonth(-1)}
-              aria-label={t.previousMonthButton || "Previous month"}
-              title={t.previousMonthButton || "Previous month"}
-            >
-              &lt;
-            </button>
-            <input
-              type="month"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-            />
-            <button
-              type="button"
-              className="month-step-button"
-              onClick={() => shiftSelectedMonth(1)}
-              aria-label={t.nextMonthButton || "Next month"}
-              title={t.nextMonthButton || "Next month"}
-            >
-              &gt;
-            </button>
-          </div>
-        </label>
-
-        {/* for saving the balance on a specific date */}
-        <div className="balance-toolbar-controls">
-          <label>
-            <span>{t.dateLabel || "Date"}:</span>
-            <input
-              type="date"
-              value={currentBalanceDate}
-              onChange={(e) => setCurrentBalanceDate(e.target.value)}
-            />
-          </label>
-          <label>
-            <span>{t.amountLabel || "Amount"}:</span>
-            <input
-              type="number"
-              min="0"
-              value={currentBalance}
-              onChange={(e) => setCurrentBalance(e.target.value)}
-              placeholder="0"
-            />
-          </label>
-
-          <button type="button" className="secondary-button" onClick={saveCurrentBalance}>
-            {t.saveLabel || "Save balance"}
-          </button>
-        </div>
+        <table className="toolbar-field-help" aria-label={t.inputDescriptionTitle || "Input descriptions"}>
+          <tbody>
+            <tr>
+              <th scope="row">{t.chartMonthLabel}</th>
+              <td>
+                <div className="chart-month-controls">
+                  <input
+                    type="month"
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                  />
+                </div>
+              </td>
+              <td>{t.chartMonthHelp}</td>
+            </tr>
+            <tr>
+              <th scope="row">{t.dateLabel || "Date"}</th>
+              <td>
+                <input
+                  type="date"
+                  value={currentBalanceDate}
+                  onChange={(e) => setCurrentBalanceDate(e.target.value)}
+                />
+              </td>
+              <td>{t.balanceDateHelp}</td>
+            </tr>
+            <tr>
+              <th scope="row">{t.amountLabel || "Amount"}</th>
+              <td>
+                <div className="toolbar-control-stack">
+                  <input
+                    type="number"
+                    min="0"
+                    value={currentBalance}
+                    onChange={(e) => setCurrentBalance(e.target.value)}
+                    placeholder="0"
+                  />
+                  <button type="button" className="secondary-button" onClick={saveCurrentBalance}>
+                    {t.saveLabel || "Save balance"}
+                  </button>
+                </div>
+              </td>
+              <td>{t.balanceAmountHelp} {t.balanceSaveHelp}</td>
+            </tr>
+          </tbody>
+        </table>
       </section>
 
       {/* Page view tabs */}
