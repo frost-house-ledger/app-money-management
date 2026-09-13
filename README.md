@@ -11,7 +11,7 @@ It’s lightweight, works offline, and is designed for daily use on desktop and 
 
 ## Demo
 
-[Demo video](demo/video/HouseLedger-demo.mp4)
+[Demo video](demo/video/demo_video.mp4)
 
 ## Why I created this app
 

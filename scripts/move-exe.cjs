@@ -8,7 +8,7 @@ if (!fs.existsSync(release)) {
   process.exit(0);
 }
 
-for (const name of ['AMM-Setup-x64.exe', 'AMM-Setup-x86.exe', 'AMM-Setup-ia32.exe']) {
+for (const name of ['AMM-Setup-x64.exe', 'AMM-Setup-x86.exe']) {
   const target = path.join(root, name);
   if (fs.existsSync(target)) {
     fs.rmSync(target, { force: true });

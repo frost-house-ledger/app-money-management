@@ -6,7 +6,7 @@ HouseLedger は Electron と React で作られた、軽量でプライバシー
 
 ## デモ
 
-[デモ動画](demo/video/HouseLedger-demo.mp4)
+[デモ動画](demo/video/demo_video.mp4)
 
 ## 作った理由
 

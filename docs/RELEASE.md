@@ -52,14 +52,12 @@ Pushing the tag starts the Windows release workflow.
 
 ## Published installers
 
-GitHub Actions runs tests and builds both Windows architectures:
+GitHub Actions runs tests and builds both Windows architectures. The x86 build uses Electron 31.7.7 because Electron 44 no longer publishes ia32 headers:
 
 | Public name | Electron Builder target | File name pattern |
 | --- | --- | --- |
 | x64 | `x64` | `HouseLedger-v<version>-x64.exe` |
 | x86 | `ia32` | `HouseLedger-v<version>-x86.exe` |
-
-`ia32` is the internal Electron Builder architecture name. Users see `x86` in the published installer name.
 
 ## Local build checks
 
@@ -71,13 +69,13 @@ npm run react:build
 git diff --check
 ```
 
-Build both Windows installers locally when required:
+Build the Windows installer locally:
 
 ```bash
 npm run dist:win:all
 ```
 
-The local build writes installers under `release/` and copies the 32-bit output to the `x86` name.
+The local build writes the installer under `release/`.
 
 ## Recovery
 
