@@ -25,9 +25,9 @@
     "predist:win": "npm run test && npm run generate:icons && npm run kill-running",
     "dist:win": "npm run react:build && electron-builder --publish never --win nsis --x64 && npm run move:exe",
     "predist:win32": "npm run test && npm run generate:icons && npm run kill-running",
-    "dist:win32": "npm run react:build && electron-builder --publish never --win nsis --ia32 && npm run move:exe",
+    "dist:win32": "npm run dist:win",
     "predist:win:all": "npm run test && npm run generate:icons && npm run kill-running",
-    "dist:win:all": "npm run react:build && electron-builder --publish never --win nsis --x64 --ia32 && npm run move:exe",
+    "dist:win:all": "npm run dist:win",
     "dist:win:all:fast": "npm run tauri:build",
     "test": "jest",
     "predist:mac": "npm run test && npm run generate:icons && npm run kill-running",
@@ -109,10 +109,7 @@
       "target": [
         {
           "target": "nsis",
-          "arch": [
-            "x64",
-            "ia32"
-          ]
+          "arch": ["x64"]
         }
       ]
     },

@@ -81,6 +81,5 @@ LAN sync is direct device-to-device HTTP on the local network. It is not a cloud
 ## Build targets
 
 - Vite builds the renderer into `dist/`.
-- Electron Builder creates Windows installers for `x64` and `ia32`.
-- The public 32-bit installer is renamed to `x86` after building; `ia32` remains Electron Builder's internal architecture name.
+- Electron Builder creates Windows installers for `x64` and legacy `ia32` (`x86`). The x86 release uses Electron 31.7.7 because Electron 44 no longer publishes ia32 headers.
 - Capacitor copies the Vite output into the Android project for native builds.

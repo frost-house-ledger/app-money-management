@@ -45,8 +45,19 @@ jobs:
       - name: Build React (vite)
         run: npm run react:build
 
-      - name: Build Windows installer (x64 + ia32)
-        run: npx electron-builder --publish never --win nsis --x64 --ia32
+      - name: Build Windows installer (x64)
+        run: npx electron-builder --publish never --win nsis --x64
+
+      # Electron 44 no longer publishes ia32 headers. Use the last Electron
+      # line that still provides them for the legacy x86 installer.
+      - name: Install Electron for x86 build
+        run: npm install --no-save --package-lock=false --ignore-scripts electron@31.7.7
+
+      - name: Rebuild native dependencies for x86
+        run: npx electron-builder install-app-deps --arch ia32
+
+      - name: Build Windows installer (x86)
+        run: npx electron-builder --publish never --win nsis --ia32
 
       - name: Upload installers to GitHub Release
         env:
@@ -71,7 +82,7 @@ jobs:
           }
 
           $x64  = Find-Installer $x64Pattern  "release\\HouseLedger-*-x64.exe"
-          $x86 = Find-Installer $x86Pattern "release\\HouseLedger-*-ia32.exe"
+          $x86  = Find-Installer $x86Pattern  "release\\HouseLedger-*-ia32.exe"
 
 
           # ===============================================
