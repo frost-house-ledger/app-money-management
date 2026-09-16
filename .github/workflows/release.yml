@@ -30,10 +30,26 @@ jobs:
             throw "package.json version must start with major.minor: $version"
           }
 
-          $tag = "v$($Matches[1]).$($Matches[2])"
+          $major = [int]$Matches[1]
+          $minor = [int]$Matches[2]
+          $tag = "v$major.$minor"
+          while (git show-ref --tags --verify --quiet "refs/tags/$tag") {
+            if ($minor -eq 9) {
+              $major++
+              $minor = 0
+            } else {
+              $minor++
+            }
+            $tag = "v$major.$minor"
+          }
+
+          $packageVersion = "$major.$minor.0"
+          if ($version -ne $packageVersion) {
+            npm version $packageVersion --no-git-tag-version --allow-same-version
+          }
 
           "RELEASE_TAG=$tag" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          "RELEASE_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "RELEASE_VERSION=$packageVersion" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
