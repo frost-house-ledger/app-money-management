@@ -18,6 +18,8 @@ jobs:
           fetch-depth: 0
 
       - name: Determine release tag
+        env:
+          RELEASE_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         shell: pwsh
         run: |
           $version = node -p "require('./package.json').version"
@@ -25,10 +27,12 @@ jobs:
             throw "package.json version is empty"
           }
 
-          $message = git log -1 --format=%B
-          if ($message -notmatch '(?m)^release:\s*v?([0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?)\s*$') {
+          $message = ($env:RELEASE_COMMIT_MESSAGE -split '\r?\n', 2)[0].Trim()
+
+          if ($message -notmatch '^release:\s*v?([0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?)$') {
             throw "Release commit message must start with 'release:' followed by a semantic version."
           }
+
           if ($Matches[1] -ne $version) {
             throw "Commit version $($Matches[1]) does not match package.json version $version."
           }
