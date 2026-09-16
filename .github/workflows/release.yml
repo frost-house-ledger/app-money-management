@@ -143,7 +143,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag --annotate $tag --message "Release $tag" $env:GITHUB_SHA
-          git push origin "refs/tags/$tag:refs/tags/$tag"
+          git push origin "refs/tags/${tag}:refs/tags/${tag}"
 
       # Now create or replace the GitHub Release (after artifacts uploaded)
       - name: Create GitHub Release
