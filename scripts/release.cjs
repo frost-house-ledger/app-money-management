@@ -44,15 +44,13 @@ if (run('git', ['tag', '--list', tag])) {
 }
 
 if (dryRun) {
-  console.log(`Would set package version to ${version}, commit it, create ${tag}, and push master plus ${tag}.`);
+  console.log(`Would set package version to ${version}, commit release: ${version}, and push master.`);
   process.exit(0);
 }
 
 run('npm.cmd', ['version', version, '--no-git-tag-version'], { stdio: 'inherit', shell: process.platform === 'win32' });
 run('git', ['add', 'package.json', 'package-lock.json']);
-run('git', ['commit', '-m', `chore: release ${tag}`], { stdio: 'inherit' });
-run('git', ['tag', '-a', tag, '-m', `Release ${tag}`], { stdio: 'inherit' });
+run('git', ['commit', '-m', `release: ${version}`], { stdio: 'inherit' });
 run('git', ['push', 'origin', 'refs/heads/master:refs/heads/master'], { stdio: 'inherit' });
-run('git', ['push', 'origin', `refs/tags/${tag}:refs/tags/${tag}`], { stdio: 'inherit' });
 
-console.log(`Release ${tag} pushed. GitHub Actions will build and publish the installers.`);
+console.log(`Release commit pushed. GitHub Actions will create ${tag}, build, and publish the installers.`);
