@@ -45,10 +45,16 @@ The script:
 2. Requires a clean working tree.
 3. Updates `package.json` and `package-lock.json`.
 4. Commits the version change.
-5. Creates the annotated tag `v1.3.0`.
-6. Pushes `master` and the tag to `origin`.
+5. Commits the version change with the message `release: 1.3.0`.
+6. Pushes `master` to `origin`.
 
-Pushing the tag starts the Windows release workflow.
+The push starts the Windows release workflow. The workflow validates the commit message, creates the annotated tag `v1.3.0`, and publishes the Windows installers from that tag:
+
+```text
+release: 1.3.0
+```
+
+The version in the message must match `package.json`. Other commit messages do not publish a release. Tags that already exist are never overwritten.
 
 ## Published installers
 
