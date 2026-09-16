@@ -28,15 +28,15 @@ git push origin refs/heads/master:refs/heads/master
 Validate the version and release conditions without changing Git or package files:
 
 ```bash
-npm run release -- -v 1.3.0 --dry-run
+npm run release -- -v 1.3 --dry-run
 ```
 
-Versions must use semantic versioning, for example `1.3.0` or `1.3.0-beta.1`.
+Release versions use `major.minor`, for example `1.3` or `1.3-beta.1`.
 
 ## Create a release
 
 ```bash
-npm run release -- -v 1.3.0
+npm run release -- -v 1.3
 ```
 
 The script:
@@ -45,16 +45,16 @@ The script:
 2. Requires a clean working tree.
 3. Updates `package.json` and `package-lock.json`.
 4. Commits the version change.
-5. Commits the version change with the message `release: 1.3.0`.
+5. Commits the version change with the message `release: 1.3`.
 6. Pushes `master` to `origin`.
 
-The push starts the Windows release workflow. The workflow validates the commit message, creates the annotated tag `v1.3.0`, and publishes the Windows installers from that tag:
+The push starts the Windows release workflow. The workflow creates the annotated tag `v1.3` and publishes the Windows installers from that tag:
 
 ```text
-release: 1.3.0
+release: 1.3
 ```
 
-The version in the message must match `package.json`. Other commit messages do not publish a release. Tags that already exist are never overwritten.
+The release script updates `package.json` to the requested version and uses the `v<major>.<minor>` tag format. Other commit messages do not publish a release. If the requested tag already exists, the release script automatically increments the minor version: `1.0` becomes `1.1`, and `1.9` becomes `2.0`.
 
 ## Published installers
 
@@ -62,8 +62,8 @@ GitHub Actions runs tests and builds both Windows architectures. The x86 build u
 
 | Public name | Electron Builder target | File name pattern |
 | --- | --- | --- |
-| x64 | `x64` | `HouseLedger-v<version>-x64.exe` |
-| x86 | `ia32` | `HouseLedger-v<version>-x86.exe` |
+| x64 | `x64` | `HouseLedger-v<major>.<minor>-x64.exe` |
+| x86 | `ia32` | `HouseLedger-v<major>.<minor>-x86.exe` |
 
 ## Local build checks
 
@@ -85,4 +85,4 @@ The local build writes the installer under `release/`.
 
 ## Recovery
 
-Do not reuse an existing tag. Choose a new version or remove the tag only after confirming that no public release depends on it. If the workflow fails, inspect the GitHub Actions log before retrying.
+The release script never overwrites an existing tag. It increments the minor version until an unused tag is available. If the workflow fails, inspect the GitHub Actions log before retrying.

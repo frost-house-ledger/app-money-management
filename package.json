@@ -1,6 +1,6 @@
 {
   "name": "house-ledger",
-  "version": "1.3.0",
+  "version": "1.0",
   "description": "Electron + React personal money management app",
   "author": "Frost",
   "main": "Desktop/electron/main.js",

@@ -25,18 +25,12 @@ jobs:
             throw "package.json version is empty"
           }
 
-          $event = Get-Content -Raw -Path $env:GITHUB_EVENT_PATH | ConvertFrom-Json
-          $message = ($event.head_commit.message -split '\r?\n', 2)[0].Trim()
-
-          if ($message -notmatch '^release:\s*v?([0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?)$') {
-            throw "Release commit message must start with 'release:' followed by a semantic version."
+          # The commit message is the release trigger; package.json is the version source.
+          if ($version -notmatch '^(\d+)\.(\d+)') {
+            throw "package.json version must start with major.minor: $version"
           }
 
-          if ($Matches[1] -ne $version) {
-            throw "Commit version $($Matches[1]) does not match package.json version $version."
-          }
-
-          $tag = "v$($Matches[1])"
+          $tag = "v$($Matches[1]).$($Matches[2])"
 
           "RELEASE_TAG=$tag" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "RELEASE_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
