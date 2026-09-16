@@ -15,13 +15,33 @@ function fail(message) {
   process.exit(1);
 }
 
+function bumpMinor(version) {
+  const match = version.match(/^(\d+)\.(\d+)(?:\.\d+)?(?:-[0-9A-Za-z.-]+)?$/);
+  if (!match) {
+    fail(`cannot bump invalid version: ${version}`);
+  }
+
+  const major = Number(match[1]);
+  const minor = Number(match[2]);
+  return `${minor === 9 ? major + 1 : major}.${minor === 9 ? 0 : minor + 1}`;
+}
+
+function tagForVersion(version) {
+  const match = version.match(/^(\d+)\.(\d+)/);
+  if (!match) {
+    fail(`cannot create a tag from invalid version: ${version}`);
+  }
+
+  return `v${match[1]}.${match[2]}`;
+}
+
 const args = process.argv.slice(2);
 const versionIndex = args.findIndex((arg) => arg === '-v' || arg === '--version');
 const version = versionIndex >= 0 ? args[versionIndex + 1] : null;
 const dryRun = args.includes('--dry-run');
 
-if (!version || !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) {
-  fail('use npm run release -- -v <semver>, for example: npm run release -- -v 0.2.0');
+if (!version || !/^\d+\.\d+(?:\.\d+)?(?:-[0-9A-Za-z.-]+)?$/.test(version)) {
+  fail('use npm run release -- -v <version>, for example: npm run release -- -v 0.2');
 }
 
 if (args.slice(versionIndex + 2).some((arg) => arg !== '--dry-run')) {
@@ -38,19 +58,24 @@ if (status && !dryRun) {
   fail('working tree must be clean before releasing');
 }
 
-const tag = `v${version}`;
-if (run('git', ['tag', '--list', tag])) {
-  fail(`tag already exists: ${tag}`);
+let releaseVersion = version;
+let tag = tagForVersion(releaseVersion);
+while (run('git', ['tag', '--list', tag])) {
+  releaseVersion = bumpMinor(releaseVersion);
+  tag = tagForVersion(releaseVersion);
 }
+const packageVersion = /^\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(releaseVersion)
+  ? releaseVersion.replace(/^([^ -]+)(-.+)?$/, '$1.0$2')
+  : releaseVersion;
 
 if (dryRun) {
-  console.log(`Would set package version to ${version}, commit release: ${version}, and push master.`);
+  console.log(`Would set package version to ${packageVersion}, commit release: ${releaseVersion}, and push master.`);
   process.exit(0);
 }
 
-run('npm.cmd', ['version', version, '--no-git-tag-version'], { stdio: 'inherit', shell: process.platform === 'win32' });
+run('npm.cmd', ['version', packageVersion, '--no-git-tag-version'], { stdio: 'inherit', shell: process.platform === 'win32' });
 run('git', ['add', 'package.json', 'package-lock.json']);
-run('git', ['commit', '-m', `release: ${version}`], { stdio: 'inherit' });
+run('git', ['commit', '-m', `release: ${releaseVersion}`], { stdio: 'inherit' });
 run('git', ['push', 'origin', 'refs/heads/master:refs/heads/master'], { stdio: 'inherit' });
 
 console.log(`Release commit pushed. GitHub Actions will create ${tag}, build, and publish the installers.`);

@@ -92,10 +92,10 @@ npm run dev
 Release from `master`:
 
 ```bash
-npm run release -- -v 0.2.0
+npm run release -- -v 0.2
 ```
 
-The command updates `package.json` and `package-lock.json`, commits them as `release: 0.2.0`, and pushes `master`. GitHub Actions then creates the matching `v0.2.0` tag and publishes the Windows installers. Use `--dry-run` to check the release without changing Git.
+The command updates `package.json` and `package-lock.json`, commits them as `release: 0.2`, and pushes `master`. GitHub Actions then creates the matching `v0.2` tag and publishes the Windows installers. Use `--dry-run` to check the release without changing Git.
 
 ## Use on Android (Capacitor)
 
