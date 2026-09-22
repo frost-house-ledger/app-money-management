@@ -518,6 +518,20 @@ export function createLedgerStore(dataDir) {
     });
   }
 
+  function deleteHistory(input = {}) {
+    authGuard.ensureAuthorized(input?.authToken);
+    const id = Number(input.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      throw new Error("History id is required");
+    }
+
+    const result = db.prepare("DELETE FROM input_logs WHERE id = ?").run(id);
+    if (result.changes === 0) {
+      throw new Error("History entry not found");
+    }
+    return { id };
+  }
+
   function getCategoryBreakdown(input = {}) {
     authGuard.ensureAuthorized(input?.authToken);
 
@@ -783,7 +797,8 @@ export function createLedgerStore(dataDir) {
     importSyncData,
     listHistory,
     createSyncId,
-    todayISO
+    todayISO,
+    logInput
   });
 
   return {
@@ -804,6 +819,7 @@ export function createLedgerStore(dataDir) {
     listRecurring: recurringStore.listRecurring,
     listDaily,
     listHistory,
+    deleteHistory,
     getCategoryBreakdown,
     getCategoryTrend,
     getMonthSummary,

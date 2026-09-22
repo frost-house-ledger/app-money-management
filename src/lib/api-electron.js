@@ -28,7 +28,8 @@ export function createElectronApi() {
       delete: (payload) => window.ledgerApi.recurring.delete(payload)
     },
     history: {
-      list: (payload) => window.ledgerApi.history.list(payload)
+      list: (payload) => window.ledgerApi.history.list(payload),
+      delete: (payload) => window.ledgerApi.history.delete(payload)
     },
     summary: {
       month: (payload) => window.ledgerApi.summary.month(payload),

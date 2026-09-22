@@ -110,6 +110,8 @@ async function createMainWindow(ledger) {
 
   ipcMain.handle("history:list", async (_event, payload) => ledger.listHistory(payload || {}));
 
+  ipcMain.handle("history:delete", async (_event, payload) => ledger.deleteHistory(payload || {}));
+
   ipcMain.handle("category:list", async (_event, payload) => ledger.listCategories(payload || {}));
 
   ipcMain.handle("category:add", async (_event, payload) => ledger.addCategory(payload));

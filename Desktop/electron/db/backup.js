@@ -8,8 +8,57 @@ export function createBackupService({
   importSyncData,
   listHistory,
   createSyncId,
-  todayISO
+  todayISO,
+  logInput
 }) {
+
+  // Validates the content of CSV rows for an import task
+  function validateCsvRows(rows) {
+    const headers = new Set(Object.keys(rows[0] || {}));
+    const isBackupFormat = headers.has("record_scope") || headers.has("scope");
+    const valid = isBackupFormat
+      ? headers.has("type") && headers.has("title") && headers.has("amount")
+      : headers.has("date") && headers.has("type") && headers.has("title") && (headers.has("price") || headers.has("amount"));
+    const invalid = () => {
+      const error = new Error("CSV_FORMAT_INVALID");
+      error.code = "CSV_FORMAT_INVALID";
+      throw error;
+    };
+    if (!valid) invalid();
+
+    // Additional validation logic can be added here if needed
+    rows.forEach((row) => {
+      const title = String(row.title || "").trim();
+      const type = String(row.type || "").trim().toLowerCase();
+      const amount = Number(String(row.amount ?? row.price ?? "").replace(/[，,\s￥¥$]/g, ""));
+      if (!title || !["fee", "income", "investment", "expense"].includes(type) || !Number.isFinite(amount) || amount < 0) {
+        invalid();
+      }
+      if (isBackupFormat) {
+        const scope = String(row.record_scope || row.scope || "").trim().toLowerCase();
+        const date = scope === "monthly" ? String(row.start_month || "").trim() : String(row.entry_date || "").trim();
+        const datePattern = scope === "monthly" ? /^\d{4}-\d{2}$/ : /^\d{4}-\d{2}-\d{2}$/;
+        if (!["daily", "monthly"].includes(scope) || !datePattern.test(date)) invalid();
+      } else if (!/^\d{4}-\d{2}-\d{2}$/.test(String(row.date || "").trim())) {
+        invalid();
+      }
+    });
+  }
+
+  // logs CSV import/export actions into history
+  function logCsvAction(action, scope, count, fileName = "") {
+    logInput({
+      source: "daily",
+      action,
+      type: "investment",
+      title: action === "import" && fileName ? `CSV Import: ${fileName}` : `CSV ${action === "import" ? "Import" : "Export"}`,
+      amount: 0,
+      targetDate: todayISO(),
+      note: `${scope} (${count} rows)`,
+      payload: { scope, count, fileName }
+    });
+  }
+
   function getTimestamp(value, fallback = 0) {
     const parsed = value ? Date.parse(String(value)) : NaN;
     return Number.isFinite(parsed) ? parsed : fallback;
@@ -163,24 +212,31 @@ export function createBackupService({
       })
     ];
 
-    return {
+    const result = {
       scope,
       rowCount: rows.length,
       filename: `amm-${scope}-backup-${todayISO()}.csv`,
       csvText: buildCsvText(rows)
     };
+    logCsvAction("export", scope, result.rowCount);
+    return result;
   }
 
   function importBackupCsv(input = {}) {
     authGuard.ensureAuthorized(input?.authToken);
     const rows = parseCsvText(input.csvText);
     if (rows.length === 0) {
-      throw new Error("No row in CSV to import.");
+      const error = new Error("CSV_FORMAT_INVALID");
+      error.code = "CSV_FORMAT_INVALID";
+      throw error;
     }
+    validateCsvRows(rows);
 
     const hasScopedRows = rows.some((row) => String(row.record_scope || row.scope || "").trim());
     if (!hasScopedRows) {
-      return importDailyCsv(input);
+      const result = importDailyCsv(input);
+      logCsvAction("import", "daily", result.importedCount || 0, input.fileName);
+      return result;
     }
 
     const now = new Date().toISOString();
@@ -303,7 +359,7 @@ export function createBackupService({
       createdAt: item.createdAt || item.updatedAt || now
     }));
 
-    const result = importSyncData({
+    const importResult = importSyncData({
       categories: mergedCategories,
       recurring: mergedRecurring,
       dailyEntries: mergedDailyEntries,
@@ -323,11 +379,13 @@ export function createBackupService({
       }))
     });
 
-    return {
-      ...result,
+    const result = {
+      ...importResult,
       importedCount: importedDailyEntries.length + importedRecurring.length,
       skippedCount: rows.length - importedDailyEntries.length - importedRecurring.length
     };
+    logCsvAction("import", "all", result.importedCount, input.fileName);
+    return result;
   }
 
   return {

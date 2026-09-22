@@ -25,7 +25,8 @@ contextBridge.exposeInMainWorld("ledgerApi", {
     reset: () => ipcRenderer.invoke("category:reset")
   },
   history: {
-    list: (payload) => ipcRenderer.invoke("history:list", payload)
+    list: (payload) => ipcRenderer.invoke("history:list", payload),
+    delete: (payload) => ipcRenderer.invoke("history:delete", payload)
   },
   summary: {
     month: (month) => ipcRenderer.invoke("summary:month", month),
