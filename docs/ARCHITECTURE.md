@@ -9,7 +9,7 @@ React UI
   |
   +-- src/lib/api.js (platform selection)
         |
-        +-- Electron: api-electron.js -> preload.cjs -> Electron IPC -> SQLite/files
+        +-- Tauri: api-android.js -> Tauri SQL plugin -> SQLite
         |
         +-- Android/Web: api-android.js -> Capacitor SQLite
 ```
@@ -28,37 +28,26 @@ Feature pages live under `src/components/`:
 - statistics and category analysis
 - settings
 
-The UI should call the API abstraction rather than accessing Electron or SQLite directly.
+The UI should call the API abstraction rather than accessing Tauri or SQLite directly.
 
 ### API abstraction
 
 `src/lib/api.js` selects the implementation at runtime:
 
-- Electron exposes a restricted API through `contextBridge` in `Desktop/electron/preload.cjs`.
-- Android and non-Electron environments use `src/lib/api-android.js` and Capacitor SQLite.
+- Tauri desktop uses `src/lib/api-android.js` with the Tauri SQL plugin.
+- Android and web environments use `src/lib/api-android.js` with Capacitor SQLite.
 
 This boundary keeps platform details out of React components.
 
-### Electron main process
-
-`Desktop/electron/main.js` creates the BrowserWindow, registers IPC handlers, starts the optional LAN sync server, and fetches exchange rates with an in-memory cache.
-
-The renderer has `nodeIntegration: false` and uses `contextIsolation: true`. New native operations should be exposed through a narrowly scoped preload method and a matching API adapter method.
-
 ### Desktop persistence
 
-`Desktop/electron/db.js` coordinates the data store:
-
-- SQLite stores daily entries, history, and relational data.
-- JSON files store recurring items and categories.
-- `Desktop/electron/db/migrations.js` and schema helpers keep the SQLite schema compatible across upgrades.
-- `Desktop/electron/db/backup.js` implements CSV import/export and sync payload handling.
+The Tauri SQL plugin stores daily entries, history, categories, recurring items, and targets in SQLite.
 
 The database uses SQLite WAL journalling. Do not copy an open database as a backup.
 
 ### Android persistence
 
-The Capacitor adapter mirrors the platform API and uses SQLite in the Android application's private storage. Changes to a shared API contract must be implemented and tested for both Electron and Android adapters.
+The Capacitor adapter mirrors the platform API and uses SQLite in the Android application's private storage. Changes to a shared API contract must be implemented and tested for both Tauri and Android environments.
 
 ### LAN synchronisation
 
@@ -81,5 +70,5 @@ LAN sync is direct device-to-device HTTP on the local network. It is not a cloud
 ## Build targets
 
 - Vite builds the renderer into `dist/`.
-- Electron Builder creates Windows installers for `x64` and legacy `ia32` (`x86`). The x86 release uses Electron 31.7.7 because Electron 44 no longer publishes ia32 headers.
+- Tauri creates a Windows NSIS installer for `x64`.
 - Capacitor copies the Vite output into the Android project for native builds.

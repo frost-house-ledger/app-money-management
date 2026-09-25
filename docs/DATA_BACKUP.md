@@ -6,7 +6,7 @@ HouseLedger stores finance data locally by default. Backups are the user's respo
 
 ### Desktop
 
-Electron stores application data in its `userData` directory. The exact path is provided by Electron and varies by operating system:
+Tauri stores application data in its app data directory. The exact path varies by operating system:
 
 - Windows: `%APPDATA%/HouseLedger` or `%LOCALAPPDATA%/HouseLedger`
 - macOS: `~/Library/Application Support/HouseLedger`
@@ -50,7 +50,7 @@ Do not open and resave the file in a spreadsheet application if possible. Spread
 
 ## Direct Desktop backup
 
-For a complete Desktop backup, close HouseLedger first and copy the entire `userData` directory to a secure location. Copying an open SQLite database can produce an inconsistent backup because SQLite uses WAL journalling.
+For a complete Desktop backup, close HouseLedger first and copy the entire app data directory to a secure location. Copying an open SQLite database can produce an inconsistent backup because SQLite uses WAL journalling.
 
 Restore a direct backup only while HouseLedger is closed. Preserve the directory structure and make a separate copy of the current directory before replacing it.
 

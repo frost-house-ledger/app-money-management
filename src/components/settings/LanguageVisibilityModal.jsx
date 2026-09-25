@@ -33,18 +33,6 @@ export default function LanguageVisibilityModal({ onClose, locale, t }) {
   async function savePreferences(prefs) {
     try {
       localStorage.setItem("languageVisibility", JSON.stringify(prefs));
-      if (window.ipcApi?.invoke) {
-        try {
-          await window.ipcApi.invoke("languages:updateVisibility", {
-            updates: Object.entries(prefs).map(([code, pref]) => ({
-              code,
-              hidden: pref.hidden
-            }))
-          });
-        } catch (err) {
-          logError("LanguageVisibilityModal.ipc.updateVisibility", err);
-        }
-      }
     } catch (err) {
       logError("LanguageVisibilityModal.savePreferences", err);
     }

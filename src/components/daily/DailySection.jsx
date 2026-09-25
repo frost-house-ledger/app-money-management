@@ -74,7 +74,7 @@ export default function DailySection({
           {dailyForm.type === "investment" ? (
             <option value="investment">📊 {t.typeInvestment}</option>
           ) : dailyForm.type === "income" ? (
-            <option value="salary">💼 {t.typeIncome}</option>
+            <option value="salary">💰 {t.typeIncome}</option>
           ) : (
             dailyCategoryOptions.map((category) => (
               <option key={category.id} value={category.id}>
@@ -481,7 +481,7 @@ setPendingDeletePopup((current) => (current?.id === id ? null : current));
                     if (row.categoryDisplay.match(/^[\p{Emoji}]/u)) {
                       return row.categoryDisplay;
                     }
-                    return `${row.categoryIcon || '🍽️'} ${row.categoryDisplay}`;
+                    return `${row.categoryIcon || (row.type === 'income' ? '💰' : '🍽️')} ${row.categoryDisplay}`;
                   })() : '-'}</td>
                   <td>{row.title}</td>
                   <td style={{ textAlign: 'left' }}>{formatCurrency(row.amount, selectedCurrency, exchangeRates)}</td>

@@ -40,9 +40,9 @@ This application handles sensitive financial data. To keep your data secure:
 ## Dependencies
 
 This project uses the following key dependencies:
-- **Electron**: For desktop application framework
+- **tauri**: For desktop application framework
 - **React**: For UI component library
-- **Better-sqlite3**: For database operations
+- **SQLite**: For database operations
 - **Node.js**: Requires >= 22
 
 Dependabot automatically monitors these dependencies for security vulnerabilities.

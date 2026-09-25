@@ -244,9 +244,22 @@ export const TRANSLATIONS = {
   historyEmpty: { jp: "履歴はまだありません。", en: "No history yet.", de: "Noch kein Verlauf vorhanden.", es: "Aún no hay historial.", pt: "Ainda sem histórico.", it: "Nessuna cronologia al momento.", fr: "Pas encore d'historique.", ru: "Пока нет истории.", tw: "尚無歷史記錄。", ko: "아직 기록이 없습니다.", ar: "لا يوجد سجل بعد." },
   historySourceMonthly: { jp: "月次", en: "monthly", de: "monatlich", es: "mensual", pt: "mensal", it: "mensile", fr: "mensuel", ru: "ежемесячно", tw: "月次", ko: "월별", ar: "شهري" },
   historySourceDaily: { jp: "日次", en: "daily", de: "taeglich", es: "diario", pt: "diário", it: "giornaliero", fr: "quotidien", ru: "ежедневно", tw: "日次", ko: "일일", ar: "يومي" },
+  historyDateColumn: { jp: "日付", en: "Date" },
+  historyItemColumn: { jp: "項目", en: "Item" },
+  historyActionColumn: { jp: "操作", en: "Action" },
+  historySourceColumn: { jp: "種別", en: "Source" },
+  historyManageColumn: { jp: "管理", en: "Manage" },
   historyActionAdd: { jp: "追加", en: "add", de: "hinzugefuegt", es: "agregado", pt: "adicionado", it: "aggiunto", fr: "ajouté", ru: "добавлено", tw: "新增", ko: "추가", ar: "أُضيف" },
   historyActionUpdate: { jp: "更新", en: "update", de: "aktualisiert", es: "actualizado", pt: "atualizado", it: "aggiornato", fr: "mis à jour", ru: "обновлено", tw: "更新", ko: "업데이트", ar: "تم التحديث" },
   historyActionDelete: { jp: "削除", en: "delete", de: "geloescht", es: "eliminado", pt: "excluído", it: "eliminato", fr: "supprimé", ru: "удалено", tw: "刪除", ko: "삭제", ar: "تم الحذف" },
+  historyActionImport: { jp: "Import", en: "import" },
+  historyActionExport: { jp: "Export", en: "export" },
+  historySourceCsv: { jp: "CSV", en: "CSV" },
+  historyDeleteButton: { jp: "履歴を削除", en: "Delete log" },
+  historyDeleteConfirm: { jp: "この履歴ログを削除しますか？", en: "Delete this history log?" },
+  historyDeleteAllButton: { jp: "表示中の履歴を全削除", en: "Delete all shown logs" },
+  historyDeleteAllConfirm: { jp: "このフィルター結果をすべて削除しますか？", en: "Delete all logs shown by the current filters?" },
+  historyDeleteFailed: { jp: "履歴の削除に失敗しました。", en: "Failed to delete history log." },
 
   // -------------------------
   // Settings
@@ -402,6 +415,10 @@ export const TRANSLATIONS = {
     tw: "CSV 匯入失敗。",
     ko: "CSV 가져오기 실패.",
     ar: "فشل استيراد CSV."
+  },
+  errorCsvFormat: {
+    jp: "CSV の形式が正しくありません。HouseLedger の対応形式を使用してください。",
+    en: "Invalid CSV format. Please use a supported HouseLedger CSV format."
   },
   errorCsvExportUnavailable: {
     jp: "この環境では CSV 出力を利用できません。",

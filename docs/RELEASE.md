@@ -58,12 +58,11 @@ The release script updates `package.json` to the requested version and uses the 
 
 ## Published installers
 
-GitHub Actions runs tests and builds both Windows architectures. The x86 build uses Electron 31.7.7 because Electron 44 no longer publishes ia32 headers:
+GitHub Actions runs tests and builds the Windows x64 Tauri installer:
 
-| Public name | Electron Builder target | File name pattern |
+| Public name | Tauri target | File name pattern |
 | --- | --- | --- |
-| x64 | `x64` | `HouseLedger-v<major>.<minor>-x64.exe` |
-| x86 | `ia32` | `HouseLedger-v<major>.<minor>-x86.exe` |
+| x64 | `nsis` | `HouseLedger-v<major>.<minor>-x64.exe` |
 
 ## Local build checks
 
@@ -78,7 +77,7 @@ git diff --check
 Build the Windows installer locally:
 
 ```bash
-npm run dist:win:all
+npm run tauri:build
 ```
 
 The local build writes the installer under `release/`.

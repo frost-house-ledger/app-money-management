@@ -177,6 +177,28 @@ export default function App() {
     }
   }
 
+  async function onDeleteHistory(id) {
+    try {
+      await api.history.delete({ id });
+      await loadHistory();
+    } catch (error) {
+      logError("onDeleteHistory", error);
+      setErrorText(error?.message || t.historyDeleteFailed || "Failed to delete history");
+      throw error;
+    }
+  }
+
+  async function onDeleteHistories(ids) {
+    try {
+      await Promise.all(ids.map((id) => api.history.delete({ id })));
+      await loadHistory();
+    } catch (error) {
+      logError("onDeleteHistories", error);
+      setErrorText(error?.message || t.historyDeleteFailed || "Failed to delete history");
+      throw error;
+    }
+  }
+
   async function onImportCsv(file) {
     if (!file) {
       return;
@@ -186,11 +208,11 @@ export default function App() {
 
     try {
       const csvText = await file.text();
-      const result = await api.entry.importCsv({ csvText });
+      const result = await api.entry.importCsv({ csvText, fileName: file.name || "unknown.csv" });
       await refreshAll(selectedMonth);
       showToast(formatMessage(t.toastCsvImported, { count: result.importedCount }));
     } catch (error) {
-      setErrorText(error.message || t.errorCsvImportFailed);
+      setErrorText(error.code === "CSV_FORMAT_INVALID" ? t.errorCsvFormat : (error.message || t.errorCsvImportFailed));
     }
   }
 
@@ -1286,6 +1308,8 @@ export default function App() {
           entryFilter={filterForRows}
           selectedCurrency={selectedCurrency}
           exchangeRates={exchangeRates}
+          onDeleteHistory={onDeleteHistory}
+          onDeleteHistories={onDeleteHistories}
           t={t}
         />
       )}

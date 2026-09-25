@@ -3,7 +3,7 @@
  * Uses @capacitor-community/sqlite for persistent storage and localStorage for
  * JSON-based stores (categories, recurring items).
  *
- * Database schema mirrors Desktop/electron/db/schema-input.js.
+ * The same adapter is used for Tauri desktop and Capacitor Android storage.
  */
 import { CapacitorSQLite, SQLiteConnection } from "@capacitor-community/sqlite";
 import Database from "@tauri-apps/plugin-sql";
@@ -546,7 +546,7 @@ function mergeSyncSnapshots(localSnapshot, remoteSnapshot) {
   };
 }
 
-// ─── CSV parser (mirrors Desktop/electron/csv.js) ────────────────────────────
+// ─── CSV parser ──────────────────────────────────────────────────────────────
 
 function parseCsvText(csvText) {
   let text = csvText.replace(/^\uFEFF/, "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
@@ -587,6 +587,37 @@ function parseCsvText(csvText) {
     rows.push(obj);
   }
   return rows;
+}
+
+function validateCsvRows(rows) {
+  const headers = new Set(Object.keys(rows[0] || {}));
+  const isBackupFormat = headers.has("record_scope") || headers.has("scope");
+  const valid = isBackupFormat
+    ? headers.has("type") && headers.has("title") && headers.has("amount")
+    : headers.has("date") && headers.has("type") && headers.has("title") && (headers.has("price") || headers.has("amount"));
+  const invalid = () => {
+    const error = new Error("CSV_FORMAT_INVALID");
+    error.code = "CSV_FORMAT_INVALID";
+    throw error;
+  };
+  if (!valid) invalid();
+
+  rows.forEach((row) => {
+    const title = String(row.title || "").trim();
+    const type = String(row.type || "").trim().toLowerCase();
+    const amount = Number(String(row.amount ?? row.price ?? "").replace(/[，,\s￥¥$]/g, ""));
+    if (!title || !["fee", "income", "investment", "expense"].includes(type) || !Number.isFinite(amount) || amount < 0) {
+      invalid();
+    }
+    if (isBackupFormat) {
+      const scope = String(row.record_scope || row.scope || "").trim().toLowerCase();
+      const date = scope === "monthly" ? String(row.start_month || "").trim() : String(row.entry_date || "").trim();
+      const datePattern = scope === "monthly" ? /^\d{4}-\d{2}$/ : /^\d{4}-\d{2}-\d{2}$/;
+      if (!["daily", "monthly"].includes(scope) || !datePattern.test(date)) invalid();
+    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(String(row.date || "").trim())) {
+      invalid();
+    }
+  });
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -677,10 +708,16 @@ export function createAndroidApi() {
         return res.values || [];
       },
 
-      async importCsv({ csvText }) {
+      async importCsv({ csvText, fileName = "" }) {
         if (!csvText) throw new Error("CSV text is required");
         const rows = parseCsvText(csvText);
-        if (!rows.length) return { importedCount: 0 };
+
+        if (!rows.length) {
+          const error = new Error("CSV_FORMAT_INVALID");
+          error.code = "CSV_FORMAT_INVALID";
+          throw error;
+        }
+        validateCsvRows(rows);
 
         const db = await getDb();
         let importedCount = 0;
@@ -813,6 +850,11 @@ export function createAndroidApi() {
 
         writeCategories(categories);
         writeRecurring(recurringItems);
+        await db.run(
+          `INSERT INTO input_logs(source, action, type, title, amount, target_date, note)
+           VALUES (?,?,?,?,?,?,?)`,
+          ["daily", "import", "fee", fileName ? `CSV Import: ${fileName}` : "CSV Import", 0, todayISO(), `daily (${importedCount} rows)`]
+        );
         return { importedCount };
       },
 
@@ -865,12 +907,18 @@ export function createAndroidApi() {
             };
           })
         ];
-        return {
+        const result = {
           scope: selectedScope,
           rowCount: rows.length,
           filename: `amm-${selectedScope}-backup-${todayISO()}.csv`,
           csvText: buildBackupCsv(rows)
         };
+        await db.run(
+          `INSERT INTO input_logs(source, action, type, title, amount, target_date, note)
+           VALUES (?,?,?,?,?,?,?)`,
+          ["daily", "export", "fee", "CSV Export", 0, todayISO(), `${selectedScope} (${result.rowCount} rows)`]
+        );
+        return result;
       }
     },
 
@@ -1006,6 +1054,15 @@ export function createAndroidApi() {
           [limit]
         );
         return (res.values || []).map((r) => ({ ...r, source: r.source || "daily" }));
+      },
+
+      async delete({ id } = {}) {
+        if (!Number.isInteger(Number(id)) || Number(id) <= 0) {
+          throw new Error("History id is required");
+        }
+        const db = await getDb();
+        await db.run("DELETE FROM input_logs WHERE id=?", [Number(id)]);
+        return { id: Number(id) };
       }
     },
 
