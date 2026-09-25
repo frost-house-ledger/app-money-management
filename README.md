@@ -6,7 +6,7 @@ Please refer to the [README_JP.md](README_JP.md) for the Japanese version.
 
 Local-first personal finance — your data stays on your machine.
 
-HouseLedger is a focused, privacy-first finance app built with Electron and React.
+HouseLedger is a focused, privacy-first finance app built with tauri and React.
 It’s lightweight, works offline, and is designed for daily use on desktop and Android (via Capacitor).
 
 ## Demo
@@ -36,7 +36,7 @@ It’s lightweight, works offline, and is designed for daily use on desktop and 
 
 ## **Local data storage**
 
-HouseLedger stores all data locally on your device. Desktop builds use Electron's user data directory (`app.getPath('userData')`), whose default location depends on the operating system:
+HouseLedger stores all data locally on your device. Desktop builds use Tauri's app data directory, whose default location depends on the operating system:
 
 | OS | Default data directory |
 |---|---|
@@ -60,7 +60,7 @@ The data directory contains the following files:
 
 | Component | Purpose |
 |---|---|
-| Electron + React | Desktop UI and application framework |
+| Tauri + React | Desktop UI and application framework |
 | Vite | Development server and build tooling |
 | SQLite | Local relational storage for ledger and app data |
 | Capacitor | Android WebView wrapper for mobile distribution |
@@ -105,7 +105,7 @@ Notes:
 
 ```bash
 npm install
-npm run build
+npm run tauri:build
 ```
 
 Development (run locally):
@@ -136,8 +136,8 @@ Output (debug APK): `android/app/build/outputs/apk/debug/houseledger-debug.apk`
 ## **Documentation**
 
 - [Backup and restore](docs/DATA_BACKUP.md) — backup methods, restore steps, storage locations, CSV scope, and LAN sync precautions.
-- [Architecture](docs/ARCHITECTURE.md) — React, Electron, SQLite, Capacitor, API adapters, and LAN sync responsibilities.
-- [Release Guide](docs/RELEASE.md) — release commands, dry runs, branch requirements, and x64/x86 installer names.
+- [Architecture](docs/ARCHITECTURE.md) — React, tauri, SQLite, Capacitor, API adapters, and LAN sync responsibilities.
+- [Release Guide](docs/RELEASE.md) — release commands, dry runs, branch requirements, and the Windows x64 installer.
 - [Security Policy](SECURITY.md) — vulnerability reporting and security guidance.
 
 

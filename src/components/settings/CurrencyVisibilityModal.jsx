@@ -35,13 +35,6 @@ export default function CurrencyVisibilityModal({ onClose, locale, t }) {
   async function savePreferences(prefs) {
     try {
       localStorage.setItem("currencyVisibility", JSON.stringify(prefs));
-      if (window.ipcApi?.invoke) {
-        try {
-          await window.ipcApi.invoke("currencies:updateVisibility", prefs);
-        } catch (e) {
-          // Server sync is optional
-        }
-      }
     } catch (err) {
       logError("CurrencyVisibilityModal.savePreferences", err);
     }

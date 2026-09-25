@@ -3,7 +3,7 @@
  * Uses @capacitor-community/sqlite for persistent storage and localStorage for
  * JSON-based stores (categories, recurring items).
  *
- * Database schema mirrors Desktop/electron/db/schema-input.js.
+ * The same adapter is used for Tauri desktop and Capacitor Android storage.
  */
 import { CapacitorSQLite, SQLiteConnection } from "@capacitor-community/sqlite";
 import Database from "@tauri-apps/plugin-sql";
@@ -546,7 +546,7 @@ function mergeSyncSnapshots(localSnapshot, remoteSnapshot) {
   };
 }
 
-// ─── CSV parser (mirrors Desktop/electron/csv.js) ────────────────────────────
+// ─── CSV parser ──────────────────────────────────────────────────────────────
 
 function parseCsvText(csvText) {
   let text = csvText.replace(/^\uFEFF/, "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");

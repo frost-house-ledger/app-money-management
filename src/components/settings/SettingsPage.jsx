@@ -340,27 +340,9 @@ export default function SettingsPage({
 }
 
 async function openExternalUrl(url) {
-  if (typeof window !== "undefined" && (window.__TAURI_INTERNALS__ || window.__TAURI__)) {
-    try {
-      await openExternal(url);
-      return;
-    } catch (error) {
-      logError("SettingsPage.openExternalUrl", error);
-    }
-  }
   try {
-    // If running inside Electron, use IPC to open in system default browser
-    if (typeof window !== 'undefined' && window.shellApi?.openExternal) {
-      window.shellApi.openExternal(url);
-      return;
-    }
-  } catch (e) {
-    // ignore
-  }
-  try {
-    window.open(url, '_blank', 'noopener,noreferrer');
-  } catch (e) {
-    // last resort: set location
-    window.location.href = url;
+    await openExternal(url);
+  } catch (error) {
+    logError("SettingsPage.openExternalUrl", error);
   }
 }

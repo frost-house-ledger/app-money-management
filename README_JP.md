@@ -2,7 +2,7 @@
 
 ローカルファーストのパーソナルファイナンスアプリ — データはお使いの端末にのみ保存されます。
 
-HouseLedger は Electron と React で作られた、軽量でプライバシー重視の家計管理アプリです。オフラインで動作し、デスクトップおよび Capacitor 経由の Android での日常利用を想定しています。
+HouseLedger は tauri と React で作られた、軽量でプライバシー重視の家計管理アプリです。オフラインで動作し、デスクトップおよび Capacitor 経由の Android での日常利用を想定しています。
 
 ## デモ
 
@@ -28,7 +28,7 @@ HouseLedger は Electron と React で作られた、軽量でプライバシー
 
 | コンポーネント | 用途 |
 |---|---|
-| Electron + React | デスクトップ UI とアプリフレームワーク |
+| tauri + React | デスクトップ UI とアプリフレームワーク |
 | Vite | 開発サーバーとビルドツール |
 | SQLite | ローカルのリレーショナルストレージ（台帳・アプリデータ） |
 | Capacitor | Android 向けの WebView ラッパー |
@@ -36,7 +36,7 @@ HouseLedger は Electron と React で作られた、軽量でプライバシー
 
 ## セキュリティとプライバシー（詳細）
 
-- 保存場所: データは Electron の user data ディレクトリに保存されます。一般的なパス:
+- 保存場所: データは tauri の user data ディレクトリに保存されます。一般的なパス:
 	- Windows: `%APPDATA%/HouseLedger` または `%LOCALAPPDATA%/HouseLedger`
 	- macOS: `~/Library/Application Support/HouseLedger`
 	- Linux: `~/.config/HouseLedger`
@@ -74,7 +74,7 @@ Android Device  <--HTTP-->  Desktop (HouseLedger sync server)
 
 ```bash
 npm install
-npm run build
+npm run tauri:build
 ```
 
 開発（ローカル実行）:
@@ -103,8 +103,8 @@ npm run release -- -v 0.2.0
 ## ドキュメント
 
 - [バックアップと復元](docs/DATA_BACKUP.md) — バックアップ方法、復元手順、保存場所、CSV の範囲、LAN 同期時の注意点
-- [アーキテクチャ](docs/ARCHITECTURE.md) — React、Electron、SQLite、Capacitor、API アダプター、LAN 同期の役割
-- [リリースガイド](docs/RELEASE.md) — リリースコマンド、ドライラン、ブランチ要件、x64 / x86 インストーラー名
+- [アーキテクチャ](docs/ARCHITECTURE.md) — React、tauri、SQLite、Capacitor、API アダプター、LAN 同期の役割
+- [リリースガイド](docs/RELEASE.md) — リリースコマンド、ドライラン、ブランチ要件、Windows x64 インストーラー
 - [セキュリティポリシー](SECURITY.md) — 脆弱性の報告方法とセキュリティ上の注意
 
 ## データ保存
