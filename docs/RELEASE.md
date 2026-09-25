@@ -58,11 +58,14 @@ The release script updates `package.json` to the requested version and uses the 
 
 ## Published installers
 
-GitHub Actions runs tests and builds the Windows x64 Tauri installer:
+GitHub Actions runs tests and builds the Windows x64 and x86 Tauri installers:
+
+The version in `package.json` is the release version source. `npm run release` synchronizes it to the Tauri configuration before creating the release commit, and GitHub Actions repeats the synchronization before building. A two-part version such as `2.0` is normalized to `2.0.0` for Tauri.
 
 | Public name | Tauri target | File name pattern |
 | --- | --- | --- |
 | x64 | `nsis` | `HouseLedger-v<major>.<minor>-x64.exe` |
+| x86 | `i686-pc-windows-msvc` | `HouseLedger-v<major>.<minor>-x86.exe` |
 
 ## Local build checks
 
@@ -80,7 +83,14 @@ Build the Windows installer locally:
 npm run tauri:build
 ```
 
-The local build writes the installer under `release/`.
+Build both Windows architectures locally:
+
+```bash
+rustup target add i686-pc-windows-msvc
+npm run dist:win:all
+```
+
+The local Tauri build writes installers under `src-tauri/target/`.
 
 ## Recovery
 

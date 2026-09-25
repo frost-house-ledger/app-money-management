@@ -52,5 +52,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build Windows executable (x64)
-        run: npm run dist:win
+      - name: Install Rust Windows x86 target
+        run: rustup target add i686-pc-windows-msvc
+
+      - name: Build Windows installers (x64 and x86)
+        run: npm run dist:win:all
