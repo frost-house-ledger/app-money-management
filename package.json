@@ -40,7 +40,7 @@
     "mongodb": "^7.6.0",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.3.0",
-    "react-i18next": "^17.0.13"
+    "react-i18next": "^17.0.15"
   },
   "devDependencies": {
     "@babel/core": "8.0.1",
