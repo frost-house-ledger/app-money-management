@@ -74,7 +74,8 @@ if (dryRun) {
 }
 
 run('npm.cmd', ['version', packageVersion, '--no-git-tag-version'], { stdio: 'inherit', shell: process.platform === 'win32' });
-run('git', ['add', 'package.json', 'package-lock.json']);
+run('npm.cmd', ['run', 'sync:tauri-version'], { stdio: 'inherit', shell: process.platform === 'win32' });
+run('git', ['add', 'package.json', 'package-lock.json', 'src-tauri/tauri.conf.json']);
 run('git', ['commit', '-m', `release: ${releaseVersion}`], { stdio: 'inherit' });
 run('git', ['push', 'origin', 'refs/heads/master:refs/heads/master'], { stdio: 'inherit' });
 
