@@ -54,7 +54,7 @@ The push starts the Windows release workflow. The workflow creates the annotated
 release: 1.3
 ```
 
-The release script updates `package.json` to the requested version and uses the `v<major>.<minor>` tag format. Other commit messages do not publish a release. If the requested tag already exists, the release script automatically increments the minor version: `1.0` becomes `1.1`, and `1.9` becomes `2.0`.
+The release workflow reads the version from the release commit message, which must use the `release: <version>` format. For example, `release: 2.1` creates the `v2.1` tag and publishes version `2.1.0` to Tauri. Other commit messages do not publish a release. If the requested tag already exists, the workflow fails instead of changing the requested version.
 
 ## Published installers
 
