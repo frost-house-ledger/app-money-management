@@ -44,7 +44,7 @@
   },
   "devDependencies": {
     "@babel/core": "8.0.1",
-    "@babel/preset-env": "^8.0.2",
+    "@babel/preset-env": "^8.0.6",
     "@babel/preset-react": "^8.0.1",
     "@capacitor/cli": "^8.5.1",
     "@tauri-apps/cli": "^2",
