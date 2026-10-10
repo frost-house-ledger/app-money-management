@@ -3,6 +3,7 @@ import { api } from "../../lib/api.js";
 import { formatCurrency } from "../../lib/currency.js";
 import SavingsSimulationPanel from "./SavingsSimulationPanel.jsx";
 import { logError } from "../../lib/logger.js";
+import { isRecurringActiveInMonth } from "../../lib/recurring.js";
 
 import {
   Chart as ChartJS,
@@ -165,14 +166,11 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
           if (date >= fromDate && date <= toDate) total += net;
         }
         for (const item of recurringItems) {
-          const startMonth = String(item.startMonth || "");
-          const endMonth = String(item.endMonth || "9999-12");
-          if (startMonth > toDate.slice(0, 7) || endMonth < fromDate.slice(0, 7)) continue;
           const firstOfMonth = `${fromDate.slice(0, 4)}-${fromDate.slice(5, 7)}-01`;
           let cursor = firstOfMonth;
           while (cursor <= toDate) {
             const month = cursor.slice(0, 7);
-            if (month >= startMonth && month <= endMonth && cursor >= fromDate && cursor <= toDate) {
+            if (isRecurringActiveInMonth(item, month) && cursor >= fromDate && cursor <= toDate) {
               total += item.type === "income" ? Number(item.amount || 0) : item.type === "fee" ? -Number(item.amount || 0) : 0;
             }
             const nextMonth = new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 1));
@@ -213,7 +211,7 @@ export default function StatisticsSummaryPage({ selectedMonth, selectedCurrency,
       for (let monthIndex = 1; monthIndex <= 12; monthIndex += 1) {
         const month = `${year}-${String(monthIndex).padStart(2, "0")}`;
         const monthTotal = recurringItems
-          .filter((item) => item.startMonth <= month && (!item.endMonth || month <= item.endMonth))
+          .filter((item) => isRecurringActiveInMonth(item, month))
           .reduce((total, item) => {
             const net = item.type === "income" ? Number(item.amount || 0) : item.type === "fee" ? -Number(item.amount || 0) : 0;
             return total + net;
