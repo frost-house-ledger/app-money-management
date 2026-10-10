@@ -23,6 +23,13 @@ It’s lightweight, works offline, and is designed for daily use on desktop and 
 | **Fast** | Local storage keeps the app responsive and usable offline. |
 
 
+## **Why this stack**
+
+Tauri and React power a lightweight desktop app, with Capacitor packaging the UI for Android. SQLite keeps financial data local, while Node.js handles build scripts and the optional LAN sync server.
+
+This stack supports offline use without requiring a cloud account. Electron would add resource overhead, Firebase would require cloud storage, and a separate database server or backend language would add complexity the app does not need.
+
+
 ## **Features (one-line summary)**
 
 | Feature | Description |

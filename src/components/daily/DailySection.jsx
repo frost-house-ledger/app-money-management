@@ -8,6 +8,7 @@ import {
 } from "../../lib/currency.js";
 import { logError } from "../../lib/logger.js";
 import { matchesEntryFilter } from "../../lib/entryFilters.js";
+import { isRecurringActiveInMonth } from "../../lib/recurring.js";
 
 // This section includes both the form and the list, as they are closely related and likely to be used together. The form state is lifted up to avoid unnecessary re-renders of the list when the form state changes.
 export default function DailySection({
@@ -403,7 +404,7 @@ setPendingDeletePopup((current) => (current?.id === id ? null : current));
     row.entryDate && row.entryDate.startsWith(monthPrefix)
   ).filter((row) => matchesEntryFilter(row, entryFilter));
   const filteredRecurringRows = (filteredRecurring || []).filter(row =>
-    row.startMonth <= monthPrefix && (!row.endMonth || monthPrefix <= row.endMonth)
+    isRecurringActiveInMonth(row, monthPrefix)
   ).filter((row) => matchesEntryFilter(row, entryFilter));
 
   const dailyFee = filteredDailyRows.filter(row => row.type === "fee").reduce((sum, row) => sum + Number(row.amount || 0), 0);

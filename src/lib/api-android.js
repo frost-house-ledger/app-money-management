@@ -9,6 +9,7 @@ import { CapacitorSQLite, SQLiteConnection } from "@capacitor-community/sqlite";
 import Database from "@tauri-apps/plugin-sql";
 import { logError } from "./logger.js";
 import categoriesData from "../../json/categories.json";
+import { isRecurringActiveInMonth } from "./recurring.js";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -29,7 +30,7 @@ let _sqlite = null;
 async function getDb() {
   if (_db) return _db;
   if (typeof window !== "undefined" && (window.__TAURI_INTERNALS__ || window.__TAURI__)) {
-    const connection = await Database.load("sqlite:ledger.db");
+    const connection = await Database.load("sqlite:ledger.sqlite");
     _db = {
       execute: (statement, values = []) => connection.execute(statement, values),
       query: async (statement, values = []) => {
@@ -270,9 +271,7 @@ function buildBackupCsv(rows) {
 function sumRecurringByType(month, type, categoryId = null) {
   return readRecurring()
     .filter((item) => {
-      const endMonth = item.endMonth || null;
-      const inRange = item.startMonth <= month && (!endMonth || month <= endMonth);
-      if (!(item.type === type && inRange)) {
+      if (!(item.type === type && isRecurringActiveInMonth(item, month))) {
         return false;
       }
       if (type !== "fee") {
@@ -289,9 +288,7 @@ function sumRecurringByType(month, type, categoryId = null) {
 function sumRecurringSalary(month) {
   return readRecurring()
     .filter((item) => {
-      const endMonth = item.endMonth || null;
-      const inRange = item.startMonth <= month && (!endMonth || month <= endMonth);
-      return item.type === "income" && inRange && Boolean(item.isSalary);
+      return item.type === "income" && isRecurringActiveInMonth(item, month) && Boolean(item.isSalary);
     })
     .reduce((total, item) => total + Number(item.amount || 0), 0);
 }
@@ -994,12 +991,14 @@ export function createAndroidApi() {
       async add(input) {
         validateRecurringMonthRange(input.startMonth, input.endMonth || null);
         const items = readRecurring();
+        const frequency = String(input.frequency || "monthly").trim().toLowerCase() === "annual" ? "annual" : "monthly";
         const newItem = {
           id: `r-${Date.now()}`,
           type: input.type === "income" ? "income" : "fee",
           categoryId: input.type === "fee" ? String(input.categoryId || "other") : null,
           title: String(input.title || "").trim(),
           amount: Number(input.amount ?? 0),
+          frequency,
           note: String(input.note || ""),
           startMonth: input.startMonth,
           endMonth: input.endMonth || null,
@@ -1016,12 +1015,14 @@ export function createAndroidApi() {
         const items = readRecurring();
         const idx = items.findIndex((r) => r.id === input.id);
         if (idx === -1) throw new Error("Recurring item not found");
+        const frequency = String(input.frequency || "monthly").trim().toLowerCase() === "annual" ? "annual" : "monthly";
         items[idx] = {
           ...items[idx],
           type: input.type === "income" ? "income" : "fee",
           categoryId: input.type === "fee" ? String(input.categoryId || "other") : null,
           title: String(input.title || "").trim(),
           amount: Number(input.amount ?? 0),
+          frequency,
           note: String(input.note || ""),
           isSalary: Boolean(input.isSalary),
           startMonth: input.startMonth,
@@ -1183,9 +1184,7 @@ export function createAndroidApi() {
         });
 
         readRecurring().forEach((item) => {
-          const endMonth = item.endMonth || null;
-          const inRange = item.startMonth <= month && (!endMonth || month <= endMonth);
-          if (item.type !== "fee" || !inRange) {
+          if (item.type !== "fee" || !isRecurringActiveInMonth(item, month)) {
             return;
           }
           const key = String(item.categoryId || "other");
@@ -1229,9 +1228,7 @@ export function createAndroidApi() {
         let monthCursor = fromMonth;
         while (monthCursor <= toMonth) {
           recurringItems.forEach((item) => {
-            const endMonth = item.endMonth || null;
-            const inRange = item.startMonth <= monthCursor && (!endMonth || monthCursor <= endMonth);
-            if (item.type !== "fee" || !inRange) {
+            if (item.type !== "fee" || !isRecurringActiveInMonth(item, monthCursor)) {
               return;
             }
             const categoryId = String(item.categoryId || "other");
