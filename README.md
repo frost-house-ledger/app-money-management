@@ -25,9 +25,36 @@ It’s lightweight, works offline, and is designed for daily use on desktop and 
 
 ## **Why this stack**
 
-Tauri and React power a lightweight desktop app, with Capacitor packaging the UI for Android. SQLite keeps financial data local, while Node.js handles build scripts and the optional LAN sync server.
+HouseLedger uses one React UI on desktop and Android, with data stored locally on each device:
 
-This stack supports offline use without requiring a cloud account. Electron would add resource overhead, Firebase would require cloud storage, and a separate database server or backend language would add complexity the app does not need.
+```text
+                  ┌─ Tauri (Desktop) ───── SQLite
+React UI ─────────┤
+                  └─ Capacitor (Android) ─ SQLite
+
+          Optional direct sync over your local network
+```
+
+## **Why not these alternatives?**
+
+The alternatives below are good technologies, but they do not fit HouseLedger's current priorities as well: local data, offline use, and one UI for desktop and Android.
+
+
+### App and UI frameworks
+
+- **Flutter (Dart), React Native, .NET MAUI, Vue, Angular, and Svelte:** Good alternatives, but switching would mean replacing or substantially rebuilding the existing React UI without adding a feature HouseLedger currently needs.
+- **Electron:** Bundles Chromium and Node.js, which would increase the app's size and resource use compared with Tauri.
+
+
+### Backend languages and frameworks
+
+- **Node.js + Express, Python + Django/FastAPI, Java + Spring Boot, C# + ASP.NET Core, Ruby on Rails, PHP + Laravel, and Go/Rust web frameworks:** These can power backend services, but HouseLedger's current features access the local database directly. A separate backend would add another service to install, run, and maintain. Node.js is still used for build scripts and LAN sync.
+
+
+### Cloud services and databases
+
+- **Firebase and Supabase:** Store data in hosted services, which does not match the default of keeping financial data on the user's devices.
+- **MySQL and PostgreSQL:** Require a separate database service; SQLite is simpler for local storage and offline use.
 
 
 ## **Features (one-line summary)**
@@ -36,7 +63,7 @@ This stack supports offline use without requiring a cloud account. Electron woul
 |---|---|
 | **Core** | Daily entries, recurring items, and editable history with diffs. |
 | **Analysis** | Monthly charts, category breakdowns, and annual summaries. |
-| **Sync** | Optional LAN sync between Desktop and Android (no cloud required). |
+| **Sync** | Optional LAN sync between Desktop and Android (no cloud required). **Not available now** |
 | **Multi-currency** | Display amounts in multiple currencies with exchange-rate support. |
 | **Localization** | Multi-language UI and locale-aware formatting. |
 
