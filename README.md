@@ -63,7 +63,7 @@ The alternatives below are good technologies, but they do not fit HouseLedger's 
 |---|---|
 | **Core** | Daily entries, recurring items, and editable history with diffs. |
 | **Analysis** | Monthly charts, category breakdowns, and annual summaries. |
-| **Sync** | Optional LAN sync between Desktop and Android (no cloud required). |
+| **Sync** | Optional LAN sync between Desktop and Android (no cloud required). **Not available now** |
 | **Multi-currency** | Display amounts in multiple currencies with exchange-rate support. |
 | **Localization** | Multi-language UI and locale-aware formatting. |
 
