@@ -1,6 +1,6 @@
 import React from "react";
 import { logError } from "../../lib/logger.js";
-import { getCategoryName } from "../../i18n/translations.js";
+import { resolveCategoryLabel } from "../../lib/categoryPresentation.js";
 import languagesData from "../../../json/languages.json";
 
 /**
@@ -102,20 +102,7 @@ function getLanguageDisplayName(langCode, displayLocale = "jp") {
  */
 function displayName(category, locale) {
   if (!category) return "";
-  
-  // Get name in the appropriate language field
-  const langCode = getLanguageCode(locale);
-  const nameField = getNameFieldForLanguage(langCode);
-  
-  // Try to get name from language-specific field
-  if (category[nameField]) {
-    return category[nameField];
-  }
-  
-  // Keep non-Japanese locales from falling back to the Japanese name first.
-  const categoryLabel = getCategoryName(category.id, locale);
-  if (categoryLabel && categoryLabel !== category.id) return categoryLabel;
-  return category.nameJp || category.nameJa || category.nameEn || category.name || category.id || "";
+  return resolveCategoryLabel(category, category.id, locale);
 }
 
 export default function CategoryManagerSection({

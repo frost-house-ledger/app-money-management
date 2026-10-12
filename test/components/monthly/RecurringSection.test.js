@@ -61,5 +61,59 @@ describe('RecurringListSection', () => {
     );
 
     expect(screen.getByText('Lunch Subscription')).toBeInTheDocument();
+    expect(screen.getByText('Monthly')).toBeInTheDocument();
+    expect(screen.getByText('🍔 Food')).toBeInTheDocument();
+  });
+
+  it('shows annual frequency and the category for income rows', () => {
+    render(
+      <RecurringListSection
+        filteredRecurring={[
+          {
+            id: 'annual-income',
+            startMonth: '2023-01',
+            type: 'income',
+            frequency: 'annual',
+            categoryId: 'salary',
+            categoryDisplay: 'Salary',
+            categoryIcon: '💼',
+            amount: 12000,
+            title: 'Annual bonus',
+          },
+        ]}
+        recurringTitle="Test Title"
+        dailyCategoryOptions={[]}
+        selectedCurrency="JPY"
+        exchangeRates={{}}
+        t={mockT}
+      />
+    );
+
+    expect(screen.getByText('Annual')).toBeInTheDocument();
+    expect(screen.getByText('💼 Salary')).toBeInTheDocument();
+  });
+
+  it('defaults missing recurring frequency to monthly', () => {
+    render(
+      <RecurringListSection
+        filteredRecurring={[
+          {
+            id: 'legacy-row',
+            startMonth: '2023-01',
+            type: 'fee',
+            categoryDisplay: 'Food',
+            amount: 100,
+            title: 'Legacy recurring item',
+          },
+        ]}
+        recurringTitle="Test Title"
+        dailyCategoryOptions={[]}
+        selectedCurrency="JPY"
+        exchangeRates={{}}
+        t={mockT}
+      />
+    );
+
+    expect(screen.getByText('Monthly')).toBeInTheDocument();
   });
 });
