@@ -10,6 +10,10 @@ import Database from "@tauri-apps/plugin-sql";
 import { logError } from "./logger.js";
 import categoriesData from "../../json/categories.json";
 import { isRecurringActiveInMonth } from "./recurring.js";
+import {
+  deduplicateCategoriesById,
+  resolveCategoryLabel
+} from "./categoryPresentation.js";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -188,16 +192,23 @@ function readCategories() {
     const raw = localStorage.getItem(LS_CATEGORIES);
     if (raw) {
       const parsed = JSON.parse(raw);
-      return Array.isArray(parsed.items)
-        ? parsed.items.map((item) => {
+      if (Array.isArray(parsed.items)) {
+        const defaultCategories = new Map(DEFAULT_CATEGORIES.map((category) => [category.id, category]));
+        const normalizedCategories = parsed.items.map((item) => {
           const normalized = { ...item, updatedAt: item.updatedAt || "1970-01-01T00:00:00.000Z" };
+          const defaults = defaultCategories.get(String(normalized.id || "").toLowerCase());
           // Backward compatibility: some builds stored Japanese name as nameJa.
           if (!normalized.nameJp && normalized.nameJa) {
             normalized.nameJp = normalized.nameJa;
           }
+          normalized.nameJp = normalized.nameJp || defaults?.nameJp;
+          normalized.nameEn = normalized.nameEn || defaults?.nameEn;
+          normalized.icon = normalized.icon || defaults?.icon;
           return normalized;
-        })
-        : DEFAULT_CATEGORIES;
+        });
+        return deduplicateCategoriesById(normalizedCategories);
+      }
+      return DEFAULT_CATEGORIES;
     }
   } catch {}
   return DEFAULT_CATEGORIES.map((c) => ({ ...c }));
@@ -216,16 +227,10 @@ function normalizeCategoryId(name) {
 }
 
 function pickCategoryLabel(category, locale) {
-  const baseLocale = String(locale || "").toLowerCase().split("-")[0];
   if (!category) {
-    // Show Japanese only for Japanese locale; otherwise show English
-    return baseLocale === "jp" || baseLocale === "ja" ? "その他" : "Other";
+    return resolveCategoryLabel(null, "other", locale);
   }
-  // Prefer Japanese when explicitly Japanese; otherwise prefer English.
-  if (baseLocale === "jp" || baseLocale === "ja") {
-    return category.nameJp || category.nameEn || category.id;
-  }
-  return category.nameEn || category.nameJp || category.id;
+  return resolveCategoryLabel(category, category.id, locale);
 }
 
 // ─── Recurring store (localStorage) ──────────────────────────────────────────
@@ -719,7 +724,10 @@ export function createAndroidApi() {
         const db = await getDb();
         let importedCount = 0;
         const categories = readCategories();
-        const catMap = Object.fromEntries(categories.map((c) => [c.id, c]));
+        const catMap = new Map(categories.map((category) => [
+          String(category.id || "").toLowerCase(),
+          category
+        ]));
         const recurringItems = readRecurring();
         const recurringKeys = new Set(recurringItems.map((item) => [
           item.type,
@@ -760,7 +768,12 @@ export function createAndroidApi() {
           ).trim();
           let categoryId = categoryIdFromFile || normalizeCategoryId(categoryName) || "other";
           if (type === "income") categoryId = null;
-          if (categoryId && !catMap[categoryId]) {
+          const existingCategory = categoryId
+            ? catMap.get(String(categoryId).toLowerCase())
+            : null;
+          if (existingCategory) {
+            categoryId = existingCategory.id;
+          } else if (categoryId) {
             const newCat = {
               id: categoryId,
               nameJp: String(row.category_name_jp || categoryName),
@@ -772,7 +785,7 @@ export function createAndroidApi() {
               updatedAt: nowIso()
             };
             categories.push(newCat);
-            catMap[categoryId] = newCat;
+            catMap.set(String(categoryId).toLowerCase(), newCat);
           }
 
           const scope = String(row.record_scope || row.scope || "").trim().toLowerCase();

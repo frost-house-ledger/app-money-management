@@ -399,8 +399,7 @@ setPendingDeletePopup((current) => (current?.id === id ? null : current));
                         <td>
                           {(function() {
                             try {
-                              const f = String(row.frequency || '').trim().toLowerCase();
-                              if (!f) return '-';
+                              const f = String(row.frequency || 'monthly').trim().toLowerCase();
                               if (f === 'annual' || f === 'yearly') return t.frequencyAnnual || 'Annual';
                               if (f === 'monthly' || f === 'month') return t.frequencyMonthly || 'Monthly';
                               return row.frequency;
@@ -410,14 +409,19 @@ setPendingDeletePopup((current) => (current?.id === id ? null : current));
                           })()}
                         </td>
 
-                        <td>{row.type === 'fee' ? (() => {
+                        <td>{(() => {
                           // Avoid double icons: if categoryDisplay already starts with an icon, don't add categoryIcon
                           const display = row.categoryDisplay || '-';
                           if (display !== '-' && display.match(/^[\p{Emoji}]/u)) {
                             return display;
                           }
-                          return `${row.categoryIcon || '🍽️'} ${display}`;
-                        })() : '-'}</td>
+                          const fallbackIcon = row.type === 'income'
+                            ? '💼'
+                            : row.type === 'investment'
+                              ? '📊'
+                              : '🍽️';
+                          return `${row.categoryIcon || fallbackIcon} ${display}`;
+                        })()}</td>
                         <td style={{ textAlign: 'left' }}>{row.amount == null ? '-' : formatCurrency(row.amount, selectedCurrency, exchangeRates)}</td>
                         <td>{row.title}{row.type === 'income' && row.isSalary ? <span style={{ marginLeft: 6 }}>💼</span> : null}</td>
                         <td>{row.note ? (row.note.length > 40 ? row.note.slice(0,40) + '…' : row.note) : '-'}</td>

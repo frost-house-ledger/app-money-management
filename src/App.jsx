@@ -8,7 +8,6 @@ import HistoryPage from "./components/history/HistoryPage.jsx";
 import SettingsPage from "./components/settings/SettingsPage.jsx";
 import CategoryAnalysisPage from "./components/analysis/CategoryAnalysisPage.jsx";
 import StatisticsSummaryPage from "./components/statistics/StatisticsSummaryPage.jsx";
-import EntryFilterBar from "./components/common/EntryFilterBar.jsx";
 import { api } from "./lib/api.js";
 import { addMonths, thisMonth, todayISO } from "./lib/date.js";
 import {
@@ -24,6 +23,7 @@ import {
 import { formatMessage, getMessages, getCategoryName } from "./i18n/translations.js";
 import { logError } from "./lib/logger.js";
 import { EMPTY_ENTRY_FILTER } from "./lib/entryFilters.js";
+import { resolveCategoryLabel } from "./lib/categoryPresentation.js";
 
 function defaultRange(baseMonth) {
   return {
@@ -409,19 +409,7 @@ export default function App() {
         String(item.id || '').toLowerCase(),
         {
           icon: item.icon,
-          label: (function resolveLabel(it) {
-            // Prefer explicit name fields on DB items (created categories)
-            const rawLocale = String(locale || '').toLowerCase();
-            const base = rawLocale.split('-')[0];
-            if (it && typeof it === 'object') {
-              // Prefer Japanese when locale explicitly Japanese; otherwise prefer English.
-              if ((base === 'jp') && it.nameJp) return it.nameJp;
-              if (base !== 'jp' && it.nameEn) return it.nameEn;
-            }
-            // built-in fallback to translations map
-            const categoryId = it && it.id ? String(it.id).toLowerCase() : it;
-            return getCategoryName(categoryId, locale) || it?.nameJp || it?.nameEn || categoryId;
-          })(item)
+          label: resolveCategoryLabel(item, item.id, locale)
         }
       ])
     );
@@ -445,6 +433,33 @@ export default function App() {
       });
   }, [recurringRows, categories, locale, selectedMonth]);
 
+  const dailyRowsWithCategories = useMemo(() => {
+    const categoryMap = new Map(
+      categories.map((category) => [
+        String(category.id || "").toLowerCase(),
+        category
+      ])
+    );
+
+    return dailyRows.map((row) => {
+      const categoryId = String(
+        row.type === "income"
+          ? "salary"
+          : row.type === "investment"
+            ? "investment"
+            : row.categoryId || "food"
+      ).toLowerCase();
+      const category = categoryMap.get(categoryId);
+      const categoryDisplay = resolveCategoryLabel(category, categoryId, locale);
+
+      return {
+        ...row,
+        categoryDisplay: categoryDisplay || categoryId || "-",
+        categoryIcon: category?.icon || (row.type === "income" ? "💰" : row.type === "investment" ? "📊" : "🍽️")
+      };
+    });
+  }, [dailyRows, categories, locale]);
+
   const dailyTitleSuggestions = useMemo(() => {
     const seen = new Set();
 
@@ -463,18 +478,10 @@ export default function App() {
       if (Number(item.isActive) !== 1) continue;
       const key = String(item.id || "").toLowerCase();
       if (!map.has(key)) {
-        const rawLocale = String(locale || '').toLowerCase();
-        const base = rawLocale.split('-')[0];
-        let label = null;
-        if (base === 'jp' || rawLocale === 'ja') {
-          label = item.nameJp || item.nameEn || getCategoryName(key, locale);
-        } else {
-          label = item.nameEn || getCategoryName(key, locale) || item.nameJp;
-        }
         map.set(key, {
           id: key,
           icon: item.icon,
-          label
+          label: resolveCategoryLabel(item, key, locale)
         });
       }
     }
@@ -912,15 +919,11 @@ export default function App() {
   const editorCategoryOptions = (categories || [])
     .filter((item) => Number(item.isActive) === 1)
     .map((item) => {
-      const rawLocale = String(locale || "").toLowerCase();
-      const baseLocale = rawLocale.split("-")[0];
-      const categoryId = String(item.id || "").toLowerCase();
-      const localizedLabel = getCategoryName(categoryId, locale);
-      const label = baseLocale === "jp" || baseLocale === "ja"
-        ? item.nameJp || localizedLabel || item.nameEn || categoryId
-        : item.nameEn || localizedLabel || item.nameJp || categoryId;
-
-      return { id: item.id, label, icon: item.icon };
+      return {
+        id: item.id,
+        label: resolveCategoryLabel(item, item.id, locale),
+        icon: item.icon
+      };
     });
 
   const filterForRows = {
@@ -1260,7 +1263,7 @@ export default function App() {
           onDeleteCategory={onDeleteCategory}
           onReorderCategories={onReorderCategories}
           onResetCategories={onResetCategories}
-          dailyRows={dailyRows}
+          dailyRows={dailyRowsWithCategories}
           filteredRecurring={filteredRecurring}
           entryFilter={filterForRows}
           dailyTitle={formatMessage(t.dailyListTitle, { month: selectedMonth })}

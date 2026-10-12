@@ -435,7 +435,7 @@ setPendingDeletePopup((current) => (current?.id === id ? null : current));
           </tr>
         </thead>
         <tbody>
-          {dailyRows.map((row) => {
+          {filteredDailyRows.map((row) => {
             const isPendingDelete = pendingDeleteIds.includes(row.id);
             const progress = deleteProgress[row.id] || 0;
             const progressStyle = isPendingDelete ? {
