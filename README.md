@@ -40,21 +40,12 @@ React UI ─────────┤
 The alternatives below are good technologies, but they do not fit HouseLedger's current priorities as well: local data, offline use, and one UI for desktop and Android.
 
 
-### App and UI frameworks
-
-- **Flutter (Dart), React Native, .NET MAUI, Vue, Angular, and Svelte:** Good alternatives, but switching would mean replacing or substantially rebuilding the existing React UI without adding a feature HouseLedger currently needs.
-- **Electron:** Bundles Chromium and Node.js, which would increase the app's size and resource use compared with Tauri.
-
-
-### Backend languages and frameworks
-
-- **Node.js + Express, Python + Django/FastAPI, Java + Spring Boot, C# + ASP.NET Core, Ruby on Rails, PHP + Laravel, and Go/Rust web frameworks:** These can power backend services, but HouseLedger's current features access the local database directly. A separate backend would add another service to install, run, and maintain. Node.js is still used for build scripts and LAN sync.
-
-
-### Cloud services and databases
-
-- **Firebase and Supabase:** Store data in hosted services, which does not match the default of keeping financial data on the user's devices.
-- **MySQL and PostgreSQL:** Require a separate database service; SQLite is simpler for local storage and offline use.
+| Category | Alternatives | Reason |
+|---|---|---|
+| UI | Flutter, React Native, .NET MAUI, Vue, Angular, Svelte | Replacing React would add no needed features. |
+| Desktop | Electron | Bundled Chromium increases app size and resource use. |
+| Backend | Express, Django/FastAPI, Spring Boot, ASP.NET Core, Rails, Laravel, Go/Rust frameworks | The app accesses its local database directly; a backend adds a service to maintain. Node.js remains for build tools and LAN sync. |
+| Cloud and databases | Firebase, Supabase, MySQL, PostgreSQL | Hosted data and separate database services do not fit the local-first, offline design; SQLite needs no separate service. |
 
 
 ## **Features (one-line summary)**
@@ -109,7 +100,7 @@ The data directory contains the following files:
 - Recommendations: enable OS-level disk encryption and use secure backups for extra protection. Encrypted backup/export is planned.
 
 
-## **LAN Sync (how it works)**
+## **LAN Sync (still testing)**
 
 HouseLedger runs a small sync server on the Desktop app while it’s open. Android clients can connect directly to the Desktop server on the local network to exchange data.
 
@@ -131,7 +122,7 @@ Notes:
 - Data is transferred directly between devices; nothing is uploaded to third-party servers.
 
 
-## **Installation (quick per-OS)**
+## **Installation**
 
 - Windows: download the installer (`HouseLedger-Setup-*.exe`) from Releases and run it.
 - macOS: use the provided `.dmg` or build with `npm run build:mac` when available.
@@ -158,7 +149,7 @@ npm run release -- -v 2.0
 The command updates `package.json` and `package-lock.json`, commits them as `release: 2.0`, and pushes `master`. GitHub Actions then creates the matching `v2.0` tag and publishes the Windows installers. Use `--dry-run` to check the release without changing Git.
 
 
-## **Use on Android (Capacitor)**
+## **Use on Android**
 
 1. Install Android Studio (with SDK/Platform Tools).
 2. Install dependencies: `npm install`.
@@ -195,4 +186,4 @@ However, you need to contact the author and developer for commercial use.
 If you find this app useful, please consider supporting its development. 
 Your support helps maintain and improve the app.
 
-Support: <a href="https://github.com/sponsors/KFrost-Sponsor" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; cursor: pointer;">GitHub Sponsors</a>
+<a href="https://www.buymeacoffee.com/kfrost533" target="_blank"><img src="./img/buyMeATea.png" alt="Buy Me a Coffee" style="height: 60px !important;width: 217px !important;" ></a>

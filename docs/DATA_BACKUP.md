@@ -20,9 +20,11 @@ The main files are:
 | `recurring-items.json` | Monthly recurring entries |
 | `categories.json` | User category definitions and ordering |
 
+
 ### Android
 
 The Android build uses Capacitor SQLite. The database is stored in the application's private storage and is not directly accessible as a normal user file. Use CSV export or LAN synchronisation to move data from Android.
+
 
 ## CSV backup
 
@@ -38,6 +40,7 @@ Exported files use the pattern `amm-<scope>-backup-YYYY-MM-DD.csv`.
 
 Keep exported files in a secure location. CSV files are not encrypted and may contain amounts, titles, notes, and category information.
 
+
 ## Restore from CSV
 
 1. Export a fresh backup from the current installation before importing anything.
@@ -48,17 +51,20 @@ Keep exported files in a secure location. CSV files are not encrypted and may co
 
 Do not open and resave the file in a spreadsheet application if possible. Spreadsheet software may change dates, numeric precision, or encoding.
 
+
 ## Direct Desktop backup
 
 For a complete Desktop backup, close HouseLedger first and copy the entire app data directory to a secure location. Copying an open SQLite database can produce an inconsistent backup because SQLite uses WAL journalling.
 
 Restore a direct backup only while HouseLedger is closed. Preserve the directory structure and make a separate copy of the current directory before replacing it.
 
+
 ## LAN synchronisation
 
 LAN synchronisation is a device-to-device transfer mechanism, not a backup replacement. It runs on port `30303` while the Desktop application is open and is intended for devices on the same trusted local network.
 
 Create an independent CSV or Desktop backup before synchronising. A sync mistake or an unwanted overwrite can otherwise affect both devices.
+
 
 ## Security
 

@@ -2,6 +2,7 @@
 
 Releases are created from the `master` branch. Development work should be merged into `master` before running the release command.
 
+
 ## Prerequisites
 
 - Node.js version 22 or newer
@@ -23,6 +24,7 @@ git diff refs/heads/master refs/heads/dev
 git push origin refs/heads/master:refs/heads/master
 ```
 
+
 ## Dry run
 
 Validate the version and release conditions without changing Git or package files:
@@ -32,6 +34,7 @@ npm run release -- -v 1.3 --dry-run
 ```
 
 Release versions use `major.minor`, for example `1.3` or `1.3-beta.1`.
+
 
 ## Create a release
 
@@ -56,6 +59,7 @@ release: 1.3
 
 The release workflow reads the version from the release commit message, which must use the `release: <version>` format. For example, `release: 2.1` creates the `v2.1` tag and publishes version `2.1.0` to Tauri. Other commit messages do not publish a release. If the requested tag already exists, the workflow fails instead of changing the requested version.
 
+
 ## Published installers
 
 GitHub Actions runs tests and builds the Windows x64 and x86 Tauri installers:
@@ -66,6 +70,7 @@ The version in `package.json` is the release version source. `npm run release` s
 | --- | --- | --- |
 | x64 | `nsis` | `HouseLedger-v<major>.<minor>-x64.exe` |
 | x86 | `i686-pc-windows-msvc` | `HouseLedger-v<major>.<minor>-x86.exe` |
+
 
 ## Local build checks
 
@@ -91,6 +96,7 @@ npm run dist:win:all
 ```
 
 The local Tauri build writes installers under `src-tauri/target/`.
+
 
 ## Recovery
 
