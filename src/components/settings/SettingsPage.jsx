@@ -7,6 +7,7 @@ import LanguageVisibilityModal from "./LanguageVisibilityModal.jsx";
 import CurrencyVisibilityModal from "./CurrencyVisibilityModal.jsx";
 import "../../styles/app.css";
 import { open as openExternal } from "@tauri-apps/plugin-shell";
+import buyMeATeaImage from "../../../img/buyMeATea.png";
 
 export default function SettingsPage({
   locale,
@@ -295,6 +296,26 @@ export default function SettingsPage({
           </button>
 
           {renderSyncStatus()}
+
+          <section className="settings-support">
+            <p>
+              <a
+                href="https://www.buymeacoffee.com/kfrost533"
+                onClick={(e) => {
+                  e.preventDefault();
+                  openExternalUrl("https://www.buymeacoffee.com/kfrost533");
+                }}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                <img
+                  src={buyMeATeaImage}
+                  alt="Buy Me a Coffee"
+                  style={{ height: 60, width: 217 }}
+                />
+              </a>
+            </p>
+          </section>
         </article>
 
         {showLanguageVisibilityModal && (
@@ -312,18 +333,6 @@ export default function SettingsPage({
             t={t}
           />
         )}
-        
-        <br />
-
-        If you find this app useful, please consider supporting its development. 
-        <br />
-        Your support helps maintain and improve the app.
-        <p>Support: <a
-          href="https://github.com/sponsors/KFrost-Sponsor"
-          onClick={(e) => { e.preventDefault(); openExternalUrl('https://github.com/sponsors/KFrost-Sponsor'); }}
-          rel="noopener noreferrer"
-          style={{ color: 'inherit', textDecoration: 'underline', cursor: 'pointer' }}
-        >GitHub Sponsors</a></p>
       </section>
     );
   } catch (err) {
